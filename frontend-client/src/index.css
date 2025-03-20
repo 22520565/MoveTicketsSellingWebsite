@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  margin: 0;
+  font-size: 14px;
+}
+
+body {
+  font-family: "Inter-normal";
+}
+
+* {
+  padding: 0;
+  margin: 0;
+}
+
+@font-face {
+  font-family: "Inter-normal";
+  src: url("./assets/font/static/Inter_18pt-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Inter-bold";
+  src: url("./assets/font/static/Inter_18pt-Bold.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Inter-extrabold";
+  src: url("./assets/font/static/Inter_18pt-ExtraBold.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.RulePage {
+  display: flex;
+  justify-content: center;
+  font-size: 20px;
+}
+.RulePage .wrapper {
+  max-width: 1000px;
+  align-self: center;
+  text-justify: auto;
+}
+.RulePage h1 {
+  text-align: center;
+  font-size: xx-large;
+  font-weight: bold;
+  color: #f3ea28;
+}
+.RulePage h2 {
+  text-align: center;
+  font-size: x-large;
+  font-weight: bold;
+  margin: 10px;
+}
+.RulePage br {
+  margin: 10px;
+}

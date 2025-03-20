@@ -1,0 +1,54 @@
+{
+  "showingFilms": [
+    {
+      "_id": "1",
+      "name": "Avengers: Endgame",
+      "thumbnailURL": "https://image.tmdb.org/t/p/w500/q6725aR8Zs4IwGMXzZT8aC8lh41.jpg",
+      "originatedCountry": "USA",
+      "filmDuration": 181,
+      "ageRestriction": "13+",
+      "voice": "Tiếng Anh",
+      "trailerURL": "https://www.youtube.com/watch?v=TcMBFSGVi1c",
+      "twoDthreeD": ["2D", "3D"],
+      "isShowing": true
+    },
+    {
+      "_id": "2",
+      "name": "The Batman",
+      "thumbnailURL": "https://image.tmdb.org/t/p/w500/74xTEgt7R36Fpooo50r9T25onhq.jpg",
+      "originatedCountry": "USA",
+      "filmDuration": 176,
+      "ageRestriction": "16+",
+      "voice": "Tiếng Anh",
+      "trailerURL": "https://www.youtube.com/watch?v=mqqft2x_Aa4",
+      "twoDthreeD": ["2D"],
+      "isShowing": true
+    }
+  ],
+  "upcomingFilms": [
+    {
+      "_id": "3",
+      "name": "Deadpool 3",
+      "thumbnailURL": "https://image.tmdb.org/t/p/w500/deadpool3.jpg",
+      "originatedCountry": "USA",
+      "filmDuration": 120,
+      "ageRestriction": "18+",
+      "voice": "Tiếng Anh",
+      "trailerURL": "https://www.youtube.com/watch?v=dummyurl",
+      "twoDthreeD": ["2D", "IMAX"],
+      "isShowing": false
+    },
+    {
+      "_id": "4",
+      "name": "Spider-Man: Beyond the Spider-Verse",
+      "thumbnailURL": "https://image.tmdb.org/t/p/w500/spiderman.jpg",
+      "originatedCountry": "USA",
+      "filmDuration": 140,
+      "ageRestriction": "13+",
+      "voice": "Tiếng Anh",
+      "trailerURL": "https://www.youtube.com/watch?v=dummyurl2",
+      "twoDthreeD": ["2D", "3D"],
+      "isShowing": false
+    }
+  ]
+}
