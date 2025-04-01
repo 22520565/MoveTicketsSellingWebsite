@@ -2,11 +2,13 @@ package com.movie.main.service;
 
 import org.springframework.stereotype.Service;
 
+import com.movie.main.dto.TheaterDTO;
 import com.movie.main.entity.Theater;
 import com.movie.main.repository.TheaterRepository;
-import com.movie.main.request.TheaterCreationRequest;
-import com.movie.main.request.TheaterUpdateRequest;
+import com.movie.main.service.enumclass.DeletionStatus;
+import com.movie.main.service.enumclass.UpdateStatus;
 
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
@@ -16,86 +18,68 @@ import lombok.extern.slf4j.Slf4j;
 public final class TheaterService {
     private final TheaterRepository repository;
 
-    public TheaterService(final TheaterRepository repository) {
+    protected TheaterService(final TheaterRepository repository) {
         this.repository = repository;
     }
 
     @Nullable
-    public Theater findById(final Integer id) {
-        if ((id == null) || (this.repository == null)) {
-            return null;
-        }
+    public Theater findById(final int id) {
+        return this.repository.findById(id);
+    }
 
+    @Nullable
+    public TheaterDTO findDataById(final int id) {
+        return this.repository.findDataById(id);
+    }
+
+    public Theater create(@Nonnull final TheaterDTO dto) {
         try {
-            return this.repository.findById(id).orElse(null);
+            final var theater = new Theater(dto.name(), dto.address());
+            final var result = this.repository.add(theater);
+
+            return result.getValue();
         } catch (final Exception exception) {
             log.error(null, exception);
             return null;
         }
     }
 
-    public boolean create(final TheaterCreationRequest request) {
-        if ((request == null) || (this.repository == null)) {
-            return false;
-        }
-
-        final var newTheater = Theater.create(request.name(), request.address());
-        if (newTheater == null) {
-            return false;
-        }
-
+    public UpdateStatus update(final int id, @Nonnull final TheaterDTO dto) {
         try {
-            this.repository.save(newTheater);
-        } catch (final Exception exception) {
-            log.error(null, exception);
-            return false;
-        }
-
-        return true;
-    }
-
-    public boolean update(final Integer id, final TheaterUpdateRequest request) {
-        if ((id == null) || (request == null) || (this.repository == null)) {
-            return false;
-        }
-
-        try {
-            final var theater = this.repository.findById(id).orElse(null);
+            final var theater = this.repository.findById(id);
             if (theater == null) {
-                return false;
+                return UpdateStatus.EntityNotExistsError;
             }
 
-            final var newTheaterName = request.name();
-            if ((newTheaterName == null) || theater.setName(newTheaterName)) {
-                return false;
+            theater.setName(dto.name());
+            theater.setAddress(dto.address());
+
+            final var result = this.repository.update(theater);
+            if (result.isSuccess()) {
+                return UpdateStatus.Success;
             }
 
-            final var newTheaterAddress = request.address();
-            if ((newTheaterAddress == null) || theater.setAddress(newTheaterAddress)) {
-                return false;
-            }
-
-            this.repository.save(theater);
+            return switch (result.getError()) {
+                case EntityNotExists -> UpdateStatus.EntityNotExistsError;
+                case Persistence, Unspecified -> UpdateStatus.UnspecifiedError;
+                default -> UpdateStatus.UnspecifiedError;
+            };
         } catch (final Exception exception) {
             log.error(null, exception);
-            return false;
+            return UpdateStatus.UnspecifiedError;
         }
-
-        return true;
     }
 
-    public boolean deleteById(final Integer id) {
-        if ((id == null) || (this.repository == null)) {
-            return false;
-        }
-
+    public DeletionStatus deleteById(final int id) {
         try {
-            this.repository.deleteById(id);
+            return switch (this.repository.deleteById(id)) {
+                case Success -> DeletionStatus.Success;
+                case EntityNotExistsError -> DeletionStatus.EntityNotExistsError;
+                case UnspecifiedError -> DeletionStatus.UnspecifiedError;
+                default -> DeletionStatus.UnspecifiedError;
+            };
         } catch (final Exception exception) {
-            log.error(null, exception);
-            return false;
+            return DeletionStatus.UnspecifiedError;
         }
-
-        return true;
     }
 }

@@ -1,5 +1,7 @@
 package com.movie.main.controller;
 
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,65 +11,69 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.movie.main.entity.Room;
-import com.movie.main.request.RoomCreationRequest;
-import com.movie.main.request.RoomUpdateRequest;
+import com.movie.main.dto.RoomDTO;
 import com.movie.main.service.RoomService;
 
+import jakarta.annotation.Nonnull;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("rooms")
 @Slf4j
-public final class RoomController {
+public class RoomController {
+    @Nonnull
     private final RoomService service;
 
-    public RoomController(final RoomService service) {
+    protected RoomController(@Nonnull final RoomService service) {
         this.service = service;
     }
 
-    @GetMapping("details/{idString}")
-    public Room findById(@PathVariable String idString) {
-        try {
-            final var id = Integer.valueOf(idString);
-            return service.findById(id);
-        } catch (final Exception exception) {
-            log.warn(null, exception);
-            return null;
+    @GetMapping("{id}")
+    public ResponseEntity<RoomDTO> findDataById(@PathVariable final int id) {
+        final var result = this.service.findDataById(id);
+
+        if (result == null) {
+            return ResponseEntity.notFound().build();
         }
+
+        return ResponseEntity.ok(result);
     }
 
-    @PostMapping("create")
-    public boolean create(@RequestBody @Valid final RoomCreationRequest request) {
-        try {
-            return this.service.create(request);
-        } catch (final Exception exception) {
-            log.warn(null, exception);
-            return false;
+    @PostMapping
+    public ResponseEntity<Void> create(@RequestBody @Valid final RoomDTO dto) {
+        final var newRoom = this.service.create(dto);
+
+        if (newRoom == null) {
+            return ResponseEntity.internalServerError().build();
         }
+
+        final var newRoomId = newRoom.getId();
+        final var location = WebMvcLinkBuilder
+                .linkTo(WebMvcLinkBuilder.methodOn(RoomController.class).findDataById(newRoomId))
+                .toUri();
+
+        return ResponseEntity.created(location).build();
     }
 
-    @PutMapping("update/{idString}")
-    public boolean update(@PathVariable String idString, @RequestBody RoomUpdateRequest request) {
-        try {
-            final var id = Integer.valueOf(idString);
-            return this.service.update(id, request);
-        } catch (final Exception exception) {
-            log.warn(null, exception);
-            return false;
-        }
+    @PutMapping("{id}")
+    public ResponseEntity<Void> update(@PathVariable final int id, @RequestBody @Valid final RoomDTO dto) {
+        return switch (this.service.update(id, dto)) {
+            case Success -> ResponseEntity.noContent().build();
+            case EntityNotExistsError -> ResponseEntity.notFound().build();
+            case UnspecifiedError -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
+        };
     }
 
-    @DeleteMapping("delete/{idString}")
-    public boolean deleteById(@PathVariable String idString) {
-        try {
-            final var id = Integer.valueOf(idString);
-            return this.service.deleteById(id);
-        } catch (final Exception exception) {
-            log.warn(null, exception);
-            return false;
-        }
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable final int id) {
+        return switch (this.service.deleteById(id)) {
+            case Success -> ResponseEntity.noContent().build();
+            case EntityNotExistsError -> ResponseEntity.notFound().build();
+            case UnspecifiedError -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
+        };
     }
 
 }

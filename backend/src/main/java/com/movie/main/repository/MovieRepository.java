@@ -1,11 +1,22 @@
 package com.movie.main.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.movie.main.dto.MovieDTO;
 import com.movie.main.entity.Movie;
+import com.movie.main.repository.base.BaseRepository;
+
+import io.micrometer.common.lang.Nullable;
+import jakarta.persistence.EntityManager;
 
 @Repository
-public interface MovieRepository extends JpaRepository<Movie, Integer> {
-    Movie findByName(final String name);
+public class MovieRepository extends BaseRepository<Movie, MovieDTO, Integer> {
+    protected MovieRepository(final EntityManager entityManager) {
+        super(entityManager, Movie.class, MovieDTO.class);
+    }
+
+    @Nullable
+    public Movie findByName(final String name) {
+        return this.findSingleByField(Movie.Fields.name, name);
+    }
 }

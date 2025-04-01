@@ -15,4 +15,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+      naming:
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl
+        physical-strategy: com.movie.main.config.CamelCaseNamingStrategy
     show-sql: true

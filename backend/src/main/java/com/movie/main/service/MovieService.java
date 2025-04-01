@@ -1,92 +1,89 @@
 package com.movie.main.service;
 
-import org.springframework.stereotype.Service;
-
+import com.movie.main.dto.MovieDTO;
 import com.movie.main.entity.Movie;
 import com.movie.main.repository.MovieRepository;
-import com.movie.main.request.MovieCreationRequest;
-import com.movie.main.request.MovieUpdateRequest;
+import com.movie.main.service.enumclass.DeletionStatus;
+import com.movie.main.service.enumclass.UpdateStatus;
+
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Service;
 
 @Service
-public final class MovieService {
+@Slf4j
+public class MovieService {
+    @Nonnull
     private final MovieRepository repository;
 
-    public MovieService(final MovieRepository repository) {
+    protected MovieService(@Nonnull final MovieRepository repository) {
         this.repository = repository;
     }
 
-    public Movie findById(final Integer id) {
-        if ((id == null) || (this.repository == null)) {
-            return null;
-        }
+    @Nullable
+    public Movie findById(final int id) {
+        return this.repository.findById(id);
+    }
 
+    @Nullable
+    public MovieDTO findDataById(final int id) {
+        return this.repository.findDataById(id);
+    }
+
+    @Nullable
+    public Movie create(@Nonnull final MovieDTO dto) {
         try {
-            return this.repository.findById(id).orElse(null);
-        } catch (final Throwable throwable) {
+            final var newMovie = new Movie(dto.name(), dto.description());
+            final var result = this.repository.add(newMovie);
+
+            return result.getValue();
+        } catch (final Exception exception) {
+            log.error(null, exception);
             return null;
         }
     }
 
-    public boolean create(final MovieCreationRequest request) {
-        if ((request == null) || (this.repository == null)) {
-            return false;
-        }
-
+    @Nonnull
+    public UpdateStatus update(final int id, @Nonnull final MovieDTO dto) {
         try {
-            final var newMovie = Movie.create(request.name(), request.description());
-            if (newMovie == null) {
-                return false;
-            }
-
-            this.repository.save(newMovie);
-        } catch (final Throwable throwable) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public boolean update(final Integer id, final MovieUpdateRequest request) {
-        if ((id == null) || (request == null) || (this.repository == null)) {
-            return false;
-        }
-
-        try {
-            final var movie = this.repository.findById(id).orElse(null);
+            final var movie = this.repository.findById(id);
             if (movie == null) {
-                return false;
+                return UpdateStatus.EntityNotExistsError;
             }
 
-            var newMovieName = request.name();
-            if (newMovieName != null) {
-                movie.setName(newMovieName);
+            movie.setName(dto.name());
+            movie.setDescription(dto.description());
+
+            final var result = this.repository.update(movie);
+            if (result.isSuccess()) {
+                return UpdateStatus.Success;
             }
 
-            var newMovieDescription = request.description();
-            if (newMovieDescription != null) {
-                movie.setDescription(newMovieDescription);
-            }
-
-            this.repository.save(movie);
-        } catch (final Throwable throwable) {
-            return false;
+            return switch (result.getError()) {
+                case EntityNotExists -> UpdateStatus.EntityNotExistsError;
+                case Persistence, Unspecified -> UpdateStatus.UnspecifiedError;
+                default -> UpdateStatus.UnspecifiedError;
+            };
+        } catch (final Exception exception) {
+            log.error(null, exception);
+            return UpdateStatus.UnspecifiedError;
         }
-
-        return true;
     }
 
-    public boolean deleteById(final Integer id) {
-        if ((id == null) || (this.repository == null)) {
-            return false;
-        }
-
+    public DeletionStatus deleteById(final int id) {
         try {
-            this.repository.deleteById(id);
-        } catch (final Throwable throwable) {
-            return false;
+            return switch (this.repository.deleteById(id)) {
+                case Success -> DeletionStatus.Success;
+                case EntityNotExistsError -> DeletionStatus.EntityNotExistsError;
+                case UnspecifiedError -> DeletionStatus.UnspecifiedError;
+                default -> DeletionStatus.UnspecifiedError;
+            };
+        } catch (final Exception exception) {
+            return DeletionStatus.UnspecifiedError;
         }
-
-        return true;
     }
 
 }
