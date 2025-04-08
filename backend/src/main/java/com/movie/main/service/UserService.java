@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import com.movie.main.repository.UserRepository;
 
 @Service
-public final class UserService {
+public class UserService {
     private final UserRepository repository;
 
     public UserService(final UserRepository repository) {

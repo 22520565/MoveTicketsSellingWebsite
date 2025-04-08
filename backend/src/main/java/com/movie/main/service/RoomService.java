@@ -10,7 +10,7 @@ import com.movie.main.service.enumclass.UpdateStatus;
 import jakarta.annotation.Nonnull;
 
 @Service
-public final class RoomService extends AbstractService<Room, RoomDTO, Integer> {
+public class RoomService extends AbstractService<Room, RoomDTO, Integer> {
     @Nonnull
     private final RoomRepository repository;
 

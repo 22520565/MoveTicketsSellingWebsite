@@ -33,7 +33,7 @@ public abstract class AbstractController<TEntity extends Identifiable<TKey>, TDt
     protected abstract AbstractService<TEntity, TDto, TKey> getService();
 
     @GetMapping
-    public final ResponseEntity<PagedModel<EntityModel<TDto>>> findAllData(
+    public ResponseEntity<PagedModel<EntityModel<TDto>>> findAllData(
             @RequestParam(defaultValue = DEFAULT_PAGE_NUMBER_STRING) @Min(value = 0) @Valid final int page,
             @RequestParam(defaultValue = DEFAULT_PAGE_SIZE_STRING) @Range(min = 1, max = MAX_PAGE_SIZE) @Valid final int size,
             final PagedResourcesAssembler<TDto> assembler) {
@@ -42,7 +42,7 @@ public abstract class AbstractController<TEntity extends Identifiable<TKey>, TDt
     }
 
     @GetMapping("{id}")
-    public final ResponseEntity<TDto> findDataById(@PathVariable @NotNull @Valid final TKey id) {
+    public ResponseEntity<TDto> findDataById(@PathVariable @NotNull @Valid final TKey id) {
         final var result = this.getService().findDataById(id);
 
         if (result == null) {
@@ -53,7 +53,7 @@ public abstract class AbstractController<TEntity extends Identifiable<TKey>, TDt
     }
 
     @PostMapping
-    public final ResponseEntity<Void> create(@RequestBody @NotNull @Valid final TDto dto) {
+    public ResponseEntity<Void> create(@RequestBody @NotNull @Valid final TDto dto) {
         final var newEntity = this.getService().create(dto);
 
         if (newEntity == null) {
@@ -69,7 +69,7 @@ public abstract class AbstractController<TEntity extends Identifiable<TKey>, TDt
     }
 
     @PutMapping("{id}")
-    public final ResponseEntity<Void> update(@PathVariable @NotNull @Valid final TKey id,
+    public ResponseEntity<Void> update(@PathVariable @NotNull @Valid final TKey id,
             @RequestBody @Valid final TDto dto) {
         return switch (this.getService().update(id, dto)) {
             case Success -> ResponseEntity.noContent().build();
@@ -80,7 +80,7 @@ public abstract class AbstractController<TEntity extends Identifiable<TKey>, TDt
     }
 
     @DeleteMapping("{id}")
-    public final ResponseEntity<Void> deleteById(@PathVariable @NotNull @Valid final TKey id) {
+    public ResponseEntity<Void> deleteById(@PathVariable @NotNull @Valid final TKey id) {
         return switch (this.getService().deleteById(id)) {
             case Success -> ResponseEntity.noContent().build();
             case EntityNotExistsError -> ResponseEntity.notFound().build();

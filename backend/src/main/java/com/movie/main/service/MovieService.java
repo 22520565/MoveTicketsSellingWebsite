@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public final class MovieService extends AbstractService<Movie, MovieDTO, Integer> {
+public class MovieService extends AbstractService<Movie, MovieDTO, Integer> {
     @Nonnull
     private final MovieRepository repository;
 

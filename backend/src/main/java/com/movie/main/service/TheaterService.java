@@ -10,7 +10,7 @@ import jakarta.annotation.Nonnull;
 import org.springframework.stereotype.Service;
 
 @Service
-public final class TheaterService extends AbstractService<Theater, TheaterDTO, Integer> {
+public class TheaterService extends AbstractService<Theater, TheaterDTO, Integer> {
     @Nonnull
     private final TheaterRepository repository;
 
