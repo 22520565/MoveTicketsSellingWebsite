@@ -4,12 +4,11 @@ import org.springframework.stereotype.Repository;
 
 import com.movie.main.dto.RoomDTO;
 import com.movie.main.entity.Room;
-import com.movie.main.repository.base.BaseRepository;
 
 import jakarta.persistence.EntityManager;
 
 @Repository
-public class RoomRepository extends BaseRepository<Room, RoomDTO, Integer> {
+public class RoomRepository extends AbstractRepository<Room, RoomDTO, Integer> {
     protected RoomRepository(final EntityManager entityManager) {
         super(entityManager, Room.class, RoomDTO.class);
     }

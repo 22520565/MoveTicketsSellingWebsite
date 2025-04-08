@@ -19,7 +19,7 @@ import lombok.experimental.FieldNameConstants;
 @Entity
 @Table
 @FieldNameConstants
-public final class Movie {
+public final class Movie implements Identifiable<Integer> {
     public static final int MinLengthName = 1;
     public static final int MaxLengthName = 100;
     public static final int MinLengthDescription = 1;

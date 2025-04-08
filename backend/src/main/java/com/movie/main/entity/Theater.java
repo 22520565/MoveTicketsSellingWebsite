@@ -25,7 +25,7 @@ import lombok.experimental.FieldNameConstants;
 @Entity
 @Table
 @FieldNameConstants
-public final class Theater {
+public final class Theater implements Identifiable<Integer> {
     public static final int MinLengthName = 1;
     public static final int MaxLengthName = 100;
     public static final int MinLengthAddress = 1;

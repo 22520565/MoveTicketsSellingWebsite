@@ -1,5 +1,6 @@
 package com.movie.main.entity;
 
+import java.lang.annotation.Annotation;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import jakarta.annotation.Nullable;
@@ -25,7 +26,7 @@ import lombok.experimental.FieldNameConstants;
 @Entity
 @Table
 @FieldNameConstants
-public final class Room {
+public final class Room implements Identifiable<Integer> {
     public static final int MinLengthName = 1;
     public static final int MaxLengthName = 30;
 

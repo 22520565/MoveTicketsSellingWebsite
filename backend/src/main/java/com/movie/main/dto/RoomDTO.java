@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record RoomDTO(
-        @NotBlank @Size(min = Room.MinLengthName, max = Room.MaxLengthName) String name,
-        int theaterId) {
+                @NotBlank @Size(min = Room.MinLengthName, max = Room.MaxLengthName) String name,
+                int theaterId)
+                implements InterfaceDTO {
 }
