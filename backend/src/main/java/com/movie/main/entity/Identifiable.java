@@ -1,8 +1,8 @@
 package com.movie.main.entity;
 
-import jakarta.annotation.Nonnull;
+import jakarta.validation.constraints.NotNull;
 
 public interface Identifiable<TKey> {
-    @Nonnull
+    @NotNull
     TKey getId();
 }

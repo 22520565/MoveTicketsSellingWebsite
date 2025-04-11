@@ -3,41 +3,38 @@ package com.movie.main.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
-import com.movie.main.dto.InterfaceDTO;
+import com.movie.main.dto.InterfaceDto;
 import com.movie.main.entity.Identifiable;
 import com.movie.main.repository.AbstractRepository;
 import com.movie.main.service.enumclass.DeletionStatus;
 import com.movie.main.service.enumclass.UpdateStatus;
 
 import io.micrometer.common.lang.Nullable;
-import jakarta.annotation.Nonnull;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class AbstractService<TEntity extends Identifiable<TKey>, TDto extends InterfaceDTO, TKey> {
-    @Nonnull
-    protected abstract AbstractRepository<TEntity, TDto, TKey> getRepository();
-
-    @Nonnull
-    public Page<TDto> findAllData(@Nonnull final PageRequest pageRequest) {
+public abstract class AbstractService<TEntity extends Identifiable<TKey>, TDto extends InterfaceDto, TKey> {
+    @NotNull
+    public Page<TDto> findAllData(@NotNull final PageRequest pageRequest) {
         return this.getRepository().findAllData(pageRequest);
     }
 
     @Nullable
-    public TEntity findById(@Nonnull final TKey id) {
+    public TEntity findById(@NotNull final TKey id) {
         return this.getRepository().findById(id);
     }
 
     @Nullable
-    public TDto findDataById(@Nonnull final TKey id) {
+    public TDto findDataById(@NotNull final TKey id) {
         return this.getRepository().findDataById(id);
     }
 
     @Nullable
-    public abstract TEntity create(@Nonnull final TDto dto);
+    public abstract TEntity create(@NotNull final TDto dto);
 
     @Nullable
-    public TEntity create(@Nonnull final TEntity entity) {
+    public TEntity create(@NotNull final TEntity entity) {
         try {
             final var result = this.getRepository().add(entity);
 
@@ -49,10 +46,10 @@ public abstract class AbstractService<TEntity extends Identifiable<TKey>, TDto e
     }
 
     @Nullable
-    public abstract UpdateStatus update(@Nonnull final TKey id, @Nonnull final TDto dto);
+    public abstract UpdateStatus update(@NotNull final TKey id, @NotNull final TDto dto);
 
-    @Nonnull
-    public UpdateStatus update(@Nonnull final TEntity entity) {
+    @NotNull
+    public UpdateStatus update(@NotNull final TEntity entity) {
         try {
             final var result = this.getRepository().update(entity);
             if (result.isSuccess()) {
@@ -70,8 +67,8 @@ public abstract class AbstractService<TEntity extends Identifiable<TKey>, TDto e
         }
     }
 
-    @Nonnull
-    public DeletionStatus deleteById(@Nonnull final TKey id) {
+    @NotNull
+    public DeletionStatus deleteById(@NotNull final TKey id) {
         try {
             return switch (this.getRepository().deleteById(id)) {
                 case Success -> DeletionStatus.Success;
@@ -84,4 +81,7 @@ public abstract class AbstractService<TEntity extends Identifiable<TKey>, TDto e
             return DeletionStatus.UnspecifiedError;
         }
     }
+
+    @NotNull
+    protected abstract AbstractRepository<TEntity, TDto, TKey> getRepository();
 }

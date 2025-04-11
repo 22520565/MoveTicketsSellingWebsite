@@ -1,6 +1,6 @@
 package com.movie.main.controller;
 
-import com.movie.main.dto.InterfaceDTO;
+import com.movie.main.dto.InterfaceDto;
 import com.movie.main.entity.Identifiable;
 import com.movie.main.service.AbstractService;
 
@@ -25,7 +25,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class AbstractController<TEntity extends Identifiable<TKey>, TDto extends InterfaceDTO, TKey> {
+public abstract class AbstractController<TEntity extends Identifiable<TKey>, TDto extends InterfaceDto, TKey> {
     public static final String DEFAULT_PAGE_NUMBER_STRING = "0";
     public static final String DEFAULT_PAGE_SIZE_STRING = "10";
     public static final int MAX_PAGE_SIZE = 100;

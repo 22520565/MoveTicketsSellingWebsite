@@ -11,11 +11,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.ReflectionUtils;
 
-import com.movie.main.dto.InterfaceDTO;
+import com.movie.main.dto.InterfaceDto;
 import com.movie.main.entity.Identifiable;
 import com.movie.main.ulti.Expected;
 
-import jakarta.annotation.Nonnull;
+import jakarta.validation.constraints.NotNull;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityExistsException;
@@ -33,29 +33,145 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class AbstractRepository<TEntity extends Identifiable<TKey>, TDto extends InterfaceDTO, TKey> {
-    @Nonnull
+public abstract class AbstractRepository<TEntity extends Identifiable<TKey>, TDto extends InterfaceDto, TKey> {
+    public enum AddError {
+        EntityExists,
+        Persistence,
+        Unspecified,
+    }
+
+    public enum UpdateError {
+        EntityNotExists,
+        Persistence,
+        Unspecified,
+    }
+
+    public enum DeleteStatus {
+        Success,
+        EntityNotExistsError,
+        PersistenceError,
+        UnspecifiedError,
+    }
+
+    @Nullable
+    protected static <T> Expression<T> getIdExpression(
+            @NotNull final Class<T> entityClass,
+            @NotNull final Root<T> root) {
+        final var idExpressions = Arrays.stream(entityClass.getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(Column.class)
+                        && field.isAnnotationPresent(Id.class))
+                .map(field -> AbstractRepository.getColumnPath(root, field))
+                .toList();
+
+        if (idExpressions.size() != 1) {
+            return null;
+        }
+
+        return idExpressions.getFirst();
+    }
+
+    @NotNull
+    protected static <T> List<Selection<?>> getNonIdSelections(
+            @NotNull final Class<T> entityClass,
+            @NotNull final Root<T> root) {
+        return Arrays.stream(entityClass.getDeclaredFields())
+                .filter(field -> (!field.isAnnotationPresent(Id.class))
+                        && (field.isAnnotationPresent(Column.class)
+                                || field.isAnnotationPresent(JoinColumn.class)))
+                .map((final var field) -> {
+                    if (field.isAnnotationPresent(Column.class)) {
+                        return AbstractRepository.getColumnPath(root, field);
+                    } else {
+                        return AbstractRepository.getJoinColumnPath(root, field);
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    @NotBlank
+    protected static String getColumnName(@NotNull final Field field) {
+        final var column = field.getAnnotation(Column.class);
+
+        if ((column != null) && (!column.name().isBlank())) {
+            return column.name();
+        }
+
+        return field.getName();
+    }
+
+    protected static <T> Path<T> getColumnPath(@NotNull final Root<T> root, @NotNull final Field field) {
+        return root.get(AbstractRepository.getColumnName(field));
+    }
+
+    @NotBlank
+    protected static String getJoinColumnName(@NotNull final Field field) {
+        final var joinColumn = field.getAnnotation(JoinColumn.class);
+
+        if ((joinColumn != null) && (!joinColumn.name().isBlank())) {
+            return joinColumn.name();
+        }
+
+        final var relatedEntity = field.getType();
+        final var idFieldsList = Arrays.stream(relatedEntity.getDeclaredFields())
+                .filter(f -> f.isAnnotationPresent(Id.class))
+                .toList();
+
+        if (idFieldsList.size() != 1) {
+            return null;
+        }
+        final var idField = idFieldsList.getFirst();
+
+        return String.format("%s_%s", field.getName(), idField.getName());
+    }
+
+    @Nullable
+    protected static <T> Path<T> getJoinColumnPath(@NotNull final Root<T> root, @NotNull final Field field) {
+        final var relatedEntity = field.getType();
+
+        final var idFieldsList = Arrays.stream(relatedEntity.getDeclaredFields())
+                .filter(f -> f.isAnnotationPresent(Id.class))
+                .toList();
+
+        if (idFieldsList.size() != 1) {
+            return null;
+        }
+        final var idField = idFieldsList.getFirst();
+
+        return root.get(field.getName()).get(idField.getName());
+    }
+
+    @NotNull
     protected final EntityManager entityManager;
 
-    @Nonnull
+    @NotNull
     protected final Class<TEntity> entityClass;
 
-    @Nonnull
+    @NotNull
     protected final Class<TDto> dtoClass;
 
     protected AbstractRepository(
-            @Nonnull final EntityManager entityManager,
-            @Nonnull final Class<TEntity> entityClass,
-            @Nonnull final Class<TDto> infoDtoClass) {
+            @NotNull final EntityManager entityManager,
+            @NotNull final Class<TEntity> entityClass,
+            @NotNull final Class<TDto> infoDtoClass) {
         this.entityManager = entityManager;
         this.entityClass = entityClass;
         this.dtoClass = infoDtoClass;
     }
 
     @Nullable
-    public TEntity findById(@Nonnull final TKey id) {
+    public TEntity findById(@NotNull final TKey id) {
         try {
             return this.entityManager.find(this.entityClass, id);
+        } catch (final Exception exception) {
+            log.error(null, exception);
+            return null;
+        }
+    }
+
+    public TEntity getRefById(@NotNull final TKey id) {
+        try {
+            final var e = this.entityManager.getReference(this.entityClass, id);
+            return e;
         } catch (final Exception exception) {
             log.error(null, exception);
             return null;
@@ -93,13 +209,13 @@ public abstract class AbstractRepository<TEntity extends Identifiable<TKey>, TDt
         }
     }
 
-    @Nonnull
+    @NotNull
     public List<TEntity> findAllByField(final String fieldName, final Object objectEqualTo) {
         return this.findAllByField(ReflectionUtils.findField(this.entityClass, fieldName), objectEqualTo);
     }
 
-    @Nonnull
-    public List<TEntity> findAllByField(final Field field, @Nonnull final Object objectEqualTo) {
+    @NotNull
+    public List<TEntity> findAllByField(final Field field, @NotNull final Object objectEqualTo) {
         if (field == null) {
             return Collections.emptyList();
         }
@@ -119,8 +235,8 @@ public abstract class AbstractRepository<TEntity extends Identifiable<TKey>, TDt
         }
     }
 
-    @Nonnull
-    public List<TEntity> findAllByField(@Nonnull final Field field, @Nonnull final Object objectEqualTo,
+    @NotNull
+    public List<TEntity> findAllByField(@NotNull final Field field, @NotNull final Object objectEqualTo,
             final int maxAmount) {
         try {
             final var cb = entityManager.getCriteriaBuilder();
@@ -138,7 +254,7 @@ public abstract class AbstractRepository<TEntity extends Identifiable<TKey>, TDt
     }
 
     @Nullable
-    public TDto findDataById(@Nonnull final TKey id) {
+    public TDto findDataById(@NotNull final TKey id) {
         try {
             final var cb = entityManager.getCriteriaBuilder();
             final var query = cb.createQuery(this.dtoClass);
@@ -165,8 +281,8 @@ public abstract class AbstractRepository<TEntity extends Identifiable<TKey>, TDt
         }
     }
 
-    @Nonnull
-    public Page<TDto> findAllData(@Nonnull final Pageable pageable) {
+    @NotNull
+    public Page<TDto> findAllData(@NotNull final Pageable pageable) {
         final var offset = pageable.getOffset();
         if (offset > Integer.MAX_VALUE) {
             log.error("Error while fetching paginated data: Offset is out of range");
@@ -199,14 +315,8 @@ public abstract class AbstractRepository<TEntity extends Identifiable<TKey>, TDt
         }
     }
 
-    public enum AddError {
-        EntityExists,
-        Persistence,
-        Unspecified,
-    }
-
     @Transactional
-    public Expected<TEntity, AddError> add(@Nonnull @Valid final TEntity entity) {
+    public Expected<TEntity, AddError> add(@NotNull @Valid final TEntity entity) {
         try {
             this.entityManager.persist(entity);
             this.entityManager.flush();
@@ -221,14 +331,8 @@ public abstract class AbstractRepository<TEntity extends Identifiable<TKey>, TDt
         }
     }
 
-    public enum UpdateError {
-        EntityNotExists,
-        Persistence,
-        Unspecified,
-    }
-
     @Transactional
-    public Expected<TEntity, UpdateError> update(@Nonnull @Valid final TEntity entity) {
+    public Expected<TEntity, UpdateError> update(@NotNull @Valid final TEntity entity) {
         try {
             return Expected.success(this.entityManager.merge(entity));
         } catch (final IllegalArgumentException exception) {
@@ -241,15 +345,8 @@ public abstract class AbstractRepository<TEntity extends Identifiable<TKey>, TDt
         }
     }
 
-    public enum DeleteStatus {
-        Success,
-        EntityNotExistsError,
-        PersistenceError,
-        UnspecifiedError,
-    }
-
     @Transactional
-    public DeleteStatus deleteById(@Nonnull final TKey id) {
+    public DeleteStatus deleteById(@NotNull final TKey id) {
         try {
             final var cb = entityManager.getCriteriaBuilder();
             final var delete = cb.createCriteriaDelete(this.entityClass);
@@ -270,92 +367,5 @@ public abstract class AbstractRepository<TEntity extends Identifiable<TKey>, TDt
             log.error(null, exception);
             return DeleteStatus.UnspecifiedError;
         }
-    }
-
-    @Nullable
-    protected static <T> Expression<T> getIdExpression(
-            @Nonnull final Class<T> entityClass,
-            @Nonnull final Root<T> root) {
-        final var idExpressions = Arrays.stream(entityClass.getDeclaredFields())
-                .filter(field -> field.isAnnotationPresent(Column.class)
-                        && field.isAnnotationPresent(Id.class))
-                .map(field -> AbstractRepository.getColumnPath(root, field))
-                .toList();
-
-        if (idExpressions.size() != 1) {
-            return null;
-        }
-
-        return idExpressions.getFirst();
-    }
-
-    @Nonnull
-    protected static <T> List<Selection<?>> getNonIdSelections(
-            @Nonnull final Class<T> entityClass,
-            @Nonnull final Root<T> root) {
-        return Arrays.stream(entityClass.getDeclaredFields())
-                .filter(field -> (!field.isAnnotationPresent(Id.class))
-                        && (field.isAnnotationPresent(Column.class)
-                                || field.isAnnotationPresent(JoinColumn.class)))
-                .map((final var field) -> {
-                    if (field.isAnnotationPresent(Column.class)) {
-                        return AbstractRepository.getColumnPath(root, field);
-                    } else {
-                        return AbstractRepository.getJoinColumnPath(root, field);
-                    }
-                })
-                .collect(Collectors.toList());
-    }
-
-    @NotBlank
-    protected static String getColumnName(@Nonnull final Field field) {
-        final var column = field.getAnnotation(Column.class);
-
-        if ((column != null) && (!column.name().isBlank())) {
-            return column.name();
-        }
-
-        return field.getName();
-    }
-
-    protected static <T> Path<T> getColumnPath(@Nonnull final Root<T> root, @Nonnull final Field field) {
-        return root.get(AbstractRepository.getColumnName(field));
-    }
-
-    @NotBlank
-    protected static String getJoinColumnName(@Nonnull final Field field) {
-        final var joinColumn = field.getAnnotation(JoinColumn.class);
-
-        if ((joinColumn != null) && (!joinColumn.name().isBlank())) {
-            return joinColumn.name();
-        }
-
-        final var relatedEntity = field.getType();
-        final var idFieldsList = Arrays.stream(relatedEntity.getDeclaredFields())
-                .filter(f -> f.isAnnotationPresent(Id.class))
-                .toList();
-
-        if (idFieldsList.size() != 1) {
-            return null;
-        }
-        final var idField = idFieldsList.getFirst();
-
-        return String.format("%s_%s", field.getName(), idField.getName());
-    }
-
-    @Nullable
-    protected static <T> Path<T> getJoinColumnPath(@Nonnull final Root<T> root, @Nonnull final Field field) {
-        final var relatedEntity = field.getType();
-
-        final var idFieldsList = Arrays.stream(relatedEntity.getDeclaredFields())
-                .filter(f -> f.isAnnotationPresent(Id.class))
-                .toList();
-
-        if (idFieldsList.size() != 1) {
-            return null;
-        }
-        final var idField = idFieldsList.getFirst();
-
-        return root.get(field.getName()).get(idField.getName());
     }
 }

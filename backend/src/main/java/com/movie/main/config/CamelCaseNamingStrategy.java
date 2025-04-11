@@ -33,16 +33,23 @@ public final class CamelCaseNamingStrategy implements PhysicalNamingStrategy {
     }
 
     private static Identifier formatIdentifier(final Identifier identifier) {
-        if (identifier == null || identifier.getText().isEmpty()) {
+        if (identifier == null) {
             return identifier;
         }
 
-        final var words = identifier.getText().split("_");
+        final var text = identifier.getText();
+        if (text == null || text.isBlank()) {
+            return identifier;
+        }
+
+        final var words = text.split("_");
         final var formattedName = new StringBuilder();
-        for (final String word : words) {
-            if (!word.isEmpty()) {
+        formattedName.ensureCapacity((text.length() - words.length) + 1);
+
+        for (final var word : words) {
+            if (!word.isBlank()) {
                 formattedName.append(Character.toUpperCase(word.charAt(0)))
-                        .append(word.substring(1).toLowerCase(Locale.ROOT));
+                        .append(word.substring(1));
             }
         }
 
