@@ -2,7 +2,7 @@ package com.movie.main.entity;
 
 import java.sql.Date;
 
-import com.movie.main.dto.FilmDto;
+import com.movie.main.dto.FilmRequestDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,7 +37,7 @@ public final class Film implements Identifiable<Integer> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.NONE)
-    private final Integer id = null;
+    private Integer id = null;
 
     @Column(length = MaxLengthName, nullable = false, unique = true)
     @NotBlank
@@ -60,7 +60,7 @@ public final class Film implements Identifiable<Integer> {
     @Column(nullable = false)
     @NotNull
     @Min(1)
-    private Integer duration = null;
+    private int duration = 0;
 
     @Column(nullable = false)
     @NotBlank
@@ -93,22 +93,28 @@ public final class Film implements Identifiable<Integer> {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public Film(@NotNull final FilmDto dto, @NotNull final Tag tag) {
-        this.updateFromDto(dto, tag);
-    }
-
-    public void updateFromDto(@NotNull final FilmDto dto, @NotNull final Tag tag) {
-        this.name = dto.name();
-        this.thumbnailUrl = dto.thumbnailUrl();
-        this.trailerUrl = dto.trailerUrl();
+    public Film(
+            final String name,
+            final String thumbnailUrl,
+            final String trailerUrl,
+            final Tag tag,
+            final int duration,
+            final String ageRestriction,
+            final String voice,
+            final String originatedCountry,
+            final boolean is3D,
+            final String content,
+            final Date beginDate) {
+        this.name = name;
+        this.thumbnailUrl = thumbnailUrl;
+        this.trailerUrl = trailerUrl;
         this.tag = tag;
-        this.duration = dto.duration();
-        this.ageRestriction = dto.ageRestriction();
-        this.voice = dto.voice();
-        this.originatedCountry = dto.originatedCountry();
-        this.is3D = dto.is3D();
-        this.description = dto.description();
-        this.content = dto.content();
-        this.beginDate = dto.beginDate();
+        this.duration = duration;
+        this.ageRestriction = ageRestriction;
+        this.voice = voice;
+        this.originatedCountry = originatedCountry;
+        this.is3D = is3D;
+        this.content = content;
+        this.beginDate = new Date(beginDate.getTime());
     }
 }

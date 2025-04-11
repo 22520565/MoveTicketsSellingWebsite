@@ -1,10 +1,9 @@
 package com.movie.main.entity;
 
-import com.movie.main.dto.RoomDto;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -72,7 +71,7 @@ public final class Room implements Identifiable<Integer> {
     @NotBlank
     private String note = null;
 
-    @ManyToOne(cascade = CascadeType.ALL, optional = false)
+    @ManyToOne(cascade = CascadeType.ALL, optional = false, fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
     @NotNull
     private Theater theater = null;
@@ -80,19 +79,24 @@ public final class Room implements Identifiable<Integer> {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public Room(@NotNull RoomDto dto, @NotNull Theater theater) {
-        this.updateFromDto(dto, theater);
-    }
-
-    public void updateFromDto(@NotNull RoomDto dto, @NotNull Theater theater) {
-        this.name = dto.name();
-        this.numberOfSeatRow = dto.numberOfSeatRow();
-        this.numberOfSeatColumn = dto.numberOfSeatColumn();
-        this.centerX1 = dto.centerX1();
-        this.centerX2 = dto.centerX2();
-        this.centerY1 = dto.centerY1();
-        this.centerY2 = dto.centerY2();
-        this.note = dto.note();
+    public Room(
+            final String name,
+            final int numberOfSeatRow,
+            final int numberOfSeatColumn,
+            final int centerX1,
+            final int centerX2,
+            final int centerY1,
+            final int centerY2,
+            final String note,
+            final Theater theater) {
+        this.name = name;
+        this.numberOfSeatRow = numberOfSeatRow;
+        this.numberOfSeatColumn = numberOfSeatColumn;
+        this.centerX1 = centerX1;
+        this.centerX2 = centerX2;
+        this.centerY1 = centerY1;
+        this.centerY2 = centerY2;
+        this.note = note;
         this.theater = theater;
     }
 }

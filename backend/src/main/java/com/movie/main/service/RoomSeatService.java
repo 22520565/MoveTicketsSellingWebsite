@@ -2,16 +2,15 @@ package com.movie.main.service;
 
 import org.springframework.stereotype.Service;
 
-import com.movie.main.dto.RoomSeatDto;
-import com.movie.main.entity.Room;
+import com.movie.main.dto.RoomSeatRequestDto;
 import com.movie.main.entity.RoomSeat;
 import com.movie.main.repository.RoomSeatRepository;
-import com.movie.main.service.enumclass.UpdateStatus;
+import com.movie.main.ulti.Expected;
 
 import jakarta.validation.constraints.NotNull;
 
 @Service
-public class RoomSeatService extends AbstractService<RoomSeat, RoomSeatDto, Integer> {
+public class RoomSeatService extends AbstractService<RoomSeatRequestDto, RoomSeat, Integer> {
     @NotNull
     private final RoomSeatRepository repository;
 
@@ -24,33 +23,42 @@ public class RoomSeatService extends AbstractService<RoomSeat, RoomSeatDto, Inte
     }
 
     @Override
-    public RoomSeat create(@NotNull final RoomSeatDto dto) {
-        final var room = this.roomService.findById(dto.roomId());
+    public RoomSeat create(@NotNull final RoomSeatRequestDto requestDto) {
+        final var room = this.roomService.findById(requestDto.roomId());
         if (room == null) {
             return null;
         }
 
-        final var newSeatRoom = new RoomSeat(dto, room);
-        return this.create(newSeatRoom);
+        final var newRoomSeat = new RoomSeat(requestDto.name(), requestDto.type(), room);
+
+        return this.save(newRoomSeat);
     }
 
     @Override
-    public UpdateStatus update(@NotNull final Integer id, @NotNull final RoomSeatDto dto) {
-        final var roomSeat = this.findById(id);
+    public Expected<RoomSeat, UpdateError> update(@NotNull final Integer id, @NotNull final RoomSeatRequestDto dto) {
+        var roomSeat = this.findById(id);
         if (roomSeat == null) {
-            return UpdateStatus.EntityNotExistsError;
+            return Expected.failure(UpdateError.EntityNotExists);
         }
 
         var room = roomSeat.getRoom();
         if (room.getId() != dto.roomId()) {
             room = this.roomService.findById(dto.roomId());
             if (room == null) {
-                return UpdateStatus.EntityNotExistsError;
+                return Expected.failure(UpdateError.EntityNotExists);
             }
         }
 
-        roomSeat.updateFromDto(dto, room);
-        return this.update(roomSeat);
+        roomSeat.setName(dto.name());
+        roomSeat.setType(dto.type());
+        roomSeat.setRoom(room);
+
+        roomSeat = this.save(roomSeat);
+        if (roomSeat == null) {
+            return Expected.failure(UpdateError.Unspecified);
+        }
+
+        return Expected.success(roomSeat);
     }
 
     @Override

@@ -1,13 +1,16 @@
 package com.movie.main.entity;
 
+import java.sql.Date;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import lombok.experimental.FieldNameConstants;
@@ -16,7 +19,8 @@ import lombok.experimental.FieldNameConstants;
 @Table
 @FieldNameConstants
 public final class User {
-    public static final String DefaultUsername = "DefaultUsername";
+    public static final int MinLengthName = 1;
+    public static final int MaxLengthName = 50;
     public static final int MinLengthUsername = 1;
     public static final int MaxLengthUsername = 30;
     public static final int MinLengthPhoneNumber = 1;
@@ -27,65 +31,36 @@ public final class User {
     @Column(nullable = false, unique = true, updatable = false)
     private Integer id = 0;
 
-    @Column(length = MaxLengthUsername, nullable = false, unique = true)
+    @Column(length = MaxLengthName, nullable = false, unique = true)
     @NotBlank
-    @Size(min = MinLengthUsername, max = MaxLengthUsername)
-    private String username = DefaultUsername;
+    @Size(min = MinLengthName, max = MaxLengthName)
+    private String name = null;
+
+    @Column(nullable = false)
+    @NotNull
+    private Date birthDate = null;
+
+    @Column(nullable = false)
+    @NotBlank
+    @Email
+    private String email = null;
 
     @Column(length = MaxLengthPhoneNumber)
     @Size(min = MinLengthPhoneNumber, max = MaxLengthPhoneNumber)
     private String phoneNumber = null;
 
-    public User(final int id, final String username, final String phoneNumber) {
-        this.id = id;
+    @Column(length = MaxLengthUsername, nullable = false, unique = true)
+    @NotBlank
+    @Size(min = MinLengthUsername, max = MaxLengthUsername)
+    private String username = null;
 
-        if ((username != null) && (!username.isBlank())) {
-            this.username = username;
-        } else {
-            this.username = DefaultUsername;
-        }
+    @Column(nullable = false)
+    @NotBlank
+    private String hashedPassword = null;
 
-        this.phoneNumber = phoneNumber;
-    }
+    @Column(nullable = false)
+    private boolean blocked = false;
 
-    public Integer getId() {
-        return this.id;
-    }
-
-    public String getUsername() {
-        return this.username;
-    }
-
-    public boolean setUsername(final String newUsername) {
-        if ((newUsername == null) || (newUsername.isBlank())) {
-            return false;
-        }
-
-        final var usernameLength = newUsername.length();
-        if ((usernameLength < MaxLengthUsername) || (usernameLength > MaxLengthUsername)) {
-            return false;
-        }
-
-        this.username = newUsername;
-        return true;
-    }
-
-    public String getPhoneNumber() {
-        return this.phoneNumber;
-    }
-
-    public boolean setPhoneNumber(final String newPhoneNumber) {
-        if ((newPhoneNumber == null) || (newPhoneNumber.isBlank())) {
-            this.phoneNumber = null;
-            return true;
-        }
-
-        final var phoneNumberLength = newPhoneNumber.length();
-        if ((phoneNumberLength < MinLengthPhoneNumber) || (phoneNumberLength > MaxLengthPhoneNumber)) {
-            return false;
-        }
-
-        this.phoneNumber = newPhoneNumber;
-        return true;
-    }
+    @Column(nullable = false)
+    private boolean deleted = false;
 }

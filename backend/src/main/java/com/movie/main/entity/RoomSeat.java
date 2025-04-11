@@ -1,6 +1,6 @@
 package com.movie.main.entity;
 
-import com.movie.main.dto.RoomSeatDto;
+import com.movie.main.dto.RoomSeatRequestDto;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -35,7 +35,7 @@ public final class RoomSeat implements Identifiable<Integer> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.NONE)
-    private final Integer id = null;
+    private Integer id = null;
 
     @Column(length = MaxLengthName, nullable = false)
     @NotBlank
@@ -52,13 +52,9 @@ public final class RoomSeat implements Identifiable<Integer> {
     @NotNull
     private Room room = null;
 
-    public RoomSeat(@NotNull final RoomSeatDto dto, @NotNull final Room room) {
-        this.updateFromDto(dto, room);
-    }
-
-    public void updateFromDto(@NotNull final RoomSeatDto dto, @NotNull final Room room) {
-        this.name = dto.name();
-        this.type = dto.type();
+    public RoomSeat(final String name, final String type, final Room room) {
+        this.name = name;
+        this.type = type;
         this.room = room;
     }
 }

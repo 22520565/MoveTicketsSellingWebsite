@@ -25,25 +25,25 @@ import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class AbstractController<TEntity extends Identifiable<TKey>, TDto extends InterfaceDto, TKey> {
+public abstract class AbstractController<TRequestDto, TEntity extends Identifiable<TKey>, TKey> {
     public static final String DEFAULT_PAGE_NUMBER_STRING = "0";
     public static final String DEFAULT_PAGE_SIZE_STRING = "10";
     public static final int MAX_PAGE_SIZE = 100;
 
-    protected abstract AbstractService<TEntity, TDto, TKey> getService();
+    protected abstract AbstractService<TRequestDto, TEntity, TKey> getService();
 
     @GetMapping
-    public ResponseEntity<PagedModel<EntityModel<TDto>>> findAllData(
+    public ResponseEntity<PagedModel<EntityModel<TEntity>>> findAllData(
             @RequestParam(defaultValue = DEFAULT_PAGE_NUMBER_STRING) @Min(value = 0) @Valid final int page,
             @RequestParam(defaultValue = DEFAULT_PAGE_SIZE_STRING) @Range(min = 1, max = MAX_PAGE_SIZE) @Valid final int size,
-            final PagedResourcesAssembler<TDto> assembler) {
-        final var movies = this.getService().findAllData(PageRequest.of(page, size));
+            final PagedResourcesAssembler<TEntity> assembler) {
+        final var movies = this.getService().findAll(PageRequest.of(page, size));
         return ResponseEntity.ok(assembler.toModel(movies));
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<TDto> findDataById(@PathVariable @NotNull @Valid final TKey id) {
-        final var result = this.getService().findDataById(id);
+    public ResponseEntity<TEntity> findById(@PathVariable @NotNull @Valid final TKey id) {
+        final var result = this.getService().findById(id);
 
         if (result == null) {
             return ResponseEntity.notFound().build();
@@ -53,8 +53,8 @@ public abstract class AbstractController<TEntity extends Identifiable<TKey>, TDt
     }
 
     @PostMapping
-    public ResponseEntity<Void> create(@RequestBody @NotNull @Valid final TDto dto) {
-        final var newEntity = this.getService().create(dto);
+    public ResponseEntity<Void> create(@RequestBody @NotNull @Valid final TRequestDto requestDto) {
+        final var newEntity = this.getService().create(requestDto);
 
         if (newEntity == null) {
             return ResponseEntity.internalServerError().build();
@@ -62,19 +62,25 @@ public abstract class AbstractController<TEntity extends Identifiable<TKey>, TDt
 
         final var newEntityId = newEntity.getId();
         final var location = WebMvcLinkBuilder
-                .linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).findDataById(newEntityId))
+                .linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).findById(newEntityId))
                 .toUri();
 
         return ResponseEntity.created(location).build();
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<Void> update(@PathVariable @NotNull @Valid final TKey id,
-            @RequestBody @Valid final TDto dto) {
-        return switch (this.getService().update(id, dto)) {
-            case Success -> ResponseEntity.noContent().build();
-            case EntityNotExistsError -> ResponseEntity.notFound().build();
-            case UnspecifiedError -> ResponseEntity.internalServerError().build();
+    public ResponseEntity<TEntity> update(@PathVariable @NotNull @Valid final TKey id,
+            @RequestBody @Valid final TRequestDto requestDto) {
+        final var result = this.getService().update(id, requestDto);
+
+        final var newEntity = result.getValue();
+        if (newEntity != null) {
+            return ResponseEntity.ok(newEntity);
+        }
+
+        return switch (result.getError()) {
+            case EntityNotExists -> ResponseEntity.notFound().build();
+            case Unspecified -> ResponseEntity.internalServerError().build();
             default -> ResponseEntity.internalServerError().build();
         };
     }

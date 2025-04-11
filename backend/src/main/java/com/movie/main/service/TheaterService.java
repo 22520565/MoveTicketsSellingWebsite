@@ -1,16 +1,16 @@
 package com.movie.main.service;
 
-import com.movie.main.dto.TheaterDto;
+import com.movie.main.dto.TheaterRequestDto;
 import com.movie.main.entity.Theater;
 import com.movie.main.repository.TheaterRepository;
-import com.movie.main.service.enumclass.UpdateStatus;
+import com.movie.main.ulti.Expected;
 
 import jakarta.validation.constraints.NotNull;
 
 import org.springframework.stereotype.Service;
 
 @Service
-public class TheaterService extends AbstractService<Theater, TheaterDto, Integer> {
+public class TheaterService extends AbstractService<TheaterRequestDto, Theater, Integer> {
     @NotNull
     private final TheaterRepository repository;
 
@@ -19,22 +19,31 @@ public class TheaterService extends AbstractService<Theater, TheaterDto, Integer
     }
 
     @Override
-    public Theater create(@NotNull final TheaterDto dto) {
-        final var theater = new Theater(dto.name(), dto.address());
-        return this.create(theater);
+    public Theater create(@NotNull final TheaterRequestDto requestDto) {
+        final var theater = new Theater(
+                requestDto.name(),
+                requestDto.address());
+
+        return this.save(theater);
     }
 
     @Override
-    public UpdateStatus update(@NotNull final Integer id, @NotNull final TheaterDto dto) {
-        final var theater = this.repository.findById(id);
+    public Expected<Theater, UpdateError> update(@NotNull final Integer id,
+            @NotNull final TheaterRequestDto requestDto) {
+        var theater = this.findById(id);
         if (theater == null) {
-            return UpdateStatus.EntityNotExistsError;
+            return Expected.failure(UpdateError.EntityNotExists);
         }
 
-        theater.setName(dto.name());
-        theater.setAddress(dto.address());
+        theater.setName(requestDto.name());
+        theater.setAddress(requestDto.address());
 
-        return this.update(theater);
+        theater = this.save(theater);
+        if (theater == null) {
+            return Expected.failure(UpdateError.Unspecified);
+        }
+
+        return Expected.success(theater);
     }
 
     @Override

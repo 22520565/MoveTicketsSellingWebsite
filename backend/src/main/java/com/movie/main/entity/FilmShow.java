@@ -2,7 +2,7 @@ package com.movie.main.entity;
 
 import java.time.LocalDateTime;
 
-import com.movie.main.dto.FilmShowDto;
+import com.movie.main.dto.FilmShowRequestDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,7 +30,7 @@ public final class FilmShow implements Identifiable<Integer> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.NONE)
-    private final Integer id = null;
+    private Integer id = null;
 
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
@@ -53,19 +53,14 @@ public final class FilmShow implements Identifiable<Integer> {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public FilmShow(@NotNull final FilmShowDto dto,
-            @NotNull final Film film,
-            @NotNull final RoomSeat roomSeat) {
-        this.updateFromDto(dto, film, roomSeat);
-    }
-
-    public void updateFromDto(
-            @NotNull final FilmShowDto dto,
-            @NotNull final Film film,
-            @NotNull final RoomSeat roomSeat) {
+    public FilmShow(
+            final Film film,
+            final RoomSeat roomSeat,
+            final LocalDateTime showTime,
+            final String type) {
         this.film = film;
         this.roomSeat = roomSeat;
-        this.showTime = dto.showTime();
-        this.type = dto.type();
+        this.showTime = showTime;
+        this.type = type;
     }
 }

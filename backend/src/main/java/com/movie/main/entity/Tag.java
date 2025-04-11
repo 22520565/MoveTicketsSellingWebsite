@@ -1,6 +1,6 @@
 package com.movie.main.entity;
 
-import com.movie.main.dto.TagDto;
+import com.movie.main.dto.TagRequestDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,7 +9,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -30,19 +29,14 @@ public final class Tag implements Identifiable<Integer> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.NONE)
-    private final Integer id = null;
+    private Integer id = null;
 
     @Column(length = MaxLengthName, nullable = false, unique = true)
     @NotBlank
     @Size(min = MinLengthName, max = MaxLengthName)
     private String name = null;
 
-    public Tag(final TagDto dto) {
-        this.updateFromDto(dto);
+    public Tag(final String name) {
+        this.name = name;
     }
-
-    public void updateFromDto(@NotNull final TagDto dto) {
-        this.name = dto.name();
-    }
-
 }

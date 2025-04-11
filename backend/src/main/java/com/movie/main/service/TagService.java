@@ -2,15 +2,15 @@ package com.movie.main.service;
 
 import org.springframework.stereotype.Service;
 
-import com.movie.main.dto.TagDto;
+import com.movie.main.dto.TagRequestDto;
 import com.movie.main.entity.Tag;
 import com.movie.main.repository.TagRepository;
-import com.movie.main.service.enumclass.UpdateStatus;
+import com.movie.main.ulti.Expected;
 
 import jakarta.validation.constraints.NotNull;
 
 @Service
-public class TagService extends AbstractService<Tag, TagDto, Integer> {
+public class TagService extends AbstractService<TagRequestDto, Tag, Integer> {
     @NotNull
     private final TagRepository repository;
 
@@ -19,20 +19,26 @@ public class TagService extends AbstractService<Tag, TagDto, Integer> {
     }
 
     @Override
-    public Tag create(@NotNull final TagDto dto) {
-        final var newTag = new Tag(dto);
-        return this.create(newTag);
+    public Tag create(@NotNull final TagRequestDto requestDto) {
+        final var newTag = new Tag(requestDto.name());
+        return this.save(newTag);
     }
 
     @Override
-    public UpdateStatus update(@NotNull final Integer id, @NotNull final TagDto dto) {
-        final var tag = this.repository.findById(id);
+    public Expected<Tag, UpdateError> update(@NotNull final Integer id, @NotNull final TagRequestDto requestDto) {
+        var tag = this.findById(id);
         if (tag == null) {
-            return UpdateStatus.EntityNotExistsError;
+            return Expected.failure(UpdateError.EntityNotExists);
         }
 
-        tag.updateFromDto(dto);
-        return this.update(tag);
+        tag.setName(requestDto.name());
+
+        tag = this.save(tag);
+        if (tag == null) {
+            return Expected.failure(UpdateError.EntityNotExists);
+        }
+
+        return Expected.success(tag);
     }
 
     @Override

@@ -1,9 +1,9 @@
 package com.movie.main.service;
 
-import com.movie.main.dto.FilmDto;
+import com.movie.main.dto.FilmRequestDto;
 import com.movie.main.entity.Film;
 import com.movie.main.repository.FilmRepository;
-import com.movie.main.service.enumclass.UpdateStatus;
+import com.movie.main.ulti.Expected;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class FilmService extends AbstractService<Film, FilmDto, Integer> {
+public class FilmService extends AbstractService<FilmRequestDto, Film, Integer> {
     @NotNull
     private final FilmRepository repository;
 
@@ -26,33 +26,61 @@ public class FilmService extends AbstractService<Film, FilmDto, Integer> {
     }
 
     @Override
-    public Film create(@NotNull final FilmDto dto) {
-        final var tag = this.tagService.getRepository().findById(dto.tagId());
+    public Film create(@NotNull final FilmRequestDto requestDto) {
+        final var tag = this.tagService.findById(requestDto.tagId());
         if (tag == null) {
             return null;
         }
 
-        final var newMovie = new Film(dto, tag);
-        return this.create(newMovie);
+        final var newFilm = new Film(
+                requestDto.name(),
+                requestDto.thumbnailUrl(),
+                requestDto.trailerUrl(),
+                tag,
+                requestDto.duration(),
+                requestDto.ageRestriction(),
+                requestDto.voice(),
+                requestDto.originatedCountry(),
+                requestDto.is3D(),
+                requestDto.content(),
+                requestDto.beginDate());
+
+        return this.save(newFilm);
     }
 
     @Override
-    public UpdateStatus update(@NotNull final Integer id, @NotNull final FilmDto dto) {
-        final var movie = this.repository.findById(id);
-        if (movie == null) {
-            return UpdateStatus.EntityNotExistsError;
+    public Expected<Film, UpdateError> update(@NotNull final Integer id, @NotNull final FilmRequestDto requestDto) {
+        var film = this.findById(id);
+        if (film == null) {
+            return Expected.failure(UpdateError.EntityNotExists);
         }
 
-        var tag = movie.getTag();
-        if (tag.getId() != dto.tagId()) {
-            tag = this.tagService.getRepository().findById(dto.tagId());
+        var tag = film.getTag();
+        if (tag.getId() != requestDto.tagId()) {
+            tag = this.tagService.findById(requestDto.tagId());
             if (tag == null) {
-                return UpdateStatus.EntityNotExistsError;
+                return Expected.failure(UpdateError.EntityNotExists);
             }
         }
 
-        movie.updateFromDto(dto, tag);
-        return this.update(movie);
+        film.setName(requestDto.name());
+        film.setThumbnailUrl(requestDto.thumbnailUrl());
+        film.setTrailerUrl(requestDto.trailerUrl());
+        film.setTag(tag);
+        film.setDuration(requestDto.duration());
+        film.setAgeRestriction(requestDto.ageRestriction());
+        film.setVoice(requestDto.voice());
+        film.setOriginatedCountry(requestDto.originatedCountry());
+        film.set3D(requestDto.is3D());
+        film.setContent(requestDto.content());
+        film.setBeginDate(requestDto.beginDate());
+
+        film = this.save(film);
+        if (film == null) {
+            return Expected.failure(UpdateError.Unspecified);
+        }
+
+        return Expected.success(film);
     }
 
     @Override
