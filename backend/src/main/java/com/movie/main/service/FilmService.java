@@ -1,19 +1,16 @@
 package com.movie.main.service;
 
-import com.movie.main.dto.FilmRequestDto;
+import com.movie.main.dto.request.FilmRequestDto;
+import com.movie.main.dto.response.FilmResponseDto;
 import com.movie.main.entity.Film;
 import com.movie.main.repository.FilmRepository;
-import com.movie.main.ulti.Expected;
 
 import jakarta.validation.constraints.NotNull;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
-public class FilmService extends AbstractService<FilmRequestDto, Film, Integer> {
+public class FilmService extends AbstractService<FilmRequestDto, FilmResponseDto, Film, Integer> {
     @NotNull
     private final FilmRepository repository;
 
@@ -26,13 +23,31 @@ public class FilmService extends AbstractService<FilmRequestDto, Film, Integer> 
     }
 
     @Override
-    public Film create(@NotNull final FilmRequestDto requestDto) {
-        final var tag = this.tagService.findById(requestDto.tagId());
+    protected FilmResponseDto createResponseDtoFromEntity(@NotNull final Film entity) {
+        return new FilmResponseDto(
+                entity.getId(),
+                entity.getName(),
+                entity.getThumbnailUrl(),
+                entity.getTrailerUrl(),
+                entity.getTag().getId(),
+                entity.getDuration(),
+                entity.getAgeRestriction(),
+                entity.getVoice(),
+                entity.getOriginatedCountry(),
+                entity.is3D(),
+                entity.getDescription(),
+                entity.getContent(),
+                entity.getBeginDate());
+    }
+
+    @Override
+    protected Film createEntityFromRequestDto(@NotNull final FilmRequestDto requestDto) {
+        final var tag = this.tagService.findEntityById(requestDto.tagId());
         if (tag == null) {
             return null;
         }
 
-        final var newFilm = new Film(
+        return new Film(
                 requestDto.name(),
                 requestDto.thumbnailUrl(),
                 requestDto.trailerUrl(),
@@ -44,43 +59,33 @@ public class FilmService extends AbstractService<FilmRequestDto, Film, Integer> 
                 requestDto.is3D(),
                 requestDto.content(),
                 requestDto.beginDate());
-
-        return this.save(newFilm);
     }
 
     @Override
-    public Expected<Film, UpdateError> update(@NotNull final Integer id, @NotNull final FilmRequestDto requestDto) {
-        var film = this.findById(id);
-        if (film == null) {
-            return Expected.failure(UpdateError.EntityNotExists);
-        }
-
-        var tag = film.getTag();
+    protected Film updateEntityFromRequestDto(
+            @NotNull final Film entity,
+            @NotNull final FilmRequestDto requestDto) {
+        var tag = entity.getTag();
         if (tag.getId() != requestDto.tagId()) {
-            tag = this.tagService.findById(requestDto.tagId());
+            tag = this.tagService.findEntityById(requestDto.tagId());
             if (tag == null) {
-                return Expected.failure(UpdateError.EntityNotExists);
+                return null;
             }
         }
 
-        film.setName(requestDto.name());
-        film.setThumbnailUrl(requestDto.thumbnailUrl());
-        film.setTrailerUrl(requestDto.trailerUrl());
-        film.setTag(tag);
-        film.setDuration(requestDto.duration());
-        film.setAgeRestriction(requestDto.ageRestriction());
-        film.setVoice(requestDto.voice());
-        film.setOriginatedCountry(requestDto.originatedCountry());
-        film.set3D(requestDto.is3D());
-        film.setContent(requestDto.content());
-        film.setBeginDate(requestDto.beginDate());
+        entity.setName(requestDto.name());
+        entity.setThumbnailUrl(requestDto.thumbnailUrl());
+        entity.setTrailerUrl(requestDto.trailerUrl());
+        entity.setTag(tag);
+        entity.setDuration(requestDto.duration());
+        entity.setAgeRestriction(requestDto.ageRestriction());
+        entity.setVoice(requestDto.voice());
+        entity.setOriginatedCountry(requestDto.originatedCountry());
+        entity.set3D(requestDto.is3D());
+        entity.setContent(requestDto.content());
+        entity.setBeginDate(requestDto.beginDate());
 
-        film = this.save(film);
-        if (film == null) {
-            return Expected.failure(UpdateError.Unspecified);
-        }
-
-        return Expected.success(film);
+        return entity;
     }
 
     @Override

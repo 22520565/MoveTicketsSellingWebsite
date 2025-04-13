@@ -3,7 +3,8 @@ package com.movie.main.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.movie.main.dto.TagRequestDto;
+import com.movie.main.dto.request.TagRequestDto;
+import com.movie.main.dto.response.TagResponseDto;
 import com.movie.main.entity.Tag;
 import com.movie.main.service.TagService;
 
@@ -11,7 +12,7 @@ import jakarta.validation.constraints.NotNull;
 
 @RestController
 @RequestMapping("tags")
-public class TagController extends AbstractController<TagRequestDto, Tag, Integer> {
+public class TagController extends AbstractController<TagRequestDto, TagResponseDto, Tag, Integer> {
     @NotNull
     private TagService service;
 

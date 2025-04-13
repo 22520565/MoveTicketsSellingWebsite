@@ -34,29 +34,29 @@ public final class User {
     @Column(length = MaxLengthName, nullable = false, unique = true)
     @NotBlank
     @Size(min = MinLengthName, max = MaxLengthName)
-    private String name = null;
+    private String name = "";
 
     @Column(nullable = false)
     @NotNull
-    private Date birthDate = null;
+    private Date birthDate = new Date(0);
 
     @Column(nullable = false)
     @NotBlank
     @Email
-    private String email = null;
+    private String email = "";
 
     @Column(length = MaxLengthPhoneNumber)
     @Size(min = MinLengthPhoneNumber, max = MaxLengthPhoneNumber)
-    private String phoneNumber = null;
+    private String phoneNumber = "";
 
     @Column(length = MaxLengthUsername, nullable = false, unique = true)
     @NotBlank
     @Size(min = MinLengthUsername, max = MaxLengthUsername)
-    private String username = null;
+    private String username = "";
 
     @Column(nullable = false)
     @NotBlank
-    private String hashedPassword = null;
+    private String hashedPassword = "";
 
     @Column(nullable = false)
     private boolean blocked = false;

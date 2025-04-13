@@ -1,16 +1,16 @@
 package com.movie.main.service;
 
-import com.movie.main.dto.TheaterRequestDto;
+import com.movie.main.dto.request.TheaterRequestDto;
+import com.movie.main.dto.response.TheaterResponseDto;
 import com.movie.main.entity.Theater;
 import com.movie.main.repository.TheaterRepository;
-import com.movie.main.ulti.Expected;
 
 import jakarta.validation.constraints.NotNull;
 
 import org.springframework.stereotype.Service;
 
 @Service
-public class TheaterService extends AbstractService<TheaterRequestDto, Theater, Integer> {
+public class TheaterService extends AbstractService<TheaterRequestDto, TheaterResponseDto, Theater, Integer> {
     @NotNull
     private final TheaterRepository repository;
 
@@ -19,31 +19,28 @@ public class TheaterService extends AbstractService<TheaterRequestDto, Theater, 
     }
 
     @Override
-    public Theater create(@NotNull final TheaterRequestDto requestDto) {
-        final var theater = new Theater(
-                requestDto.name(),
-                requestDto.address());
-
-        return this.save(theater);
+    protected TheaterResponseDto createResponseDtoFromEntity(@NotNull final Theater entity) {
+        return new TheaterResponseDto(
+                entity.getId(),
+                entity.getName(),
+                entity.getAddress());
     }
 
     @Override
-    public Expected<Theater, UpdateError> update(@NotNull final Integer id,
+    protected Theater createEntityFromRequestDto(@NotNull final TheaterRequestDto requestDto) {
+        return new Theater(
+                requestDto.name(),
+                requestDto.address());
+    }
+
+    @Override
+    protected Theater updateEntityFromRequestDto(
+            @NotNull final Theater entity,
             @NotNull final TheaterRequestDto requestDto) {
-        var theater = this.findById(id);
-        if (theater == null) {
-            return Expected.failure(UpdateError.EntityNotExists);
-        }
+        entity.setName(requestDto.name());
+        entity.setAddress(requestDto.address());
 
-        theater.setName(requestDto.name());
-        theater.setAddress(requestDto.address());
-
-        theater = this.save(theater);
-        if (theater == null) {
-            return Expected.failure(UpdateError.Unspecified);
-        }
-
-        return Expected.success(theater);
+        return entity;
     }
 
     @Override

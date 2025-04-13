@@ -3,7 +3,8 @@ package com.movie.main.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.movie.main.dto.FilmRequestDto;
+import com.movie.main.dto.request.FilmRequestDto;
+import com.movie.main.dto.response.FilmResponseDto;
 import com.movie.main.entity.Film;
 import com.movie.main.service.FilmService;
 
@@ -11,7 +12,7 @@ import jakarta.validation.constraints.NotNull;
 
 @RestController
 @RequestMapping("films")
-public class FilmController extends AbstractController<FilmRequestDto, Film, Integer> {
+public class FilmController extends AbstractController<FilmRequestDto, FilmResponseDto, Film, Integer> {
     @NotNull
     private final FilmService service;
 

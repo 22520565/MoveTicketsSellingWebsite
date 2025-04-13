@@ -35,12 +35,12 @@ public final class Room implements Identifiable<Integer> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.NONE)
-    private Integer id = null;
+    private Integer id = 0;
 
     @Column(length = MaxLengthName, nullable = false)
     @NotBlank
     @Size(min = MinLengthName, max = MaxLengthName)
-    private String name = null;
+    private String name = "";
 
     @Column(nullable = false)
     @Min(0)
@@ -69,9 +69,9 @@ public final class Room implements Identifiable<Integer> {
     @Column(nullable = false)
     @Size(min = MinLengthNote, max = MaxLengthNote)
     @NotBlank
-    private String note = null;
+    private String note = "";
 
-    @ManyToOne(cascade = CascadeType.ALL, optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
     @JoinColumn(nullable = false)
     @NotNull
     private Theater theater = null;

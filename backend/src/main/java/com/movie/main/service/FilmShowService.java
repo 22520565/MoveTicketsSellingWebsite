@@ -2,15 +2,14 @@ package com.movie.main.service;
 
 import org.springframework.stereotype.Service;
 
-import com.movie.main.dto.FilmShowRequestDto;
+import com.movie.main.dto.request.FilmShowRequestDto;
+import com.movie.main.dto.response.FilmShowResponseDto;
 import com.movie.main.entity.FilmShow;
 import com.movie.main.repository.FilmShowRepository;
-import com.movie.main.ulti.Expected;
-
 import jakarta.validation.constraints.NotNull;
 
 @Service
-public class FilmShowService extends AbstractService<FilmShowRequestDto, FilmShow, Integer> {
+public class FilmShowService extends AbstractService<FilmShowRequestDto, FilmShowResponseDto, FilmShow, Integer> {
     @NotNull
     private final FilmShowRepository filmShowRepository;
 
@@ -30,67 +29,65 @@ public class FilmShowService extends AbstractService<FilmShowRequestDto, FilmSho
     }
 
     @Override
-    protected FilmShowRepository getRepository() {
-        return filmShowRepository;
+    protected FilmShowResponseDto createResponseDtoFromEntity(@NotNull final FilmShow entity) {
+        return new FilmShowResponseDto(
+                entity.getId(),
+                entity.getFilm().getId(),
+                entity.getRoomSeat().getId(),
+                entity.getShowTime(),
+                entity.getType());
     }
 
     @Override
-    public FilmShow create(@NotNull final FilmShowRequestDto requestDto) {
-        final var film = this.filmService.findById(requestDto.filmId());
+    protected FilmShow createEntityFromRequestDto(@NotNull final FilmShowRequestDto requestDto) {
+        final var film = this.filmService.findEntityById(requestDto.filmId());
         if (film == null) {
             return null;
         }
 
-        final var roomSeat = this.roomSeatService.findById(requestDto.roomSeatId());
+        final var roomSeat = this.roomSeatService.findEntityById(requestDto.roomSeatId());
         if (roomSeat == null) {
             return null;
         }
 
-        final var newFilmShow = new FilmShow(
+        return new FilmShow(
                 film,
                 roomSeat,
                 requestDto.showTime(),
                 requestDto.type());
-
-        return this.save(newFilmShow);
     }
 
     @Override
-    public Expected<FilmShow, UpdateError> update(
-            @NotNull final Integer id,
+    protected FilmShow updateEntityFromRequestDto(
+            @NotNull final FilmShow entity,
             @NotNull final FilmShowRequestDto requestDto) {
-        var filmShow = this.findById(id);
-        if (filmShow == null) {
-            return Expected.failure(UpdateError.EntityNotExists);
-        }
-
-        var film = filmShow.getFilm();
+        var film = entity.getFilm();
         if (film.getId() != requestDto.filmId()) {
-            film = this.filmService.findById(requestDto.filmId());
+            film = this.filmService.findEntityById(requestDto.filmId());
             if (film == null) {
-                return Expected.failure(UpdateError.EntityNotExists);
+                return null;
             }
         }
 
-        var roomSeat = filmShow.getRoomSeat();
+        var roomSeat = entity.getRoomSeat();
         if (roomSeat.getId() != requestDto.roomSeatId()) {
-            roomSeat = this.roomSeatService.findById(requestDto.roomSeatId());
+            roomSeat = this.roomSeatService.findEntityById(requestDto.roomSeatId());
             if (roomSeat == null) {
-                return Expected.failure(UpdateError.EntityNotExists);
+                return null;
             }
         }
 
-        filmShow.setFilm(film);
-        filmShow.setRoomSeat(roomSeat);
-        filmShow.setShowTime(requestDto.showTime());
-        filmShow.setType(requestDto.type());
+        entity.setFilm(film);
+        entity.setRoomSeat(roomSeat);
+        entity.setShowTime(requestDto.showTime());
+        entity.setType(requestDto.type());
 
-        filmShow = this.save(filmShow);
-        if (filmShow == null) {
-            return Expected.failure(UpdateError.Unspecified);
-        }
+        return entity;
+    }
 
-        return Expected.success(filmShow);
+    @Override
+    protected FilmShowRepository getRepository() {
+        return filmShowRepository;
     }
 
 }

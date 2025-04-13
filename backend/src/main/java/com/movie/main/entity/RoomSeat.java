@@ -1,10 +1,11 @@
 package com.movie.main.entity;
 
-import com.movie.main.dto.RoomSeatRequestDto;
+import com.movie.main.dto.request.RoomSeatRequestDto;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -35,19 +36,19 @@ public final class RoomSeat implements Identifiable<Integer> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.NONE)
-    private Integer id = null;
+    private Integer id = 0;
 
     @Column(length = MaxLengthName, nullable = false)
     @NotBlank
     @Size(min = MinLengthName, max = MaxLengthName)
-    private String name = null;
+    private String name = "";
 
     @Column(nullable = false)
     @NotBlank
     @Size(min = MinLengthType, max = MaxLengthType)
-    private String type = null;
+    private String type = "";
 
-    @ManyToOne(cascade = CascadeType.ALL, optional = false)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
     @JoinColumn(nullable = false)
     @NotNull
     private Room room = null;

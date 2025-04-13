@@ -30,17 +30,17 @@ public final class Theater implements Identifiable<Integer> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.NONE)
-    private Integer id = null;
+    private Integer id = 0;
 
     @Column(length = MaxLengthName, nullable = false, unique = true)
     @NotBlank
     @Size(min = MinLengthName, max = MaxLengthName)
-    private String name = null;
+    private String name = "";
 
     @Column(length = MaxLengthAddress, nullable = false, unique = true)
     @NotBlank
     @Size(min = MinLengthAddress, max = MaxLengthAddress)
-    private String address = null;
+    private String address = "";
 
     public Theater(final String name, final String address) {
         this.name = name;

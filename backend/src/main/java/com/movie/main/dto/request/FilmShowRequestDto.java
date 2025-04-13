@@ -1,4 +1,4 @@
-package com.movie.main.dto;
+package com.movie.main.dto.request;
 
 import java.time.LocalDateTime;
 
@@ -9,5 +9,5 @@ public record FilmShowRequestDto(
         int roomSeatId,
         LocalDateTime showTime,
         @NotBlank String type)
-        implements InterfaceDto {
+        implements InterfaceRequestDto {
 }

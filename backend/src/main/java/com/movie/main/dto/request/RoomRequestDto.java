@@ -1,4 +1,4 @@
-package com.movie.main.dto;
+package com.movie.main.dto.request;
 
 import com.movie.main.entity.Room;
 
@@ -15,5 +15,5 @@ public record RoomRequestDto(
         int centerY2,
         String note,
         int theaterId)
-        implements InterfaceDto {
+        implements InterfaceRequestDto {
 }

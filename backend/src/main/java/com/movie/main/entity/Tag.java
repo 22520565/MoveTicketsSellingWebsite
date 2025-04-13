@@ -1,7 +1,5 @@
 package com.movie.main.entity;
 
-import com.movie.main.dto.TagRequestDto;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -29,12 +27,12 @@ public final class Tag implements Identifiable<Integer> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.NONE)
-    private Integer id = null;
+    private Integer id = 0;
 
     @Column(length = MaxLengthName, nullable = false, unique = true)
     @NotBlank
     @Size(min = MinLengthName, max = MaxLengthName)
-    private String name = null;
+    private String name = "";
 
     public Tag(final String name) {
         this.name = name;

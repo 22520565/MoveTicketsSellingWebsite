@@ -2,10 +2,10 @@ package com.movie.main.entity;
 
 import java.sql.Date;
 
-import com.movie.main.dto.FilmRequestDto;
-
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -37,22 +37,22 @@ public final class Film implements Identifiable<Integer> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.NONE)
-    private Integer id = null;
+    private Integer id = 0;
 
     @Column(length = MaxLengthName, nullable = false, unique = true)
     @NotBlank
     @Size(min = MinLengthName, max = MaxLengthName)
-    private String name = null;
+    private String name = "";
 
     @Column(nullable = false, unique = true)
     @NotBlank
-    private String thumbnailUrl = null;
+    private String thumbnailUrl = "";
 
     @Column(nullable = false, unique = true)
     @NotBlank
-    private String trailerUrl = null;
+    private String trailerUrl = "";
 
-    @ManyToOne(optional = false)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
     @JoinColumn(nullable = false)
     @NotNull
     private Tag tag = null;
@@ -64,15 +64,15 @@ public final class Film implements Identifiable<Integer> {
 
     @Column(nullable = false)
     @NotBlank
-    private String ageRestriction = null;
+    private String ageRestriction = "";
 
     @Column(nullable = false)
     @NotBlank
-    private String voice = null;
+    private String voice = "";
 
     @Column(nullable = false)
     @NotBlank
-    private String originatedCountry = null;
+    private String originatedCountry = "";
 
     @Column(nullable = false)
     private boolean is3D = false;
@@ -80,15 +80,15 @@ public final class Film implements Identifiable<Integer> {
     @Column(nullable = false, length = MaxLengthDescription)
     @NotBlank
     @Size(min = MinLengthDescription, max = MaxLengthDescription)
-    private String description = null;
+    private String description = "";
 
     @Column(nullable = false)
     @NotBlank
-    private String content = null;
+    private String content = "";
 
     @Column(nullable = false)
     @NotNull
-    private Date beginDate = null;
+    private Date beginDate = new Date(0);
 
     @Column(nullable = false)
     private boolean deleted = false;
