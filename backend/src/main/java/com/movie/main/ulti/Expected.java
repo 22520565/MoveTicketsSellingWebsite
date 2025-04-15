@@ -3,25 +3,26 @@ package com.movie.main.ulti;
 import java.util.function.Function;
 
 import io.micrometer.common.lang.Nullable;
-import jakarta.annotation.Nonnull;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.function.Consumer;
 
 public final class Expected<T, E> {
+    public static <T, E> Expected<T, E> success(@NotNull final T value) {
+        return new Expected<>(value, null);
+    }
+
+    public static <T, E> Expected<T, E> failure(@NotNull final E error) {
+        return new Expected<>(null, error);
+    }
+
     private final T value;
+
     private final E error;
 
     private Expected(@Nullable final T value, @Nullable final E error) {
         this.value = value;
         this.error = error;
-    }
-
-    public static <T, E> Expected<T, E> success(@Nonnull final T value) {
-        return new Expected<>(value, null);
-    }
-
-    public static <T, E> Expected<T, E> failure(@Nonnull final E error) {
-        return new Expected<>(null, error);
     }
 
     public boolean isSuccess() {

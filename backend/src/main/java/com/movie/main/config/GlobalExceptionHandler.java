@@ -6,6 +6,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -16,6 +17,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class GlobalExceptionHandler {
     private GlobalExceptionHandler() {
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public static ResponseEntity<Void> handleHandlerMethodValidationException(
+            final HandlerMethodValidationException exception) {
+        return ResponseEntity.badRequest().build();
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -2,88 +2,90 @@ package com.movie.main.service;
 
 import org.springframework.stereotype.Service;
 
-import com.movie.main.dto.RoomDTO;
+import com.movie.main.dto.request.RoomRequestDto;
+import com.movie.main.dto.response.RoomResponseDto;
 import com.movie.main.entity.Room;
 import com.movie.main.repository.RoomRepository;
-import com.movie.main.service.enumclass.DeletionStatus;
-import com.movie.main.service.enumclass.UpdateStatus;
+import com.movie.main.ulti.Expected;
 
-import jakarta.annotation.Nullable;
-import lombok.extern.slf4j.Slf4j;
+import jakarta.validation.constraints.NotNull;
 
 @Service
-@Slf4j
-public final class RoomService {
+public class RoomService extends AbstractService<RoomRequestDto, RoomResponseDto, Room, Integer> {
+    @NotNull
     private final RoomRepository repository;
+
+    @NotNull
     private final TheaterService theaterService;
 
-    protected RoomService(final RoomRepository repository, final TheaterService theaterService) {
+    protected RoomService(
+            @NotNull final RoomRepository repository,
+            @NotNull final TheaterService theaterService) {
         this.repository = repository;
         this.theaterService = theaterService;
     }
 
-    @Nullable
-    public Room findById(final int id) {
-        return this.repository.findById(id);
+    @Override
+    protected RoomResponseDto createResponseDtoFromEntity(@NotNull final Room entity) {
+        return new RoomResponseDto(
+                entity.getId(),
+                entity.getName(),
+                entity.getNumberOfSeatRow(),
+                entity.getNumberOfSeatColumn(),
+                entity.getCenterX1(),
+                entity.getCenterX2(),
+                entity.getCenterY1(),
+                entity.getCenterY2(),
+                entity.getNote(),
+                entity.getTheater().getId());
     }
 
-    @Nullable
-    public RoomDTO findDataById(final int id) {
-        return this.repository.findDataById(id);
-    }
-
-    public Room create(final RoomDTO dto) {
-        final var theater = this.theaterService.findById(dto.theaterId());
+    @Override
+    protected Room createEntityFromRequestDto(@NotNull final RoomRequestDto requestDto) {
+        final var theater = this.theaterService.findEntityById(requestDto.theaterId());
         if (theater == null) {
             return null;
         }
 
-        final var newRoom = new Room(dto.name(), theater);
-        final var result = this.repository.add(newRoom);
-
-        return result.getValue();
+        return new Room(
+                requestDto.name(),
+                requestDto.numberOfSeatRow(),
+                requestDto.numberOfSeatColumn(),
+                requestDto.centerX1(),
+                requestDto.centerX2(),
+                requestDto.centerY1(),
+                requestDto.centerY2(),
+                requestDto.note(),
+                theater);
     }
 
-    public UpdateStatus update(final int id, final RoomDTO dto) {
-        try {
-            final var newTheater = this.theaterService.findById(dto.theaterId());
-            if (newTheater == null) {
-                return UpdateStatus.EntityNotExistsError;
+    @Override
+    protected Room updateEntityFromRequestDto(
+            @NotNull final Room entity,
+            @NotNull final RoomRequestDto requestDto) {
+        var theater = entity.getTheater();
+        if (theater.getId() != requestDto.theaterId()) {
+            theater = this.theaterService.findEntityById(requestDto.theaterId());
+            if (theater == null) {
+                return null;
             }
-
-            final var room = this.repository.findById(id);
-            if (room == null) {
-                return UpdateStatus.EntityNotExistsError;
-            }
-
-            room.setName(dto.name());
-            room.setTheater(newTheater);
-
-            final var result = this.repository.update(room);
-            if (result.isSuccess()) {
-                return UpdateStatus.Success;
-            }
-
-            return switch (result.getError()) {
-                case EntityNotExists -> UpdateStatus.EntityNotExistsError;
-                case Persistence, Unspecified -> UpdateStatus.UnspecifiedError;
-                default -> UpdateStatus.UnspecifiedError;
-            };
-        } catch (final Exception exception) {
-            return UpdateStatus.UnspecifiedError;
         }
+
+        entity.setName(requestDto.name());
+        entity.setNumberOfSeatRow(requestDto.numberOfSeatRow());
+        entity.setNumberOfSeatColumn(requestDto.numberOfSeatColumn());
+        entity.setCenterX1(requestDto.centerX1());
+        entity.setCenterX2(requestDto.centerX2());
+        entity.setCenterY1(requestDto.centerY1());
+        entity.setCenterY2(requestDto.centerY2());
+        entity.setNote(requestDto.note());
+        entity.setTheater(theater);
+
+        return entity;
     }
 
-    public DeletionStatus deleteById(final int id) {
-        try {
-            return switch (this.repository.deleteById(id)) {
-                case Success -> DeletionStatus.Success;
-                case EntityNotExistsError -> DeletionStatus.EntityNotExistsError;
-                case UnspecifiedError -> DeletionStatus.UnspecifiedError;
-                default -> DeletionStatus.UnspecifiedError;
-            };
-        } catch (final Exception exception) {
-            return DeletionStatus.UnspecifiedError;
-        }
+    @Override
+    protected @NotNull RoomRepository getRepository() {
+        return this.repository;
     }
 }

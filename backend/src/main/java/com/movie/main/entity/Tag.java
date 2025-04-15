@@ -14,35 +14,27 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 
-@Data
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Entity
 @Table
+@Data
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @FieldNameConstants
-public final class Movie {
+public final class Tag implements Identifiable<Integer> {
     public static final int MinLengthName = 1;
     public static final int MaxLengthName = 100;
-    public static final int MinLengthDescription = 1;
-    public static final int MaxLengthDescription = 1000;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.NONE)
-    private Integer id = null;
+    private Integer id = 0;
 
     @Column(length = MaxLengthName, nullable = false, unique = true)
     @NotBlank
     @Size(min = MinLengthName, max = MaxLengthName)
-    private String name = null;
+    private String name = "";
 
-    @Column(length = MaxLengthDescription)
-    @NotBlank
-    @Size(min = MinLengthDescription, max = MaxLengthDescription)
-    private String description = null;
-
-    public Movie(final String name, final String description) {
+    public Tag(final String name) {
         this.name = name;
-        this.description = description;
     }
 }

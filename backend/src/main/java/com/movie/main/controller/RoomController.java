@@ -1,79 +1,27 @@
 package com.movie.main.controller;
 
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.movie.main.dto.RoomDTO;
+import com.movie.main.dto.request.RoomRequestDto;
+import com.movie.main.dto.response.RoomResponseDto;
+import com.movie.main.entity.Room;
 import com.movie.main.service.RoomService;
 
-import jakarta.annotation.Nonnull;
-import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
+import jakarta.validation.constraints.NotNull;
 
 @RestController
 @RequestMapping("rooms")
-@Slf4j
-public class RoomController {
-    @Nonnull
+public class RoomController extends AbstractController<RoomRequestDto, RoomResponseDto, Room, Integer> {
+    @NotNull
     private final RoomService service;
 
-    protected RoomController(@Nonnull final RoomService service) {
+    protected RoomController(@NotNull final RoomService service) {
         this.service = service;
     }
 
-    @GetMapping("{id}")
-    public ResponseEntity<RoomDTO> findDataById(@PathVariable final int id) {
-        final var result = this.service.findDataById(id);
-
-        if (result == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(result);
+    @Override
+    protected final RoomService getService() {
+        return this.service;
     }
-
-    @PostMapping
-    public ResponseEntity<Void> create(@RequestBody @Valid final RoomDTO dto) {
-        final var newRoom = this.service.create(dto);
-
-        if (newRoom == null) {
-            return ResponseEntity.internalServerError().build();
-        }
-
-        final var newRoomId = newRoom.getId();
-        final var location = WebMvcLinkBuilder
-                .linkTo(WebMvcLinkBuilder.methodOn(RoomController.class).findDataById(newRoomId))
-                .toUri();
-
-        return ResponseEntity.created(location).build();
-    }
-
-    @PutMapping("{id}")
-    public ResponseEntity<Void> update(@PathVariable final int id, @RequestBody @Valid final RoomDTO dto) {
-        return switch (this.service.update(id, dto)) {
-            case Success -> ResponseEntity.noContent().build();
-            case EntityNotExistsError -> ResponseEntity.notFound().build();
-            case UnspecifiedError -> ResponseEntity.internalServerError().build();
-            default -> ResponseEntity.internalServerError().build();
-        };
-    }
-
-    @DeleteMapping("{id}")
-    public ResponseEntity<Void> deleteById(@PathVariable final int id) {
-        return switch (this.service.deleteById(id)) {
-            case Success -> ResponseEntity.noContent().build();
-            case EntityNotExistsError -> ResponseEntity.notFound().build();
-            case UnspecifiedError -> ResponseEntity.internalServerError().build();
-            default -> ResponseEntity.internalServerError().build();
-        };
-    }
-
 }
