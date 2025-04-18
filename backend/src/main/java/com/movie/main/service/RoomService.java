@@ -11,7 +11,7 @@ import com.movie.main.ulti.Expected;
 import jakarta.validation.constraints.NotNull;
 
 @Service
-public class RoomService extends AbstractService<RoomRequestDto, RoomResponseDto, Room, Integer> {
+public class RoomService extends AbstractEntityService<RoomRequestDto, RoomResponseDto, Room, Integer> {
     @NotNull
     private final RoomRepository repository;
 
@@ -26,18 +26,18 @@ public class RoomService extends AbstractService<RoomRequestDto, RoomResponseDto
     }
 
     @Override
-    protected RoomResponseDto createResponseDtoFromEntity(@NotNull final Room entity) {
+    protected RoomResponseDto createResponseDtoFromEntity(@NotNull final Room room) {
         return new RoomResponseDto(
-                entity.getId(),
-                entity.getName(),
-                entity.getNumberOfSeatRow(),
-                entity.getNumberOfSeatColumn(),
-                entity.getCenterX1(),
-                entity.getCenterX2(),
-                entity.getCenterY1(),
-                entity.getCenterY2(),
-                entity.getNote(),
-                entity.getTheater().getId());
+                room.getId(),
+                room.getName(),
+                room.getNumberOfSeatRow(),
+                room.getNumberOfSeatColumn(),
+                room.getCenterX1(),
+                room.getCenterX2(),
+                room.getCenterY1(),
+                room.getCenterY2(),
+                room.getNote(),
+                room.getTheater().getId());
     }
 
     @Override
@@ -61,9 +61,9 @@ public class RoomService extends AbstractService<RoomRequestDto, RoomResponseDto
 
     @Override
     protected Room updateEntityFromRequestDto(
-            @NotNull final Room entity,
+            @NotNull final Room room,
             @NotNull final RoomRequestDto requestDto) {
-        var theater = entity.getTheater();
+        var theater = room.getTheater();
         if (theater.getId() != requestDto.theaterId()) {
             theater = this.theaterService.findEntityById(requestDto.theaterId());
             if (theater == null) {
@@ -71,17 +71,17 @@ public class RoomService extends AbstractService<RoomRequestDto, RoomResponseDto
             }
         }
 
-        entity.setName(requestDto.name());
-        entity.setNumberOfSeatRow(requestDto.numberOfSeatRow());
-        entity.setNumberOfSeatColumn(requestDto.numberOfSeatColumn());
-        entity.setCenterX1(requestDto.centerX1());
-        entity.setCenterX2(requestDto.centerX2());
-        entity.setCenterY1(requestDto.centerY1());
-        entity.setCenterY2(requestDto.centerY2());
-        entity.setNote(requestDto.note());
-        entity.setTheater(theater);
+        room.setName(requestDto.name());
+        room.setNumberOfSeatRow(requestDto.numberOfSeatRow());
+        room.setNumberOfSeatColumn(requestDto.numberOfSeatColumn());
+        room.setCenterX1(requestDto.centerX1());
+        room.setCenterX2(requestDto.centerX2());
+        room.setCenterY1(requestDto.centerY1());
+        room.setCenterY2(requestDto.centerY2());
+        room.setNote(requestDto.note());
+        room.setTheater(theater);
 
-        return entity;
+        return room;
     }
 
     @Override

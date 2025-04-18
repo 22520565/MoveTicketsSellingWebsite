@@ -62,7 +62,7 @@ public final class GlobalExceptionHandler {
 
     @ExceptionHandler(Throwable.class)
     public static ResponseEntity<Void> handleThrowable(final Throwable throwable) {
-        log.error(null, throwable);
+        log.error(throwable.getMessage());
         return ResponseEntity.internalServerError().build();
     }
 }

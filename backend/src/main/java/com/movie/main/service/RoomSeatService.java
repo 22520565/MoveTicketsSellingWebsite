@@ -10,7 +10,7 @@ import com.movie.main.repository.RoomSeatRepository;
 import jakarta.validation.constraints.NotNull;
 
 @Service
-public class RoomSeatService extends AbstractService<RoomSeatRequestDto, RoomSeatResponseDto, RoomSeat, Integer> {
+public class RoomSeatService extends AbstractEntityService<RoomSeatRequestDto, RoomSeatResponseDto, RoomSeat, Integer> {
     @NotNull
     private final RoomSeatRepository repository;
 
@@ -25,12 +25,12 @@ public class RoomSeatService extends AbstractService<RoomSeatRequestDto, RoomSea
     }
 
     @Override
-    protected RoomSeatResponseDto createResponseDtoFromEntity(@NotNull final RoomSeat entity) {
+    protected RoomSeatResponseDto createResponseDtoFromEntity(@NotNull final RoomSeat roomSeat) {
         return new RoomSeatResponseDto(
-                entity.getId(),
-                entity.getName(),
-                entity.getType(),
-                entity.getRoom().getId());
+                roomSeat.getId(),
+                roomSeat.getName(),
+                roomSeat.getType(),
+                roomSeat.getRoom().getId());
     }
 
     @Override
@@ -48,9 +48,9 @@ public class RoomSeatService extends AbstractService<RoomSeatRequestDto, RoomSea
 
     @Override
     protected RoomSeat updateEntityFromRequestDto(
-            @NotNull final RoomSeat entity,
+            @NotNull final RoomSeat roomSeat,
             @NotNull final RoomSeatRequestDto requestDto) {
-        var room = entity.getRoom();
+        var room = roomSeat.getRoom();
         if (room.getId() != requestDto.roomId()) {
             room = this.roomService.findEntityById(requestDto.roomId());
             if (room == null) {
@@ -58,11 +58,11 @@ public class RoomSeatService extends AbstractService<RoomSeatRequestDto, RoomSea
             }
         }
 
-        entity.setName(requestDto.name());
-        entity.setType(requestDto.type());
-        entity.setRoom(room);
+        roomSeat.setName(requestDto.name());
+        roomSeat.setType(requestDto.type());
+        roomSeat.setRoom(room);
 
-        return entity;
+        return roomSeat;
     }
 
     @Override

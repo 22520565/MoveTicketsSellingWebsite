@@ -1,6 +1,6 @@
 package com.movie.main.entity;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,13 +12,17 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 
 @Entity
 @Table
+@Data
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @FieldNameConstants
-public final class User {
+public final class User implements Identifiable<Integer> {
     public static final int MinLengthName = 1;
     public static final int MaxLengthName = 50;
     public static final int MinLengthUsername = 1;
@@ -38,7 +42,7 @@ public final class User {
 
     @Column(nullable = false)
     @NotNull
-    private Date birthDate = new Date(0);
+    private LocalDate birthDate = LocalDate.now();
 
     @Column(nullable = false)
     @NotBlank
@@ -63,4 +67,19 @@ public final class User {
 
     @Column(nullable = false)
     private boolean deleted = false;
+
+    public User(
+            final String name,
+            final LocalDate birthDate,
+            final String email,
+            final String phoneNumber,
+            final String username,
+            final String hashedPassword) {
+        this.name = name;
+        this.birthDate = birthDate;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.username = username;
+        this.hashedPassword = hashedPassword;
+    }
 }

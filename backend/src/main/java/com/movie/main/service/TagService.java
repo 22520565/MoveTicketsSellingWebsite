@@ -10,7 +10,7 @@ import com.movie.main.repository.TagRepository;
 import jakarta.validation.constraints.NotNull;
 
 @Service
-public class TagService extends AbstractService<TagRequestDto, TagResponseDto, Tag, Integer> {
+public class TagService extends AbstractEntityService<TagRequestDto, TagResponseDto, Tag, Integer> {
     @NotNull
     private final TagRepository repository;
 
@@ -19,10 +19,10 @@ public class TagService extends AbstractService<TagRequestDto, TagResponseDto, T
     }
 
     @Override
-    protected TagResponseDto createResponseDtoFromEntity(@NotNull final Tag entity) {
+    protected TagResponseDto createResponseDtoFromEntity(@NotNull final Tag tag) {
         return new TagResponseDto(
-                entity.getId(),
-                entity.getName());
+                tag.getId(),
+                tag.getName());
     }
 
     @Override
@@ -31,9 +31,11 @@ public class TagService extends AbstractService<TagRequestDto, TagResponseDto, T
     }
 
     @Override
-    protected Tag updateEntityFromRequestDto(@NotNull final Tag entity, @NotNull final TagRequestDto requestDto) {
-        entity.setName(requestDto.name());
-        return entity;
+    protected Tag updateEntityFromRequestDto(
+            @NotNull final Tag tag,
+            @NotNull final TagRequestDto requestDto) {
+        tag.setName(requestDto.name());
+        return tag;
     }
 
     @Override

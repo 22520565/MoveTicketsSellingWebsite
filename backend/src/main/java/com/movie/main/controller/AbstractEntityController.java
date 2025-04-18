@@ -1,9 +1,9 @@
 package com.movie.main.controller;
 
-import com.movie.main.dto.request.InterfaceRequestDto;
-import com.movie.main.dto.response.InterfaceResponseDto;
+import com.movie.main.dto.request.EntityRequestDtoInterface;
+import com.movie.main.dto.response.EntityResponseDtoInterface;
 import com.movie.main.entity.Identifiable;
-import com.movie.main.service.AbstractService;
+import com.movie.main.service.AbstractEntityService;
 
 import org.hibernate.validator.constraints.Range;
 import org.slf4j.Logger;
@@ -27,7 +27,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class AbstractController<TRequestDto extends InterfaceRequestDto, TResponseDto extends InterfaceResponseDto, TEntity extends Identifiable<TKey>, TKey> {
+public abstract class AbstractEntityController<TRequestDto extends EntityRequestDtoInterface, TResponseDto extends EntityResponseDtoInterface, TEntity extends Identifiable<TKey>, TKey> {
     public static final String DEFAULT_PAGE_NUMBER_STRING = "0";
     public static final String DEFAULT_PAGE_SIZE_STRING = "10";
     public static final int MAX_PAGE_SIZE = 100;
@@ -99,5 +99,5 @@ public abstract class AbstractController<TRequestDto extends InterfaceRequestDto
         };
     }
 
-    protected abstract AbstractService<TRequestDto, TResponseDto, TEntity, TKey> getService();
+    protected abstract AbstractEntityService<TRequestDto, TResponseDto, TEntity, TKey> getService();
 }

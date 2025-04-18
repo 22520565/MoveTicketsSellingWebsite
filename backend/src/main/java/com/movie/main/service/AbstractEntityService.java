@@ -4,8 +4,8 @@ import org.slf4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
-import com.movie.main.dto.request.InterfaceRequestDto;
-import com.movie.main.dto.response.InterfaceResponseDto;
+import com.movie.main.dto.request.EntityRequestDtoInterface;
+import com.movie.main.dto.response.EntityResponseDtoInterface;
 import com.movie.main.entity.Identifiable;
 import com.movie.main.repository.InterfaceRepository;
 import com.movie.main.ulti.Expected;
@@ -15,7 +15,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class AbstractService<TRequestDto extends InterfaceRequestDto, TResponseDto extends InterfaceResponseDto, TEntity extends Identifiable<TKey>, TKey> {
+public abstract class AbstractEntityService<TRequestDto extends EntityRequestDtoInterface, TResponseDto extends EntityResponseDtoInterface, TEntity extends Identifiable<TKey>, TKey> {
     public enum DeletionStatus {
         Success,
         EntityNotExistsError,
@@ -37,7 +37,7 @@ public abstract class AbstractService<TRequestDto extends InterfaceRequestDto, T
         try {
             return this.getRepository().findById(id).orElse(null);
         } catch (final Exception exception) {
-            log.error(null, exception);
+            log.error(exception.getMessage());
             return null;
         }
     }
@@ -111,7 +111,7 @@ public abstract class AbstractService<TRequestDto extends InterfaceRequestDto, T
             repository.deleteById(id);
             return DeletionStatus.Success;
         } catch (final Exception exception) {
-            log.error(null, exception);
+            log.error(exception.getMessage());
             return DeletionStatus.UnspecifiedError;
         }
     }
@@ -132,7 +132,7 @@ public abstract class AbstractService<TRequestDto extends InterfaceRequestDto, T
         try {
             return this.getRepository().save(entity);
         } catch (final Exception exception) {
-            log.error(null, exception);
+            log.error(exception.getMessage());
             return null;
         }
     }

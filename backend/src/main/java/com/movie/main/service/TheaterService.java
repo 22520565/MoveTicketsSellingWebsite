@@ -10,7 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
 
 @Service
-public class TheaterService extends AbstractService<TheaterRequestDto, TheaterResponseDto, Theater, Integer> {
+public class TheaterService extends AbstractEntityService<TheaterRequestDto, TheaterResponseDto, Theater, Integer> {
     @NotNull
     private final TheaterRepository repository;
 
@@ -19,11 +19,11 @@ public class TheaterService extends AbstractService<TheaterRequestDto, TheaterRe
     }
 
     @Override
-    protected TheaterResponseDto createResponseDtoFromEntity(@NotNull final Theater entity) {
+    protected TheaterResponseDto createResponseDtoFromEntity(@NotNull final Theater theater) {
         return new TheaterResponseDto(
-                entity.getId(),
-                entity.getName(),
-                entity.getAddress());
+                theater.getId(),
+                theater.getName(),
+                theater.getAddress());
     }
 
     @Override
@@ -35,12 +35,12 @@ public class TheaterService extends AbstractService<TheaterRequestDto, TheaterRe
 
     @Override
     protected Theater updateEntityFromRequestDto(
-            @NotNull final Theater entity,
+            @NotNull final Theater theater,
             @NotNull final TheaterRequestDto requestDto) {
-        entity.setName(requestDto.name());
-        entity.setAddress(requestDto.address());
+        theater.setName(requestDto.name());
+        theater.setAddress(requestDto.address());
 
-        return entity;
+        return theater;
     }
 
     @Override
