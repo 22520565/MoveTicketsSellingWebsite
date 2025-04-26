@@ -2,14 +2,13 @@ package com.movie.main.entity;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
-import io.jsonwebtoken.lang.Collections;
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -24,6 +23,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
@@ -34,9 +34,10 @@ import lombok.experimental.FieldNameConstants;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @FieldNameConstants
 public class Employee implements UserDetailsInterface {
+    public static final UserRole userRole = UserRole.Employee;
+
     public enum Permission {
-        Normal,
-        Admin,
+        Normal, Admin,
     }
 
     @MapsId
@@ -67,17 +68,14 @@ public class Employee implements UserDetailsInterface {
     @Column(nullable = false)
     private LocalDate beginWorkingDate = LocalDate.now();
 
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(value = EnumType.STRING)
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
     private Set<Permission> permissions = Collections.emptySet();
 
-    public Employee(
-            final User user,
-            final String jobTitle,
-            final int salary,
-            final LocalTime shiftStart,
-            final LocalTime shiftEnd,
-            final LocalDate beginWorkingDate) {
+    public Employee(final User user, final String jobTitle, final int salary, final LocalTime shiftStart,
+            final LocalTime shiftEnd, final LocalDate beginWorkingDate, final Set<Permission> permissions) {
         this.user = user;
         this.id = user.getId();
         this.jobTitle = jobTitle;
@@ -85,5 +83,14 @@ public class Employee implements UserDetailsInterface {
         this.shiftStart = shiftStart;
         this.shiftEnd = shiftEnd;
         this.beginWorkingDate = beginWorkingDate;
+        this.permissions = Collections.unmodifiableSet(permissions);
+    }
+
+    public void setPermissions(final Set<Permission> permissions) {
+        this.permissions = Collections.unmodifiableSet(permissions);
+    }
+
+    public Set<Permission> getPermissions() {
+        return new HashSet<>(this.permissions);
     }
 }

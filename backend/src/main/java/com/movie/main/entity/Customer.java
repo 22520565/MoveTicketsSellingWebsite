@@ -23,6 +23,8 @@ import lombok.experimental.FieldNameConstants;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @FieldNameConstants
 public class Customer implements UserDetailsInterface {
+    public static final UserRole userRole = UserRole.Customer;
+
     @MapsId
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
     @NotNull

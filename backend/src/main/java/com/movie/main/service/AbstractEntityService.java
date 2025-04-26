@@ -3,6 +3,7 @@ package com.movie.main.service;
 import org.slf4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.movie.main.dto.request.EntityRequestDtoInterface;
 import com.movie.main.dto.response.EntityResponseDtoInterface;
@@ -15,28 +16,24 @@ import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class AbstractEntityService<TRequestDto extends EntityRequestDtoInterface, TResponseDto extends EntityResponseDtoInterface, TEntity extends Identifiable<TKey>, TKey> {
+public abstract class AbstractEntityService<TRequestDto extends EntityRequestDtoInterface,
+        TResponseDto extends EntityResponseDtoInterface,
+        TEntity extends Identifiable<TKey>,
+        TKey> {
     public enum DeletionStatus {
-        Success,
-        EntityNotExistsError,
-        UnspecifiedError,
+        Success, EntityNotExistsError, UnspecifiedError,
     }
 
     public enum UpdateError {
-        EntityNotExists,
-        Unspecified,
-    }
-
-    @NotNull
-    protected static Logger getLogger() {
-        return log;
+        EntityNotExists, Unspecified,
     }
 
     @Nullable
     public TEntity findEntityById(@NotNull final TKey id) {
         try {
             return this.getRepository().findById(id).orElse(null);
-        } catch (final Exception exception) {
+        }
+        catch (final Exception exception) {
             log.error(exception.getMessage());
             return null;
         }
@@ -79,9 +76,7 @@ public abstract class AbstractEntityService<TRequestDto extends EntityRequestDto
     }
 
     @NotNull
-    public Expected<TResponseDto, UpdateError> update(
-            @NotNull final TKey id,
-            @NotNull final TRequestDto requestDto) {
+    public Expected<TResponseDto, UpdateError> update(@NotNull final TKey id, @NotNull final TRequestDto requestDto) {
         var entity = this.findEntityById(id);
         if (entity == null) {
             return Expected.failure(UpdateError.EntityNotExists);
@@ -110,7 +105,8 @@ public abstract class AbstractEntityService<TRequestDto extends EntityRequestDto
 
             repository.deleteById(id);
             return DeletionStatus.Success;
-        } catch (final Exception exception) {
+        }
+        catch (final Exception exception) {
             log.error(exception.getMessage());
             return DeletionStatus.UnspecifiedError;
         }
@@ -123,15 +119,15 @@ public abstract class AbstractEntityService<TRequestDto extends EntityRequestDto
     protected abstract TEntity createEntityFromRequestDto(@NotNull final TRequestDto requestDto);
 
     @Nullable
-    protected abstract TEntity updateEntityFromRequestDto(
-            @NotNull final TEntity entity,
+    protected abstract TEntity updateEntityFromRequestDto(@NotNull final TEntity entity,
             @NotNull final TRequestDto requestDto);
 
     @Nullable
     protected TEntity save(@NotNull final TEntity entity) {
         try {
             return this.getRepository().save(entity);
-        } catch (final Exception exception) {
+        }
+        catch (final Exception exception) {
             log.error(exception.getMessage());
             return null;
         }

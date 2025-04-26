@@ -3,10 +3,11 @@ package com.movie.main.service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.movie.main.config.JwtTokenProvider;
+import com.movie.main.auth.JwtTokenProvider;
 import com.movie.main.dto.request.CustomerRequestDto;
 import com.movie.main.dto.response.CustomerResponseDto;
 import com.movie.main.entity.Customer;
+import com.movie.main.entity.UserDetailsInterface.UserRole;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -22,10 +23,8 @@ public class CustomerAuthService
     @NotNull
     private final JwtTokenProvider jwtTokenProvider;
 
-    public CustomerAuthService(
-            @NotNull final CustomerService customerService,
-            @NotNull final PasswordEncoder passwordEncoder,
-            @NotNull final JwtTokenProvider jwtTokenProvider) {
+    public CustomerAuthService(@NotNull final CustomerService customerService,
+            @NotNull final PasswordEncoder passwordEncoder, @NotNull final JwtTokenProvider jwtTokenProvider) {
         this.customerService = customerService;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
@@ -46,4 +45,8 @@ public class CustomerAuthService
         return this.passwordEncoder;
     }
 
+    @Override
+    protected UserRole getUserRole() {
+        return Customer.userRole;
+    }
 }
