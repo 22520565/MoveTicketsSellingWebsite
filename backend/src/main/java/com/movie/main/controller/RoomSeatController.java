@@ -11,8 +11,9 @@ import com.movie.main.service.RoomSeatService;
 import jakarta.validation.constraints.NotNull;
 
 @RestController
-@RequestMapping("room-seats")
-public class RoomSeatController extends AbstractController<RoomSeatRequestDto, RoomSeatResponseDto, RoomSeat, Integer> {
+@RequestMapping("/api/room-seats")
+public class RoomSeatController
+        extends AbstractEntityController<RoomSeatRequestDto, RoomSeatResponseDto, RoomSeat, Integer> {
     @NotNull
     private final RoomSeatService service;
 

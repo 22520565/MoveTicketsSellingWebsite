@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.4</version>
+		<version>3.4.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.movie</groupId>
@@ -68,6 +68,11 @@
 		</dependency>
 
 		<dependency>
+    		<groupId>org.springframework.boot</groupId>
+    		<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-core</artifactId>
 		</dependency> 
@@ -94,30 +99,21 @@
 		</dependency>
 
 		<dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-        </dependency>
-
-		<dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-
-		<dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-        </dependency>
-
-		<dependency>
-    		<groupId>net.sf.jasperreports</groupId>
-    		<artifactId>jasperreports</artifactId>
-    		<version>7.0.2</version>
+    		<groupId>io.jsonwebtoken</groupId>
+    		<artifactId>jjwt-api</artifactId>
+    		<version>0.12.6</version>
 		</dependency>
 		
 		<dependency>
-        	<groupId>net.sf.jasperreports</groupId>
-        	<artifactId>jasperreports-pdf</artifactId>
-    		<version>7.0.2</version> 
+    		<groupId>io.jsonwebtoken</groupId>
+    		<artifactId>jjwt-impl</artifactId>
+    		<version>0.12.6</version>
+		</dependency>
+
+		<dependency>
+    		<groupId>io.jsonwebtoken</groupId>
+    		<artifactId>jjwt-jackson</artifactId> 
+    		<version>0.12.6</version>
 		</dependency>
 
 	</dependencies>

@@ -10,7 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
 
 @Service
-public class FilmService extends AbstractService<FilmRequestDto, FilmResponseDto, Film, Integer> {
+public class FilmService extends AbstractEntityService<FilmRequestDto, FilmResponseDto, Film, Integer> {
     @NotNull
     private final FilmRepository repository;
 
@@ -23,21 +23,21 @@ public class FilmService extends AbstractService<FilmRequestDto, FilmResponseDto
     }
 
     @Override
-    protected FilmResponseDto createResponseDtoFromEntity(@NotNull final Film entity) {
+    protected FilmResponseDto createResponseDtoFromEntity(@NotNull final Film film) {
         return new FilmResponseDto(
-                entity.getId(),
-                entity.getName(),
-                entity.getThumbnailUrl(),
-                entity.getTrailerUrl(),
-                entity.getTag().getId(),
-                entity.getDuration(),
-                entity.getAgeRestriction(),
-                entity.getVoice(),
-                entity.getOriginatedCountry(),
-                entity.is3D(),
-                entity.getDescription(),
-                entity.getContent(),
-                entity.getBeginDate());
+                film.getId(),
+                film.getName(),
+                film.getThumbnailUrl(),
+                film.getTrailerUrl(),
+                film.getTag().getId(),
+                film.getDuration(),
+                film.getAgeRestriction(),
+                film.getVoice(),
+                film.getOriginatedCountry(),
+                film.is3D(),
+                film.getDescription(),
+                film.getContent(),
+                film.getBeginDate());
     }
 
     @Override
@@ -63,9 +63,9 @@ public class FilmService extends AbstractService<FilmRequestDto, FilmResponseDto
 
     @Override
     protected Film updateEntityFromRequestDto(
-            @NotNull final Film entity,
+            @NotNull final Film film,
             @NotNull final FilmRequestDto requestDto) {
-        var tag = entity.getTag();
+        var tag = film.getTag();
         if (tag.getId() != requestDto.tagId()) {
             tag = this.tagService.findEntityById(requestDto.tagId());
             if (tag == null) {
@@ -73,19 +73,19 @@ public class FilmService extends AbstractService<FilmRequestDto, FilmResponseDto
             }
         }
 
-        entity.setName(requestDto.name());
-        entity.setThumbnailUrl(requestDto.thumbnailUrl());
-        entity.setTrailerUrl(requestDto.trailerUrl());
-        entity.setTag(tag);
-        entity.setDuration(requestDto.duration());
-        entity.setAgeRestriction(requestDto.ageRestriction());
-        entity.setVoice(requestDto.voice());
-        entity.setOriginatedCountry(requestDto.originatedCountry());
-        entity.set3D(requestDto.is3D());
-        entity.setContent(requestDto.content());
-        entity.setBeginDate(requestDto.beginDate());
+        film.setName(requestDto.name());
+        film.setThumbnailUrl(requestDto.thumbnailUrl());
+        film.setTrailerUrl(requestDto.trailerUrl());
+        film.setTag(tag);
+        film.setDuration(requestDto.duration());
+        film.setAgeRestriction(requestDto.ageRestriction());
+        film.setVoice(requestDto.voice());
+        film.setOriginatedCountry(requestDto.originatedCountry());
+        film.set3D(requestDto.is3D());
+        film.setContent(requestDto.content());
+        film.setBeginDate(requestDto.beginDate());
 
-        return entity;
+        return film;
     }
 
     @Override

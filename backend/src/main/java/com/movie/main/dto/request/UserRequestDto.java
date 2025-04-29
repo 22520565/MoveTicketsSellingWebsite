@@ -1,6 +1,6 @@
 package com.movie.main.dto.request;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
 import com.movie.main.entity.User;
 
@@ -11,10 +11,10 @@ import jakarta.validation.constraints.Size;
 
 public record UserRequestDto(
         @NotBlank @Size(min = User.MinLengthName, max = User.MaxLengthName) String name,
-        @NotNull Date birthDate,
+        @NotNull LocalDate birthDate,
         @NotBlank @Email String email,
         @Size(min = User.MinLengthPhoneNumber, max = User.MaxLengthPhoneNumber) String phoneNumber,
         @NotBlank @Size(min = User.MinLengthUsername, max = User.MaxLengthUsername) String username,
-        @NotBlank String plainPassword)
-        implements InterfaceRequestDto {
+        @NotBlank String password)
+        implements EntityRequestDtoInterface {
 }

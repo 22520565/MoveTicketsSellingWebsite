@@ -11,8 +11,9 @@ import com.movie.main.service.FilmShowService;
 import jakarta.validation.constraints.NotNull;
 
 @RestController
-@RequestMapping("film-shows")
-public class FilmShowController extends AbstractController<FilmShowRequestDto, FilmShowResponseDto, FilmShow, Integer> {
+@RequestMapping("/api/film-shows")
+public class FilmShowController
+        extends AbstractEntityController<FilmShowRequestDto, FilmShowResponseDto, FilmShow, Integer> {
     @NotNull
     private final FilmShowService filmShowService;
 

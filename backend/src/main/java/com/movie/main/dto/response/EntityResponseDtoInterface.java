@@ -4,7 +4,7 @@ import com.movie.main.dto.InterfaceDto;
 
 import jakarta.validation.constraints.NotNull;
 
-public interface InterfaceResponseDto<TKey> extends InterfaceDto {
+public interface EntityResponseDtoInterface<TKey> extends InterfaceDto {
     @NotNull
     TKey id();
 }

@@ -4,6 +4,5 @@ public record TheaterResponseDto(
         Integer id,
         String name,
         String address)
-        implements InterfaceResponseDto<Integer> {
-
+        implements EntityResponseDtoInterface<Integer> {
 }

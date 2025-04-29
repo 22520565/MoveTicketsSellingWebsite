@@ -11,8 +11,8 @@ import com.movie.main.service.RoomService;
 import jakarta.validation.constraints.NotNull;
 
 @RestController
-@RequestMapping("rooms")
-public class RoomController extends AbstractController<RoomRequestDto, RoomResponseDto, Room, Integer> {
+@RequestMapping("/api/rooms")
+public class RoomController extends AbstractEntityController<RoomRequestDto, RoomResponseDto, Room, Integer> {
     @NotNull
     private final RoomService service;
 

@@ -11,8 +11,8 @@ import com.movie.main.service.TagService;
 import jakarta.validation.constraints.NotNull;
 
 @RestController
-@RequestMapping("tags")
-public class TagController extends AbstractController<TagRequestDto, TagResponseDto, Tag, Integer> {
+@RequestMapping("/api/tags")
+public class TagController extends AbstractEntityController<TagRequestDto, TagResponseDto, Tag, Integer> {
     @NotNull
     private TagService service;
 

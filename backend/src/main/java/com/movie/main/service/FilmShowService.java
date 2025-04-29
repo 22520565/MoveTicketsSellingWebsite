@@ -9,7 +9,7 @@ import com.movie.main.repository.FilmShowRepository;
 import jakarta.validation.constraints.NotNull;
 
 @Service
-public class FilmShowService extends AbstractService<FilmShowRequestDto, FilmShowResponseDto, FilmShow, Integer> {
+public class FilmShowService extends AbstractEntityService<FilmShowRequestDto, FilmShowResponseDto, FilmShow, Integer> {
     @NotNull
     private final FilmShowRepository filmShowRepository;
 
@@ -29,13 +29,13 @@ public class FilmShowService extends AbstractService<FilmShowRequestDto, FilmSho
     }
 
     @Override
-    protected FilmShowResponseDto createResponseDtoFromEntity(@NotNull final FilmShow entity) {
+    protected FilmShowResponseDto createResponseDtoFromEntity(@NotNull final FilmShow filmShow) {
         return new FilmShowResponseDto(
-                entity.getId(),
-                entity.getFilm().getId(),
-                entity.getRoomSeat().getId(),
-                entity.getShowTime(),
-                entity.getType());
+                filmShow.getId(),
+                filmShow.getFilm().getId(),
+                filmShow.getRoomSeat().getId(),
+                filmShow.getShowTime(),
+                filmShow.getType());
     }
 
     @Override
@@ -59,9 +59,9 @@ public class FilmShowService extends AbstractService<FilmShowRequestDto, FilmSho
 
     @Override
     protected FilmShow updateEntityFromRequestDto(
-            @NotNull final FilmShow entity,
+            @NotNull final FilmShow filmShow,
             @NotNull final FilmShowRequestDto requestDto) {
-        var film = entity.getFilm();
+        var film = filmShow.getFilm();
         if (film.getId() != requestDto.filmId()) {
             film = this.filmService.findEntityById(requestDto.filmId());
             if (film == null) {
@@ -69,7 +69,7 @@ public class FilmShowService extends AbstractService<FilmShowRequestDto, FilmSho
             }
         }
 
-        var roomSeat = entity.getRoomSeat();
+        var roomSeat = filmShow.getRoomSeat();
         if (roomSeat.getId() != requestDto.roomSeatId()) {
             roomSeat = this.roomSeatService.findEntityById(requestDto.roomSeatId());
             if (roomSeat == null) {
@@ -77,12 +77,12 @@ public class FilmShowService extends AbstractService<FilmShowRequestDto, FilmSho
             }
         }
 
-        entity.setFilm(film);
-        entity.setRoomSeat(roomSeat);
-        entity.setShowTime(requestDto.showTime());
-        entity.setType(requestDto.type());
+        filmShow.setFilm(film);
+        filmShow.setRoomSeat(roomSeat);
+        filmShow.setShowTime(requestDto.showTime());
+        filmShow.setType(requestDto.type());
 
-        return entity;
+        return filmShow;
     }
 
     @Override

@@ -6,14 +6,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record RoomRequestDto(
-        @NotBlank @Size(min = Room.MinLengthName, max = Room.MaxLengthName) String name,
-        int numberOfSeatRow,
-        int numberOfSeatColumn,
-        int centerX1,
-        int centerX2,
-        int centerY1,
-        int centerY2,
-        String note,
-        int theaterId)
-        implements InterfaceRequestDto {
+                @NotBlank @Size(min = Room.MinLengthName, max = Room.MaxLengthName) String name,
+                int numberOfSeatRow,
+                int numberOfSeatColumn,
+                int centerX1,
+                int centerX2,
+                int centerY1,
+                int centerY2,
+                String note,
+                int theaterId)
+                implements EntityRequestDtoInterface {
 }
