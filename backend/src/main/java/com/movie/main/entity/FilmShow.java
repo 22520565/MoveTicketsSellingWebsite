@@ -23,7 +23,7 @@ import lombok.experimental.FieldNameConstants;
 @Entity
 @Table
 @Data
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
 public final class FilmShow implements Identifiable<Integer> {
     @Id
@@ -32,12 +32,16 @@ public final class FilmShow implements Identifiable<Integer> {
     @Setter(value = AccessLevel.NONE)
     private Integer id = 0;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(cascade = {
+            CascadeType.PERSIST, CascadeType.MERGE
+    }, fetch = FetchType.LAZY, optional = false)
     @JoinColumn(nullable = false)
     @NotNull
     private Film film = null;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(cascade = {
+            CascadeType.PERSIST, CascadeType.MERGE
+    }, fetch = FetchType.LAZY, optional = false)
     @JoinColumn(nullable = false)
     @NotNull
     private RoomSeat roomSeat = null;
@@ -53,11 +57,7 @@ public final class FilmShow implements Identifiable<Integer> {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public FilmShow(
-            final Film film,
-            final RoomSeat roomSeat,
-            final LocalDateTime showTime,
-            final String type) {
+    public FilmShow(final Film film, final RoomSeat roomSeat, final LocalDateTime showTime, final String type) {
         this.film = film;
         this.roomSeat = roomSeat;
         this.showTime = showTime;

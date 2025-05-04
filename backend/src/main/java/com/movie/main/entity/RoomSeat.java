@@ -1,7 +1,5 @@
 package com.movie.main.entity;
 
-import com.movie.main.dto.request.RoomSeatRequestDto;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,7 +22,7 @@ import lombok.experimental.FieldNameConstants;
 @Entity
 @Table
 @Data
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
 public final class RoomSeat implements Identifiable<Integer> {
     public static final int MinLengthName = 1;
@@ -48,7 +46,9 @@ public final class RoomSeat implements Identifiable<Integer> {
     @Size(min = MinLengthType, max = MaxLengthType)
     private String type = "";
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(cascade = {
+            CascadeType.PERSIST, CascadeType.MERGE
+    }, fetch = FetchType.LAZY, optional = false)
     @JoinColumn(nullable = false)
     @NotNull
     private Room room = null;

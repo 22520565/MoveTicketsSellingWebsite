@@ -1,7 +1,5 @@
 package com.movie.main.service;
 
-import org.springframework.security.core.userdetails.UserDetailsService;
-
 import com.movie.main.dto.request.UserDetailsRequestDtoInterface;
 import com.movie.main.dto.response.UserDetailsResponseDtoInterface;
 import com.movie.main.entity.UserDetailsInterface;

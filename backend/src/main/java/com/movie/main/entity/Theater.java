@@ -18,7 +18,7 @@ import lombok.experimental.FieldNameConstants;
 @Entity
 @Table
 @Data
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
 public final class Theater implements Identifiable<Integer> {
     public static final int MinLengthName = 1;

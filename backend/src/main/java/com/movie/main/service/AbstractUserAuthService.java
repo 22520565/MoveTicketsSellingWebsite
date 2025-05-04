@@ -1,6 +1,5 @@
 package com.movie.main.service;
 
-import org.slf4j.Logger;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.movie.main.auth.JwtTokenProvider;

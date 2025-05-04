@@ -20,7 +20,7 @@ import lombok.experimental.FieldNameConstants;
 @Entity
 @Table
 @Data
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
 public final class User implements Identifiable<Integer> {
     public static final int MinLengthName = 1;
@@ -68,13 +68,8 @@ public final class User implements Identifiable<Integer> {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public User(
-            final String name,
-            final LocalDate birthDate,
-            final String email,
-            final String phoneNumber,
-            final String username,
-            final String hashedPassword) {
+    public User(final String name, final LocalDate birthDate, final String email, final String phoneNumber,
+            final String username, final String hashedPassword) {
         this.name = name;
         this.birthDate = birthDate;
         this.email = email;

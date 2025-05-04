@@ -25,7 +25,7 @@ import lombok.experimental.FieldNameConstants;
 @Entity
 @Table
 @Data
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
 public final class Film implements Identifiable<Integer> {
     public static final int MinLengthName = 1;
@@ -52,7 +52,9 @@ public final class Film implements Identifiable<Integer> {
     @NotBlank
     private String trailerUrl = "";
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(cascade = {
+            CascadeType.PERSIST, CascadeType.MERGE
+    }, fetch = FetchType.LAZY, optional = false)
     @JoinColumn(nullable = false)
     @NotNull
     private Tag tag = null;
@@ -93,18 +95,9 @@ public final class Film implements Identifiable<Integer> {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public Film(
-            final String name,
-            final String thumbnailUrl,
-            final String trailerUrl,
-            final Tag tag,
-            final int duration,
-            final String ageRestriction,
-            final String voice,
-            final String originatedCountry,
-            final boolean is3D,
-            final String content,
-            final Date beginDate) {
+    public Film(final String name, final String thumbnailUrl, final String trailerUrl, final Tag tag,
+            final int duration, final String ageRestriction, final String voice, final String originatedCountry,
+            final boolean is3D, final String content, final Date beginDate) {
         this.name = name;
         this.thumbnailUrl = thumbnailUrl;
         this.trailerUrl = trailerUrl;

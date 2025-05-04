@@ -23,7 +23,7 @@ import lombok.experimental.FieldNameConstants;
 @Entity
 @Table
 @Data
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
 public final class Room implements Identifiable<Integer> {
     public static final int MinLengthName = 1;
@@ -71,7 +71,9 @@ public final class Room implements Identifiable<Integer> {
     @NotBlank
     private String note = "";
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(cascade = {
+            CascadeType.PERSIST, CascadeType.MERGE
+    }, fetch = FetchType.LAZY, optional = false)
     @JoinColumn(nullable = false)
     @NotNull
     private Theater theater = null;
@@ -79,16 +81,8 @@ public final class Room implements Identifiable<Integer> {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public Room(
-            final String name,
-            final int numberOfSeatRow,
-            final int numberOfSeatColumn,
-            final int centerX1,
-            final int centerX2,
-            final int centerY1,
-            final int centerY2,
-            final String note,
-            final Theater theater) {
+    public Room(final String name, final int numberOfSeatRow, final int numberOfSeatColumn, final int centerX1,
+            final int centerX2, final int centerY1, final int centerY2, final String note, final Theater theater) {
         this.name = name;
         this.numberOfSeatRow = numberOfSeatRow;
         this.numberOfSeatColumn = numberOfSeatColumn;

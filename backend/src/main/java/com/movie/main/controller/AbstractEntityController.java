@@ -78,6 +78,7 @@ public abstract class AbstractEntityController<TRequestDto extends EntityRequest
     }
 
     @PutMapping("{id}")
+    @RequirePermissions(value = Permission.Admin)
     public ResponseEntity<TResponseDto> update(@PathVariable @NotNull @Valid final TKey id,
             @RequestBody @Valid final TRequestDto requestDto) {
         final var result = this.getService().update(id, requestDto);
@@ -95,6 +96,7 @@ public abstract class AbstractEntityController<TRequestDto extends EntityRequest
     }
 
     @DeleteMapping("{id}")
+    @RequirePermissions(value = Permission.Admin)
     public ResponseEntity<Void> deleteById(@PathVariable @NotNull @Valid final TKey id) {
         return switch (this.getService().deleteById(id)) {
         case Success -> ResponseEntity.noContent().build();

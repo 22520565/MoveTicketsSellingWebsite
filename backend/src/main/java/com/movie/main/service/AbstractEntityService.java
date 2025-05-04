@@ -1,9 +1,7 @@
 package com.movie.main.service;
 
-import org.slf4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.movie.main.dto.request.EntityRequestDtoInterface;
 import com.movie.main.dto.response.EntityResponseDtoInterface;
@@ -17,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class AbstractEntityService<TRequestDto extends EntityRequestDtoInterface,
-        TResponseDto extends EntityResponseDtoInterface,
+        TResponseDto extends EntityResponseDtoInterface<TKey>,
         TEntity extends Identifiable<TKey>,
         TKey> {
     public enum DeletionStatus {
