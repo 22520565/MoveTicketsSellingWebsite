@@ -9,7 +9,7 @@ import javax.crypto.SecretKey;
 
 import org.springframework.stereotype.Component;
 
-import com.movie.main.entity.UserDetailsInterface.UserRole;
+import com.movie.main.entity.AbstractUserDetail.UserRole;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

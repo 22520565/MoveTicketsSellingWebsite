@@ -4,10 +4,5 @@ import java.time.LocalDateTime;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record FilmShowRequestDto(
-                int filmId,
-                int roomSeatId,
-                LocalDateTime showTime,
-                @NotBlank String type)
-                implements EntityRequestDtoInterface {
-}
+public record FilmShowRequestDto(int filmId, int roomId, LocalDateTime showTime, @NotBlank String type)
+        implements EntityRequestDtoInterface {}

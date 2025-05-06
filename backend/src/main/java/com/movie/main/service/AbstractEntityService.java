@@ -5,7 +5,7 @@ import org.springframework.data.domain.PageRequest;
 
 import com.movie.main.dto.request.EntityRequestDtoInterface;
 import com.movie.main.dto.response.EntityResponseDtoInterface;
-import com.movie.main.entity.Identifiable;
+import com.movie.main.entity.AbstractIdentifiableEntity;
 import com.movie.main.repository.InterfaceRepository;
 import com.movie.main.ulti.Expected;
 
@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class AbstractEntityService<TRequestDto extends EntityRequestDtoInterface,
         TResponseDto extends EntityResponseDtoInterface<TKey>,
-        TEntity extends Identifiable<TKey>,
+        TEntity extends AbstractIdentifiableEntity<TKey>,
         TKey> {
     public enum DeletionStatus {
         Success, EntityNotExistsError, UnspecifiedError,

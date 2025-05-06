@@ -7,7 +7,7 @@ import com.movie.main.auth.JwtTokenProvider;
 import com.movie.main.dto.request.CustomerRequestDto;
 import com.movie.main.dto.response.CustomerResponseDto;
 import com.movie.main.entity.Customer;
-import com.movie.main.entity.UserDetailsInterface.UserRole;
+import com.movie.main.entity.AbstractUserDetail.UserRole;
 
 import jakarta.validation.constraints.NotNull;
 

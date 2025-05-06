@@ -3,7 +3,7 @@ package com.movie.main.controller;
 import com.movie.main.auth.RequirePermissions;
 import com.movie.main.dto.request.EntityRequestDtoInterface;
 import com.movie.main.dto.response.EntityResponseDtoInterface;
-import com.movie.main.entity.Identifiable;
+import com.movie.main.entity.AbstractIdentifiableEntity;
 import com.movie.main.entity.Employee.Permission;
 import com.movie.main.service.AbstractEntityService;
 
@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class AbstractEntityController<TRequestDto extends EntityRequestDtoInterface,
         TResponseDto extends EntityResponseDtoInterface<TKey>,
-        TEntity extends Identifiable<TKey>,
+        TEntity extends AbstractIdentifiableEntity<TKey>,
         TKey> {
     public static final String DEFAULT_PAGE_NUMBER_STRING = "0";
     public static final String DEFAULT_PAGE_SIZE_STRING = "10";

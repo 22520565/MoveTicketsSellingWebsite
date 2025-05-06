@@ -2,7 +2,7 @@ package com.movie.main.service;
 
 import com.movie.main.dto.request.UserDetailsRequestDtoInterface;
 import com.movie.main.dto.response.UserDetailsResponseDtoInterface;
-import com.movie.main.entity.UserDetailsInterface;
+import com.movie.main.entity.AbstractUserDetail;
 import com.movie.main.repository.UserDetailsRepository;
 
 import jakarta.annotation.Nullable;
@@ -10,7 +10,7 @@ import jakarta.validation.constraints.NotNull;
 
 public interface UserDetailsServiceInterface<TUserDetailsRequestDto extends UserDetailsRequestDtoInterface,
         TUserDetailsResponseDto extends UserDetailsResponseDtoInterface,
-        TUserDetails extends UserDetailsInterface> {
+        TUserDetails extends AbstractUserDetail> {
     @Nullable
     default TUserDetails findEntityByUsername(@Nullable final String username) {
         return this.getRepository().findByUserUsername(username).orElse(null);

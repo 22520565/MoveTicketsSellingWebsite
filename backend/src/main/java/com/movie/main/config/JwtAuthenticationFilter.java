@@ -23,6 +23,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    private static final String BEARER_PREFIX = "Bearer ";
+
     @NotNull
     private final JwtTokenProvider tokenProvider;
 
@@ -31,8 +33,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @NotNull
     private final EmployeeService employeeService;
-
-    private static final String BEARER_PREFIX = "Bearer ";
 
     public JwtAuthenticationFilter(@NotNull final JwtTokenProvider tokenProvider,
             @NotNull final UserService userService, @NotNull final EmployeeService employeeService) {
