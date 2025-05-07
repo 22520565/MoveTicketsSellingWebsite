@@ -44,7 +44,7 @@ public abstract class AbstractUserAuthService<
             }
 
             final var token = this.getJwtTokenProvider().generateToken(requestDto.username(), this.getUserRole());
-            return Expected.success(new AuthResponseDto(token));
+            return Expected.success(new AuthResponseDto(userEntity.getId(), token));
         }
         catch (final Exception exception) {
             log.error(exception.getMessage());

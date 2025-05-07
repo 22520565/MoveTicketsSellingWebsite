@@ -1,16 +1,9 @@
 package com.movie.main.entity;
 
-import java.sql.Date;
-import java.util.Set;
+import java.time.LocalDate;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -76,14 +69,14 @@ public final class Film extends IntegerIdentifiableEntity {
 
     @Column(nullable = false)
     @NotNull
-    private Date beginDate = new Date(0);
+    private LocalDate beginDate = LocalDate.now();
 
     @Column(nullable = false)
     private boolean deleted = false;
 
     public Film(final String name, final String thumbnailUrl, final String trailerUrl, final int duration,
             final String ageRestriction, final String voice, final String originatedCountry, final boolean is3D,
-            final String content, final Date beginDate) {
+            final String content, final LocalDate beginDate) {
         this.name = name;
         this.thumbnailUrl = thumbnailUrl;
         this.trailerUrl = trailerUrl;
@@ -93,6 +86,6 @@ public final class Film extends IntegerIdentifiableEntity {
         this.originatedCountry = originatedCountry;
         this.is3D = is3D;
         this.content = content;
-        this.beginDate = new Date(beginDate.getTime());
+        this.beginDate = beginDate;
     }
 }
