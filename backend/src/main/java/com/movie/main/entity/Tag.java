@@ -15,7 +15,7 @@ import lombok.experimental.FieldNameConstants;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
-public final class Tag extends AbstractIntegerIdentifiableEntity {
+public final class Tag extends IntegerIdentifiableEntity {
     public static final int MinLengthName = 1;
     public static final int MaxLengthName = 100;
 

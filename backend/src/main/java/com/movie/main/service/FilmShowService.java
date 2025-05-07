@@ -29,7 +29,7 @@ public class FilmShowService extends AbstractEntityService<FilmShowRequestDto, F
     @Override
     protected FilmShowResponseDto createResponseDtoFromEntity(@NotNull final FilmShow filmShow) {
         return new FilmShowResponseDto(filmShow.getId(), filmShow.getFilm().getId(), filmShow.getRoom().getId(),
-                filmShow.getShowTime(), filmShow.getType());
+                filmShow.getShowDate(), filmShow.getShowTime(), filmShow.getType());
     }
 
     @Override
@@ -44,7 +44,7 @@ public class FilmShowService extends AbstractEntityService<FilmShowRequestDto, F
             return null;
         }
 
-        return new FilmShow(film, room, requestDto.showTime(), requestDto.type());
+        return new FilmShow(film, room, requestDto.showDate(), requestDto.showTime(), requestDto.type());
     }
 
     @Override

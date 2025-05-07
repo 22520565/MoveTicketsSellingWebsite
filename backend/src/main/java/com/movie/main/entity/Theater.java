@@ -16,7 +16,7 @@ import lombok.experimental.FieldNameConstants;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
-public final class Theater extends AbstractIntegerIdentifiableEntity {
+public final class Theater extends IntegerIdentifiableEntity {
     public static final int MinLengthName = 1;
     public static final int MaxLengthName = 100;
     public static final int MinLengthAddress = 1;

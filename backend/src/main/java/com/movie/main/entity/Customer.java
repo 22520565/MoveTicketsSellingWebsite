@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class Customer extends AbstractUserDetail {
-    public static final UserRole userRole = UserRole.Customer;
+    public static final UserRole userRole = UserRole.CUSTOMER;
 
     public Customer(final User user) {
         super(user);

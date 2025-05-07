@@ -18,9 +18,9 @@ import lombok.experimental.FieldNameConstants;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
-public abstract class AbstractUserDetail extends AbstractIntegerIdentifiableEntity {
+public abstract class AbstractUserDetail extends IntegerIdentifiableEntity {
     public enum UserRole {
-        Customer, Employee,
+        CUSTOMER, EMPLOYEE,
     }
 
     @MapsId

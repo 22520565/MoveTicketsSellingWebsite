@@ -18,11 +18,11 @@ import lombok.experimental.FieldNameConstants;
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
-public abstract class AbstractIdentifiableEntity<TKey> {
+public class IntegerIdentifiableEntity implements Identifiable<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.PACKAGE)
     @NotNull
-    private TKey id = null;
+    private Integer id = 0;
 }

@@ -1,6 +1,10 @@
 package com.movie.main.entity;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -21,7 +25,7 @@ import lombok.experimental.FieldNameConstants;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
-public final class FilmShow extends AbstractIntegerIdentifiableEntity {
+public final class FilmShow extends IntegerIdentifiableEntity {
 
     @ManyToOne(cascade = {
             CascadeType.PERSIST, CascadeType.MERGE
@@ -39,7 +43,11 @@ public final class FilmShow extends AbstractIntegerIdentifiableEntity {
 
     @Column(nullable = false)
     @NotNull
-    private LocalDateTime showTime = LocalDateTime.now();
+    private LocalDate showDate = LocalDate.now();
+
+    @Column(nullable = false)
+    @NotNull
+    private LocalTime showTime = LocalTime.now();
 
     @Column(nullable = false)
     @NotBlank
@@ -48,9 +56,11 @@ public final class FilmShow extends AbstractIntegerIdentifiableEntity {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public FilmShow(final Film film, final Room room, final LocalDateTime showTime, final String type) {
+    public FilmShow(final Film film, final Room room, final LocalDate showDate, final LocalTime showTime,
+            final String type) {
         this.film = film;
         this.room = room;
+        this.showDate = showDate;
         this.showTime = showTime;
         this.type = type;
     }

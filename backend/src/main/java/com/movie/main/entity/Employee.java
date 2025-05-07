@@ -28,10 +28,10 @@ import lombok.experimental.FieldNameConstants;
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
 public class Employee extends AbstractUserDetail {
-    public static final UserRole userRole = UserRole.Employee;
+    public static final UserRole userRole = UserRole.EMPLOYEE;
 
     public enum Permission {
-        Normal, Admin,
+        NORMAL, ADMIN,
     }
 
     @Column(nullable = false)

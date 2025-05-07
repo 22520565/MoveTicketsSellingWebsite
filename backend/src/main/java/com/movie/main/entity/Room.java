@@ -21,7 +21,7 @@ import lombok.experimental.FieldNameConstants;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
-public final class Room extends AbstractIntegerIdentifiableEntity {
+public final class Room extends IntegerIdentifiableEntity {
     public static final int MinLengthName = 1;
     public static final int MaxLengthName = 30;
     public static final int MinLengthNote = 1;

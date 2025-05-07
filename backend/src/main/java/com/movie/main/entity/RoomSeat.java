@@ -20,7 +20,7 @@ import lombok.experimental.FieldNameConstants;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
-public final class RoomSeat extends AbstractIntegerIdentifiableEntity {
+public final class RoomSeat extends IntegerIdentifiableEntity {
     public static final int MinLengthName = 1;
     public static final int MaxLengthName = 30;
     public static final int MinLengthType = 1;
