@@ -1,43 +1,36 @@
 package com.movie.main.entity;
 
 import java.sql.Date;
+import java.util.Set;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 
 @Entity
-@Table
 @Data
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@EqualsAndHashCode(callSuper = false)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
-public final class Film implements Identifiable<Integer> {
+public final class Film extends IntegerIdentifiableEntity {
     public static final int MinLengthName = 1;
     public static final int MaxLengthName = 100;
     public static final int MinLengthDescription = 1;
     public static final int MaxLengthDescription = 1000;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(nullable = false, unique = true, updatable = false)
-    @Setter(value = AccessLevel.NONE)
-    private Integer id = 0;
 
     @Column(length = MaxLengthName, nullable = false, unique = true)
     @NotBlank
@@ -51,11 +44,6 @@ public final class Film implements Identifiable<Integer> {
     @Column(nullable = false, unique = true)
     @NotBlank
     private String trailerUrl = "";
-
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(nullable = false)
-    @NotNull
-    private Tag tag = null;
 
     @Column(nullable = false)
     @NotNull
@@ -93,22 +81,12 @@ public final class Film implements Identifiable<Integer> {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public Film(
-            final String name,
-            final String thumbnailUrl,
-            final String trailerUrl,
-            final Tag tag,
-            final int duration,
-            final String ageRestriction,
-            final String voice,
-            final String originatedCountry,
-            final boolean is3D,
-            final String content,
-            final Date beginDate) {
+    public Film(final String name, final String thumbnailUrl, final String trailerUrl, final int duration,
+            final String ageRestriction, final String voice, final String originatedCountry, final boolean is3D,
+            final String content, final Date beginDate) {
         this.name = name;
         this.thumbnailUrl = thumbnailUrl;
         this.trailerUrl = trailerUrl;
-        this.tag = tag;
         this.duration = duration;
         this.ageRestriction = ageRestriction;
         this.voice = voice;

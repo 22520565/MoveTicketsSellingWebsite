@@ -9,7 +9,7 @@ import com.movie.main.dto.request.LoginRequestDto;
 import com.movie.main.dto.request.UserDetailsRequestDtoInterface;
 import com.movie.main.dto.response.AuthResponseDto;
 import com.movie.main.dto.response.UserDetailsResponseDtoInterface;
-import com.movie.main.entity.UserDetailsInterface;
+import com.movie.main.entity.AbstractUserDetail;
 import com.movie.main.service.AbstractUserAuthService;
 import com.movie.main.service.UserDetailsServiceInterface;
 
@@ -25,7 +25,7 @@ public abstract class AbstractUserAuthController<
         TUserDetailsService extends UserDetailsServiceInterface<TUserDetailsRequestDto, TUserDetailsResponseDto, TUserDetails>,
         TUserDetailsRequestDto extends UserDetailsRequestDtoInterface,
         TUserDetailsResponseDto extends UserDetailsResponseDtoInterface,
-        TUserDetails extends UserDetailsInterface> {
+        TUserDetails extends AbstractUserDetail> {
     @PostMapping("/register")
     public ResponseEntity<TUserDetailsResponseDto> register(
             @RequestBody @Valid final TUserDetailsRequestDto requestDto) {

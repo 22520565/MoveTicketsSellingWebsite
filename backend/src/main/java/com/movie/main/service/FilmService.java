@@ -24,59 +24,23 @@ public class FilmService extends AbstractEntityService<FilmRequestDto, FilmRespo
 
     @Override
     protected FilmResponseDto createResponseDtoFromEntity(@NotNull final Film film) {
-        return new FilmResponseDto(
-                film.getId(),
-                film.getName(),
-                film.getThumbnailUrl(),
-                film.getTrailerUrl(),
-                film.getTag().getId(),
-                film.getDuration(),
-                film.getAgeRestriction(),
-                film.getVoice(),
-                film.getOriginatedCountry(),
-                film.is3D(),
-                film.getDescription(),
-                film.getContent(),
-                film.getBeginDate());
+        return new FilmResponseDto(film.getId(), film.getName(), film.getThumbnailUrl(), film.getTrailerUrl(),
+                film.getDuration(), film.getAgeRestriction(), film.getVoice(), film.getOriginatedCountry(), film.is3D(),
+                film.getDescription(), film.getContent(), film.getBeginDate());
     }
 
     @Override
     protected Film createEntityFromRequestDto(@NotNull final FilmRequestDto requestDto) {
-        final var tag = this.tagService.findEntityById(requestDto.tagId());
-        if (tag == null) {
-            return null;
-        }
-
-        return new Film(
-                requestDto.name(),
-                requestDto.thumbnailUrl(),
-                requestDto.trailerUrl(),
-                tag,
-                requestDto.duration(),
-                requestDto.ageRestriction(),
-                requestDto.voice(),
-                requestDto.originatedCountry(),
-                requestDto.is3D(),
-                requestDto.content(),
-                requestDto.beginDate());
+        return new Film(requestDto.name(), requestDto.thumbnailUrl(), requestDto.trailerUrl(), requestDto.duration(),
+                requestDto.ageRestriction(), requestDto.voice(), requestDto.originatedCountry(), requestDto.is3D(),
+                requestDto.content(), requestDto.beginDate());
     }
 
     @Override
-    protected Film updateEntityFromRequestDto(
-            @NotNull final Film film,
-            @NotNull final FilmRequestDto requestDto) {
-        var tag = film.getTag();
-        if (tag.getId() != requestDto.tagId()) {
-            tag = this.tagService.findEntityById(requestDto.tagId());
-            if (tag == null) {
-                return null;
-            }
-        }
-
+    protected Film updateEntityFromRequestDto(@NotNull final Film film, @NotNull final FilmRequestDto requestDto) {
         film.setName(requestDto.name());
         film.setThumbnailUrl(requestDto.thumbnailUrl());
         film.setTrailerUrl(requestDto.trailerUrl());
-        film.setTag(tag);
         film.setDuration(requestDto.duration());
         film.setAgeRestriction(requestDto.ageRestriction());
         film.setVoice(requestDto.voice());

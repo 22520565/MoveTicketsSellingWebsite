@@ -5,14 +5,13 @@ import java.util.Optional;
 import org.springframework.data.repository.NoRepositoryBean;
 
 import com.movie.main.entity.User;
-import com.movie.main.entity.UserDetailsInterface;
+import com.movie.main.entity.AbstractUserDetail;
 
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 
 @NoRepositoryBean
-public interface UserDetailsRepository<TUser extends UserDetailsInterface>
-        extends InterfaceRepository<TUser, Integer> {
+public interface UserDetailsRepository<TUser extends AbstractUserDetail> extends InterfaceRepository<TUser, Integer> {
     @NotNull
     Optional<TUser> findByUser(@Nullable final User user);
 

@@ -6,7 +6,6 @@ import com.movie.main.dto.request.RoomRequestDto;
 import com.movie.main.dto.response.RoomResponseDto;
 import com.movie.main.entity.Room;
 import com.movie.main.repository.RoomRepository;
-import com.movie.main.ulti.Expected;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -18,26 +17,16 @@ public class RoomService extends AbstractEntityService<RoomRequestDto, RoomRespo
     @NotNull
     private final TheaterService theaterService;
 
-    protected RoomService(
-            @NotNull final RoomRepository repository,
-            @NotNull final TheaterService theaterService) {
+    protected RoomService(@NotNull final RoomRepository repository, @NotNull final TheaterService theaterService) {
         this.repository = repository;
         this.theaterService = theaterService;
     }
 
     @Override
     protected RoomResponseDto createResponseDtoFromEntity(@NotNull final Room room) {
-        return new RoomResponseDto(
-                room.getId(),
-                room.getName(),
-                room.getNumberOfSeatRow(),
-                room.getNumberOfSeatColumn(),
-                room.getCenterX1(),
-                room.getCenterX2(),
-                room.getCenterY1(),
-                room.getCenterY2(),
-                room.getNote(),
-                room.getTheater().getId());
+        return new RoomResponseDto(room.getId(), room.getName(), room.getNumberOfSeatRow(),
+                room.getNumberOfSeatColumn(), room.getCenterX1(), room.getCenterX2(), room.getCenterY1(),
+                room.getCenterY2(), room.getNote(), room.getTheater().getId());
     }
 
     @Override
@@ -47,22 +36,13 @@ public class RoomService extends AbstractEntityService<RoomRequestDto, RoomRespo
             return null;
         }
 
-        return new Room(
-                requestDto.name(),
-                requestDto.numberOfSeatRow(),
-                requestDto.numberOfSeatColumn(),
-                requestDto.centerX1(),
-                requestDto.centerX2(),
-                requestDto.centerY1(),
-                requestDto.centerY2(),
-                requestDto.note(),
-                theater);
+        return new Room(requestDto.name(), requestDto.numberOfSeatRow(), requestDto.numberOfSeatColumn(),
+                requestDto.centerX1(), requestDto.centerX2(), requestDto.centerY1(), requestDto.centerY2(),
+                requestDto.note(), theater);
     }
 
     @Override
-    protected Room updateEntityFromRequestDto(
-            @NotNull final Room room,
-            @NotNull final RoomRequestDto requestDto) {
+    protected Room updateEntityFromRequestDto(@NotNull final Room room, @NotNull final RoomRequestDto requestDto) {
         var theater = room.getTheater();
         if (theater.getId() != requestDto.theaterId()) {
             theater = this.theaterService.findEntityById(requestDto.theaterId());

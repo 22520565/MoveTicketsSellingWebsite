@@ -62,7 +62,7 @@ public abstract class AbstractEntityController<TRequestDto extends EntityRequest
     }
 
     @PostMapping
-    @RequirePermissions(value = Permission.Admin)
+    @RequirePermissions(value = Permission.ADMIN)
     public ResponseEntity<TResponseDto> create(@RequestBody @NotNull @Valid final TRequestDto requestDto) {
         final var responseDto = this.getService().create(requestDto);
 
@@ -78,6 +78,7 @@ public abstract class AbstractEntityController<TRequestDto extends EntityRequest
     }
 
     @PutMapping("{id}")
+    @RequirePermissions(value = Permission.ADMIN)
     public ResponseEntity<TResponseDto> update(@PathVariable @NotNull @Valid final TKey id,
             @RequestBody @Valid final TRequestDto requestDto) {
         final var result = this.getService().update(id, requestDto);
@@ -88,18 +89,19 @@ public abstract class AbstractEntityController<TRequestDto extends EntityRequest
         }
 
         return switch (result.getError()) {
-        case EntityNotExists -> ResponseEntity.notFound().build();
-        case Unspecified -> ResponseEntity.internalServerError().build();
+        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
         default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @DeleteMapping("{id}")
+    @RequirePermissions(value = Permission.ADMIN)
     public ResponseEntity<Void> deleteById(@PathVariable @NotNull @Valid final TKey id) {
         return switch (this.getService().deleteById(id)) {
-        case Success -> ResponseEntity.noContent().build();
-        case EntityNotExistsError -> ResponseEntity.notFound().build();
-        case UnspecifiedError -> ResponseEntity.internalServerError().build();
+        case SUCCESS -> ResponseEntity.noContent().build();
+        case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
+        case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
         default -> ResponseEntity.internalServerError().build();
         };
     }

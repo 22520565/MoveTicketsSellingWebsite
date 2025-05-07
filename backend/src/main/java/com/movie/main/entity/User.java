@@ -7,22 +7,22 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 
 @Entity
-@Table
 @Data
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@EqualsAndHashCode(callSuper = false)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
-public final class User implements Identifiable<Integer> {
+public final class User extends IntegerIdentifiableEntity {
     public static final int MinLengthName = 1;
     public static final int MaxLengthName = 50;
     public static final int MinLengthUsername = 1;
@@ -68,13 +68,8 @@ public final class User implements Identifiable<Integer> {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public User(
-            final String name,
-            final LocalDate birthDate,
-            final String email,
-            final String phoneNumber,
-            final String username,
-            final String hashedPassword) {
+    public User(final String name, final LocalDate birthDate, final String email, final String phoneNumber,
+            final String username, final String hashedPassword) {
         this.name = name;
         this.birthDate = birthDate;
         this.email = email;

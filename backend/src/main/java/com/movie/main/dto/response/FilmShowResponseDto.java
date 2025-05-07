@@ -1,11 +1,7 @@
 package com.movie.main.dto.response;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
-public record FilmShowResponseDto(
-                Integer id,
-                int filmId,
-                int roomSeatId,
-                LocalDateTime showTime,
-                String type) implements EntityResponseDtoInterface<Integer> {
-}
+public record FilmShowResponseDto(Integer id, int filmId, int roomId, LocalDate showDate, LocalTime showTime,
+        String type) implements EntityResponseDtoInterface<Integer> {}

@@ -1,9 +1,7 @@
 package com.movie.main.service;
 
-import org.slf4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.movie.main.dto.request.EntityRequestDtoInterface;
 import com.movie.main.dto.response.EntityResponseDtoInterface;
@@ -17,15 +15,15 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class AbstractEntityService<TRequestDto extends EntityRequestDtoInterface,
-        TResponseDto extends EntityResponseDtoInterface,
+        TResponseDto extends EntityResponseDtoInterface<TKey>,
         TEntity extends Identifiable<TKey>,
         TKey> {
     public enum DeletionStatus {
-        Success, EntityNotExistsError, UnspecifiedError,
+        SUCCESS, ENTITY_NOT_EXISTS_ERROR, UNSPECIFIED_ERROR,
     }
 
     public enum UpdateError {
-        EntityNotExists, Unspecified,
+        ENTITY_NOT_EXISTS, UNSPECIFIED,
     }
 
     @Nullable
@@ -79,17 +77,17 @@ public abstract class AbstractEntityService<TRequestDto extends EntityRequestDto
     public Expected<TResponseDto, UpdateError> update(@NotNull final TKey id, @NotNull final TRequestDto requestDto) {
         var entity = this.findEntityById(id);
         if (entity == null) {
-            return Expected.failure(UpdateError.EntityNotExists);
+            return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
         }
 
         entity = this.updateEntityFromRequestDto(entity, requestDto);
         if (entity == null) {
-            return Expected.failure(UpdateError.EntityNotExists);
+            return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
         }
 
         entity = this.save(entity);
         if (entity == null) {
-            return Expected.failure(UpdateError.Unspecified);
+            return Expected.failure(UpdateError.UNSPECIFIED);
         }
 
         return Expected.success(this.createResponseDtoFromEntity(entity));
@@ -100,15 +98,15 @@ public abstract class AbstractEntityService<TRequestDto extends EntityRequestDto
             final var repository = this.getRepository();
 
             if (!repository.existsById(id)) {
-                return DeletionStatus.EntityNotExistsError;
+                return DeletionStatus.ENTITY_NOT_EXISTS_ERROR;
             }
 
             repository.deleteById(id);
-            return DeletionStatus.Success;
+            return DeletionStatus.SUCCESS;
         }
         catch (final Exception exception) {
             log.error(exception.getMessage());
-            return DeletionStatus.UnspecifiedError;
+            return DeletionStatus.UNSPECIFIED_ERROR;
         }
     }
 

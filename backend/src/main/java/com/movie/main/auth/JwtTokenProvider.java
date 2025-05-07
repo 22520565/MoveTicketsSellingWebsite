@@ -9,7 +9,7 @@ import javax.crypto.SecretKey;
 
 import org.springframework.stereotype.Component;
 
-import com.movie.main.entity.UserDetailsInterface.UserRole;
+import com.movie.main.entity.AbstractUserDetail.UserRole;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -31,7 +31,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .subject(username)
-                .claim("role", userRole.name())
+                .claim("ROLE", userRole.name())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiry))
                 .signWith(secretKey)
@@ -66,7 +66,7 @@ public class JwtTokenProvider {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
-                .get("role", String.class);
+                .get("ROLE", String.class);
 
         return UserRole.valueOf(roleStr);
     }

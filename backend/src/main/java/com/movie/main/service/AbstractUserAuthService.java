@@ -1,6 +1,5 @@
 package com.movie.main.service;
 
-import org.slf4j.Logger;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.movie.main.auth.JwtTokenProvider;
@@ -8,8 +7,8 @@ import com.movie.main.dto.request.LoginRequestDto;
 import com.movie.main.dto.request.UserDetailsRequestDtoInterface;
 import com.movie.main.dto.response.AuthResponseDto;
 import com.movie.main.dto.response.UserDetailsResponseDtoInterface;
-import com.movie.main.entity.UserDetailsInterface;
-import com.movie.main.entity.UserDetailsInterface.UserRole;
+import com.movie.main.entity.AbstractUserDetail;
+import com.movie.main.entity.AbstractUserDetail.UserRole;
 import com.movie.main.ulti.Expected;
 
 import jakarta.validation.constraints.NotNull;
@@ -20,7 +19,7 @@ public abstract class AbstractUserAuthService<
         TUserDetailsService extends UserDetailsServiceInterface<TUserDetailsRequestDto, TUserDetailsResponseDto, TUserDeatails>,
         TUserDetailsRequestDto extends UserDetailsRequestDtoInterface,
         TUserDetailsResponseDto extends UserDetailsResponseDtoInterface,
-        TUserDeatails extends UserDetailsInterface> {
+        TUserDeatails extends AbstractUserDetail> {
     public enum RegisterError {
         UsernameExists, Unspecified,
     }

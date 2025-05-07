@@ -17,25 +17,19 @@ public class FilmShowService extends AbstractEntityService<FilmShowRequestDto, F
     private final FilmService filmService;
 
     @NotNull
-    private final RoomSeatService roomSeatService;
+    private final RoomService roomService;
 
-    public FilmShowService(
-            @NotNull final FilmShowRepository filmShowRepository,
-            @NotNull final FilmService filmService,
-            @NotNull final RoomSeatService roomSeatService) {
+    public FilmShowService(@NotNull final FilmShowRepository filmShowRepository, @NotNull final FilmService filmService,
+            @NotNull final RoomService roomSeatService) {
         this.filmShowRepository = filmShowRepository;
         this.filmService = filmService;
-        this.roomSeatService = roomSeatService;
+        this.roomService = roomSeatService;
     }
 
     @Override
     protected FilmShowResponseDto createResponseDtoFromEntity(@NotNull final FilmShow filmShow) {
-        return new FilmShowResponseDto(
-                filmShow.getId(),
-                filmShow.getFilm().getId(),
-                filmShow.getRoomSeat().getId(),
-                filmShow.getShowTime(),
-                filmShow.getType());
+        return new FilmShowResponseDto(filmShow.getId(), filmShow.getFilm().getId(), filmShow.getRoom().getId(),
+                filmShow.getShowDate(), filmShow.getShowTime(), filmShow.getType());
     }
 
     @Override
@@ -45,21 +39,16 @@ public class FilmShowService extends AbstractEntityService<FilmShowRequestDto, F
             return null;
         }
 
-        final var roomSeat = this.roomSeatService.findEntityById(requestDto.roomSeatId());
-        if (roomSeat == null) {
+        final var room = this.roomService.findEntityById(requestDto.roomId());
+        if (room == null) {
             return null;
         }
 
-        return new FilmShow(
-                film,
-                roomSeat,
-                requestDto.showTime(),
-                requestDto.type());
+        return new FilmShow(film, room, requestDto.showDate(), requestDto.showTime(), requestDto.type());
     }
 
     @Override
-    protected FilmShow updateEntityFromRequestDto(
-            @NotNull final FilmShow filmShow,
+    protected FilmShow updateEntityFromRequestDto(@NotNull final FilmShow filmShow,
             @NotNull final FilmShowRequestDto requestDto) {
         var film = filmShow.getFilm();
         if (film.getId() != requestDto.filmId()) {
@@ -69,16 +58,16 @@ public class FilmShowService extends AbstractEntityService<FilmShowRequestDto, F
             }
         }
 
-        var roomSeat = filmShow.getRoomSeat();
-        if (roomSeat.getId() != requestDto.roomSeatId()) {
-            roomSeat = this.roomSeatService.findEntityById(requestDto.roomSeatId());
-            if (roomSeat == null) {
+        var room = filmShow.getRoom();
+        if (room.getId() != requestDto.roomId()) {
+            room = this.roomService.findEntityById(requestDto.roomId());
+            if (room == null) {
                 return null;
             }
         }
 
         filmShow.setFilm(film);
-        filmShow.setRoomSeat(roomSeat);
+        filmShow.setRoom(room);
         filmShow.setShowTime(requestDto.showTime());
         filmShow.setType(requestDto.type());
 

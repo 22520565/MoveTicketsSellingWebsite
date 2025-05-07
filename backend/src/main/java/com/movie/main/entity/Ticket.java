@@ -1,7 +1,5 @@
 package com.movie.main.entity;
 
-import java.time.LocalDate;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,25 +19,26 @@ import lombok.experimental.FieldNameConstants;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
-public class CustomerOrder extends IntegerIdentifiableEntity {
-    @Column(nullable = false)
-    private LocalDate date = LocalDate.now();
-
-    @Column(nullable = true)
-    private String verifyCode = "";
+public class Ticket extends IntegerIdentifiableEntity {
 
     @Column(nullable = false)
     @Min(0)
-    private int totalPrice = 0;
+    private int quantity = 0;
 
     @Column(nullable = false)
     @Min(0)
-    private int totalPriceAfterDiscount = 0;
+    private int price = 0;
 
     @ManyToOne(cascade = {
             CascadeType.PERSIST, CascadeType.MERGE
     }, fetch = FetchType.LAZY, optional = false)
     @JoinColumn(nullable = false)
     @NotNull
-    private Customer customer = null;
+    private OrderDataFilm orderDataFilm = null;
+
+    public Ticket(final int quantity, final int price, final OrderDataFilm orderDataFilm) {
+        this.quantity = quantity;
+        this.price = price;
+        this.orderDataFilm = orderDataFilm;
+    }
 }
