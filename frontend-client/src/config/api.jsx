@@ -132,3 +132,7 @@ export const getCurrentPoint = async () => {
 export const getParam = async () => {
   return await axios.get(`/param`);
 };
+
+export const getCinemas = async () => {
+  return await axios.get(`/theaters`);
+};

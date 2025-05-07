@@ -20,6 +20,7 @@ const HomePage = () => {
       filmDuration: 181,
       ageRestriction: "13+",
       voice: "Tiếng Anh",
+      type: "Hành động",
       trailerURL: "https://www.youtube.com/watch?v=TcMBFSGVi1c",
       twoDthreeD: ["2D", "3D"],
       isShowing: true,
