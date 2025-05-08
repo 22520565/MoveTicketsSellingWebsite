@@ -12,7 +12,7 @@ import axios from "axios";
 import loginBG from "../../assets/loginBG.png";
 const AuthPage = () => {
   const [formData, setFormData] = useState({
-    identifier: "",
+    username: "",
     password: "",
   });
   const [loading, setLoading] = useState(false);
@@ -20,39 +20,49 @@ const AuthPage = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   // Validate form
-  
+
   const validateForm = () => {
     const newErrors = {};
 
     // Kiểm tra identifier
-    if (!formData.identifier && !formData.password) {
-      alert("Không được để trống các trường!")
+    if (!formData.username && !formData.password) {
+      alert("Không được để trống các trường!");
       return false;
     }
     return true;
   };
-  const {signIn} = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
   // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      const response = await axios.post('http://localhost:8000/api/auth/employee/log-in', formData, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (response.status===200) {
-        signIn(response.data.data.tokens.accesssToken);
+      try {
+        console.log(formData);
+
+        const response = await axios.post(
+          "http://localhost:8080/api/auth/employee/login",
+          formData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log(response);
+
+        signIn(response.data.token, response.data.userId);
         alert("Đăng nhập thành công!");
-        navigate('/admin');
-        
-      } else {
-        alert("Đăng nhập thất bại, identifier hoặc mật khẩu không đúng!");
+        navigate("/admin");
+      } catch (error) {
+        if (error.response) {
+          alert(error.response.data.msg || "Đăng nhập thất bại!");
+        } else if (error.request) {
+          alert("Không nhận được phản hồi từ server!");
+        } else {
+          alert("Lỗi không xác định: " + error.message);
+        }
       }
-
-
     }
   };
 
@@ -77,7 +87,11 @@ const AuthPage = () => {
 
   return (
     <div
-      style={{ backgroundColor: "rgb(245,245,245)",backgroundImage: `url(${loginBG})`,backgroundSize: "cover	"}}
+      style={{
+        backgroundColor: "rgb(245,245,245)",
+        backgroundImage: `url(${loginBG})`,
+        backgroundSize: "cover	",
+      }}
       className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
     >
       <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-2xl">
@@ -92,8 +106,8 @@ const AuthPage = () => {
             <FaEnvelope className="absolute top-3 left-3 text-gray-400" />
             <input
               type="text"
-              name="identifier"
-              value={formData.identifier}
+              name="username"
+              value={formData.username}
               onChange={handleChange}
               className={`w-full px-10 py-2 border rounded-md ${
                 errors.identifier ? "border-red-500" : "border-gray-300"
