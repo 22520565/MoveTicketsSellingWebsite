@@ -3,7 +3,9 @@ package com.movie.main.service;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.movie.main.entity.User;
@@ -60,5 +62,11 @@ public class UserRefreshTokenService {
     @Transactional
     public void deleteByRefreshToken(final UUID refreshToken) {
         this.repository.deleteByRefreshToken(refreshToken);
+    }
+
+    @Scheduled(fixedDelay = 7, timeUnit = TimeUnit.DAYS)
+    @Transactional
+    public void cleanExpiredRefreshTokenEntities() {
+        this.repository.deleteAllByExpiryDateBefore(Instant.now());
     }
 }

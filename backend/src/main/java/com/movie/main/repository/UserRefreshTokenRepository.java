@@ -1,5 +1,6 @@
 package com.movie.main.repository;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,4 +20,6 @@ public interface UserRefreshTokenRepository extends InterfaceRepository<UserRefr
     void deleteByRefreshToken(UUID refreshToken);
 
     void deleteByUser(User user);
+
+    void deleteAllByExpiryDateBefore(Instant cutoffTime);
 }
