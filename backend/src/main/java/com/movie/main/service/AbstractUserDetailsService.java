@@ -8,16 +8,17 @@ import com.movie.main.repository.UserDetailsRepository;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 
-public interface UserDetailsServiceInterface<TUserDetailsRequestDto extends UserDetailsRequestDtoInterface,
+public abstract class AbstractUserDetailsService<TUserDetailsRequestDto extends UserDetailsRequestDtoInterface,
         TUserDetailsResponseDto extends UserDetailsResponseDtoInterface,
-        TUserDetails extends AbstractUserDetail> {
+        TUserDetails extends AbstractUserDetail>
+        extends AbstractEntityService<TUserDetailsRequestDto, TUserDetailsResponseDto, TUserDetails, Integer> {
     @Nullable
-    default TUserDetails findEntityByUsername(@Nullable final String username) {
+    public TUserDetails findEntityByUsername(@Nullable final String username) {
         return this.getRepository().findByUserUsername(username).orElse(null);
     }
 
     @Nullable
-    default TUserDetailsResponseDto findByUsername(@Nullable final String username) {
+    public TUserDetailsResponseDto findByUsername(@Nullable final String username) {
         final TUserDetails user = this.findEntityByUsername(username);
         if (user == null) {
             return null;
@@ -26,16 +27,10 @@ public interface UserDetailsServiceInterface<TUserDetailsRequestDto extends User
         return this.createResponseDtoFromEntity(user);
     }
 
-    default boolean existByUsername(@Nullable final String username) {
+    public boolean existByUsername(@Nullable final String username) {
         return this.getRepository().existsByUserUsername(username);
     }
 
     @NotNull
-    TUserDetailsResponseDto createResponseDtoFromEntity(@NotNull final TUserDetails userDetails);
-
-    @Nullable
-    TUserDetailsResponseDto create(@NotNull final TUserDetailsRequestDto requestDto);
-
-    @NotNull
-    UserDetailsRepository<TUserDetails> getRepository();
+    protected abstract UserDetailsRepository<TUserDetails> getRepository();
 }

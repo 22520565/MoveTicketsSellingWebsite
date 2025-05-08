@@ -1,11 +1,15 @@
 package com.movie.main.service;
 
+import java.util.UUID;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.movie.main.auth.JwtTokenProvider;
 import com.movie.main.dto.request.LoginRequestDto;
+import com.movie.main.dto.request.TokenRefreshRequestDto;
 import com.movie.main.dto.request.UserDetailsRequestDtoInterface;
-import com.movie.main.dto.response.AuthResponseDto;
+import com.movie.main.dto.response.LoginResponseDto;
+import com.movie.main.dto.response.TokenRefreshResponseDto;
 import com.movie.main.dto.response.UserDetailsResponseDtoInterface;
 import com.movie.main.entity.AbstractUserDetail;
 import com.movie.main.entity.AbstractUserDetail.UserRole;
@@ -16,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class AbstractUserAuthService<
-        TUserDetailsService extends UserDetailsServiceInterface<TUserDetailsRequestDto, TUserDetailsResponseDto, TUserDeatails>,
+        TUserDetailsService extends AbstractUserDetailsService<TUserDetailsRequestDto, TUserDetailsResponseDto, TUserDeatails>,
         TUserDetailsRequestDto extends UserDetailsRequestDtoInterface,
         TUserDetailsResponseDto extends UserDetailsResponseDtoInterface,
         TUserDeatails extends AbstractUserDetail> {
@@ -28,8 +32,12 @@ public abstract class AbstractUserAuthService<
         UsernameNotExists, WrongPassword, Unspecified,
     }
 
+    public enum RefreshTokenError {
+        NOT_FOUND, EXPRIED,
+    }
+
     @NotNull
-    public Expected<AuthResponseDto, LoginError> login(@NotNull final LoginRequestDto requestDto) {
+    public Expected<LoginResponseDto, LoginError> login(@NotNull final LoginRequestDto requestDto) {
         try {
             final var userEntity = this.getUserDetailsService()
                     .getRepository()
@@ -43,8 +51,12 @@ public abstract class AbstractUserAuthService<
                 return Expected.failure(LoginError.WrongPassword);
             }
 
-            final var token = this.getJwtTokenProvider().generateToken(requestDto.username(), this.getUserRole());
-            return Expected.success(new AuthResponseDto(userEntity.getId(), token));
+            final var accessToken = JwtTokenProvider.generateToken(requestDto.username(), this.getUserRole());
+            final var refreshToken = this.getUserRefreshTokenService()
+                    .createRefreshToken(userEntity.getUser())
+                    .getRefreshToken();
+
+            return Expected.success(new LoginResponseDto(userEntity.getId(), accessToken, refreshToken));
         }
         catch (final Exception exception) {
             log.error(exception.getMessage());
@@ -68,14 +80,40 @@ public abstract class AbstractUserAuthService<
     }
 
     @NotNull
+    public Expected<TokenRefreshResponseDto, RefreshTokenError> refreshToken(final TokenRefreshRequestDto requestDto) {
+        final var userRefreshTokenService = this.getUserRefreshTokenService();
+        final var oldRefreshToken = requestDto.token();
+
+        final var oldUserRefreshToken = userRefreshTokenService.findByRefreshToken(oldRefreshToken);
+        if (oldUserRefreshToken == null) {
+            return Expected.failure(RefreshTokenError.NOT_FOUND);
+        }
+
+        if (!userRefreshTokenService.isUserRefreshTokenValid(oldUserRefreshToken)) {
+            return Expected.failure(RefreshTokenError.EXPRIED);
+        }
+
+        final var newUserRefreshToken = userRefreshTokenService.createRefreshToken(oldUserRefreshToken);
+        final var accessToken = JwtTokenProvider.generateToken(newUserRefreshToken.getUser().getUsername(),
+                this.getUserRole());
+        final var responseDto = new TokenRefreshResponseDto(accessToken, newUserRefreshToken.getRefreshToken());
+
+        return Expected.success(responseDto);
+    }
+
+    public void logout(@NotNull final UUID refreshToken) {
+        this.getUserRefreshTokenService().deleteByRefreshToken(refreshToken);
+    }
+
+    @NotNull
     protected abstract TUserDetailsService getUserDetailsService();
+
+    @NotNull
+    protected abstract UserRefreshTokenService getUserRefreshTokenService();
 
     @NotNull
     protected abstract PasswordEncoder getPasswordEncoder();
 
     @NotNull
-    protected abstract JwtTokenProvider getJwtTokenProvider();
-
-    @NotNull
-    protected abstract UserRole getUserRole();
+    public abstract UserRole getUserRole();
 }

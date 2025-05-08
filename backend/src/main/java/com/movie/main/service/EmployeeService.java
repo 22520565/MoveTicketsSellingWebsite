@@ -10,8 +10,7 @@ import com.movie.main.repository.EmployeeRepository;
 import jakarta.validation.constraints.NotNull;
 
 @Service
-public class EmployeeService extends AbstractEntityService<EmployeeRequestDto, EmployeeResponseDto, Employee, Integer>
-        implements UserDetailsServiceInterface<EmployeeRequestDto, EmployeeResponseDto, Employee> {
+public class EmployeeService extends AbstractUserDetailsService<EmployeeRequestDto, EmployeeResponseDto, Employee> {
     @NotNull
     private final EmployeeRepository repository;
 

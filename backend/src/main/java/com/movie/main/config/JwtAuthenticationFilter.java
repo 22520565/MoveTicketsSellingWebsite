@@ -23,10 +23,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private static final String BEARER_PREFIX = "Bearer ";
-
-    @NotNull
-    private final JwtTokenProvider tokenProvider;
+    public static final String BEARER_PREFIX = "Bearer ";
 
     @NotNull
     private final UserService userService;
@@ -34,15 +31,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @NotNull
     private final EmployeeService employeeService;
 
-    public JwtAuthenticationFilter(@NotNull final JwtTokenProvider tokenProvider,
-            @NotNull final UserService userService, @NotNull final EmployeeService employeeService) {
-        this.tokenProvider = tokenProvider;
+    public JwtAuthenticationFilter(@NotNull final UserService userService,
+            @NotNull final EmployeeService employeeService) {
         this.userService = userService;
         this.employeeService = employeeService;
     }
 
     @Nullable
-    private static String getJwtFromRequest(@NotNull final HttpServletRequest request) {
+    public static String getJwtFromRequest(@NotNull final HttpServletRequest request) {
         final var bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (bearerToken != null && bearerToken.startsWith(BEARER_PREFIX)) {
             return bearerToken.substring(BEARER_PREFIX.length());
@@ -56,19 +52,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, java.io.IOException {
         final var token = getJwtFromRequest(request);
 
-        if (token == null || (!this.tokenProvider.validateToken(token))) {
+        if (token == null || (!JwtTokenProvider.validateToken(token))) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        final var username = this.tokenProvider.getUsernameFromJWT(token);
+        final var username = JwtTokenProvider.getUsernameFromJWT(token);
         final var user = this.userService.findEntityByUsername(username);
         if (user == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        final var role = this.tokenProvider.getRoleFromJWT(token);
+        final var role = JwtTokenProvider.getRoleFromJWT(token);
         final var roleAuthority = new SimpleGrantedAuthority("ROLE_" + role);
         final var employee = this.employeeService.findEntityById(user.getId());
 

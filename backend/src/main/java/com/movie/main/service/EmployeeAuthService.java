@@ -3,7 +3,6 @@ package com.movie.main.service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.movie.main.auth.JwtTokenProvider;
 import com.movie.main.dto.request.EmployeeRequestDto;
 import com.movie.main.dto.response.EmployeeResponseDto;
 import com.movie.main.entity.Employee;
@@ -18,16 +17,22 @@ public class EmployeeAuthService
     private final EmployeeService employeeService;
 
     @NotNull
-    private final PasswordEncoder passwordEncoder;
+    private final UserRefreshTokenService userRefreshTokenService;
 
     @NotNull
-    private final JwtTokenProvider jwtTokenProvider;
+    private final PasswordEncoder passwordEncoder;
 
     public EmployeeAuthService(@NotNull final EmployeeService employeeService,
-            @NotNull final PasswordEncoder passwordEncoder, @NotNull final JwtTokenProvider jwtTokenProvider) {
+            @NotNull final UserRefreshTokenService userRefreshTokenService,
+            @NotNull final PasswordEncoder passwordEncoder) {
         this.employeeService = employeeService;
+        this.userRefreshTokenService = userRefreshTokenService;
         this.passwordEncoder = passwordEncoder;
-        this.jwtTokenProvider = jwtTokenProvider;
+    }
+
+    @Override
+    public UserRole getUserRole() {
+        return Employee.userRole;
     }
 
     @Override
@@ -36,17 +41,12 @@ public class EmployeeAuthService
     }
 
     @Override
-    protected JwtTokenProvider getJwtTokenProvider() {
-        return this.jwtTokenProvider;
+    protected UserRefreshTokenService getUserRefreshTokenService() {
+        return this.userRefreshTokenService;
     }
 
     @Override
     protected PasswordEncoder getPasswordEncoder() {
         return this.passwordEncoder;
-    }
-
-    @Override
-    protected UserRole getUserRole() {
-        return Employee.userRole;
     }
 }

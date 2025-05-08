@@ -110,16 +110,6 @@ public abstract class AbstractEntityService<TRequestDto extends EntityRequestDto
         }
     }
 
-    @NotNull
-    protected abstract TResponseDto createResponseDtoFromEntity(@NotNull final TEntity entity);
-
-    @Nullable
-    protected abstract TEntity createEntityFromRequestDto(@NotNull final TRequestDto requestDto);
-
-    @Nullable
-    protected abstract TEntity updateEntityFromRequestDto(@NotNull final TEntity entity,
-            @NotNull final TRequestDto requestDto);
-
     @Nullable
     protected TEntity save(@NotNull final TEntity entity) {
         try {
@@ -130,6 +120,16 @@ public abstract class AbstractEntityService<TRequestDto extends EntityRequestDto
             return null;
         }
     }
+
+    @NotNull
+    protected abstract TResponseDto createResponseDtoFromEntity(@NotNull final TEntity entity);
+
+    @Nullable
+    protected abstract TEntity createEntityFromRequestDto(@NotNull final TRequestDto requestDto);
+
+    @Nullable
+    protected abstract TEntity updateEntityFromRequestDto(@NotNull final TEntity entity,
+            @NotNull final TRequestDto requestDto);
 
     @NotNull
     protected abstract InterfaceRepository<TEntity, TKey> getRepository();

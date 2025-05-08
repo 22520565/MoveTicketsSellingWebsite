@@ -20,7 +20,6 @@ import lombok.experimental.FieldNameConstants;
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
 public class Ticket extends IntegerIdentifiableEntity {
-
     @Column(nullable = false)
     @Min(0)
     private int quantity = 0;

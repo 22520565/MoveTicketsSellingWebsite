@@ -26,7 +26,6 @@ import lombok.experimental.FieldNameConstants;
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
 public final class FilmShow extends IntegerIdentifiableEntity {
-
     @ManyToOne(cascade = {
             CascadeType.PERSIST, CascadeType.MERGE
     }, fetch = FetchType.LAZY, optional = false)

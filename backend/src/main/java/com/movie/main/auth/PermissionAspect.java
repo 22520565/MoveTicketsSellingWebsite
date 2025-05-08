@@ -12,6 +12,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
+import com.movie.main.exception.UnauthorizedException;
+
 @Aspect
 @Component
 public class PermissionAspect {
@@ -34,7 +36,7 @@ public class PermissionAspect {
         boolean hasAnyPermission = userAuthorities.stream().anyMatch(requiredPermissions::contains);
 
         if (!hasAnyPermission) {
-            throw new AccessDeniedException("Permission denied: missing required permissions");
+            throw new UnauthorizedException("Permission denied: missing required permissions");
         }
     }
 }

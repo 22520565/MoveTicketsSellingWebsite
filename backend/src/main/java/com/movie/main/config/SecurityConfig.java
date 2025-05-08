@@ -20,24 +20,19 @@ import jakarta.validation.constraints.NotNull;
 @EnableMethodSecurity
 public class SecurityConfig {
     @NotNull
-    private final JwtTokenProvider tokenProvider;
-
-    @NotNull
     private final UserService userService;
 
     @NotNull
     private final EmployeeService employeeService;
 
-    public SecurityConfig(@NotNull final JwtTokenProvider tokenProvider, @NotNull final UserService userService,
-            @NotNull final EmployeeService employeeService) {
-        this.tokenProvider = tokenProvider;
+    public SecurityConfig(@NotNull final UserService userService, @NotNull final EmployeeService employeeService) {
         this.userService = userService;
         this.employeeService = employeeService;
     }
 
     @Bean
     SecurityFilterChain filterChain(@NotNull final HttpSecurity http) throws Exception {
-        final var jwtFilter = new JwtAuthenticationFilter(tokenProvider, userService, employeeService);
+        final var jwtFilter = new JwtAuthenticationFilter(userService, employeeService);
 
         return http.csrf(AbstractHttpConfigurer::disable)
                 .headers(headers -> headers.contentTypeOptions(Customizer.withDefaults())

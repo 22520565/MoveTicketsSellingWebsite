@@ -1,11 +1,14 @@
 package com.movie.main.controller;
 
 import com.movie.main.auth.RequirePermissions;
+import com.movie.main.config.OpenApiConfig;
 import com.movie.main.dto.request.EntityRequestDtoInterface;
 import com.movie.main.dto.response.EntityResponseDtoInterface;
 import com.movie.main.entity.Identifiable;
 import com.movie.main.entity.Employee.Permission;
 import com.movie.main.service.AbstractEntityService;
+
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import org.hibernate.validator.constraints.Range;
 import org.springframework.data.domain.PageRequest;
@@ -31,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @DenyAll
 @Slf4j
+@SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
 public abstract class AbstractEntityController<TRequestDto extends EntityRequestDtoInterface,
         TResponseDto extends EntityResponseDtoInterface<TKey>,
         TEntity extends Identifiable<TKey>,
@@ -40,7 +44,7 @@ public abstract class AbstractEntityController<TRequestDto extends EntityRequest
     public static final int MAX_PAGE_SIZE = 100;
 
     @GetMapping
-    @PermitAll
+    @RequirePermissions(value = Permission.ADMIN)
     public ResponseEntity<PagedModel<EntityModel<TResponseDto>>> findAllData(
             @RequestParam(defaultValue = DEFAULT_PAGE_NUMBER_STRING) @Min(value = 0) @Valid final int page,
             @RequestParam(defaultValue = DEFAULT_PAGE_SIZE_STRING) @Range(min = 1, max = MAX_PAGE_SIZE) @Valid final int size,
@@ -50,7 +54,7 @@ public abstract class AbstractEntityController<TRequestDto extends EntityRequest
     }
 
     @GetMapping("{id}")
-    @PermitAll
+    @RequirePermissions(value = Permission.ADMIN)
     public ResponseEntity<TResponseDto> findById(@PathVariable @NotNull @Valid final TKey id) {
         final var result = this.getService().findById(id);
 

@@ -10,27 +10,21 @@ import com.movie.main.repository.CustomerRepository;
 import jakarta.validation.constraints.NotNull;
 
 @Service
-public class CustomerService
-        extends AbstractEntityService<CustomerRequestDto, CustomerResponseDto, Customer, Integer>
-        implements UserDetailsServiceInterface<CustomerRequestDto, CustomerResponseDto, Customer> {
+public class CustomerService extends AbstractUserDetailsService<CustomerRequestDto, CustomerResponseDto, Customer> {
     @NotNull
     private final CustomerRepository repository;
 
     @NotNull
     private final UserService userService;
 
-    public CustomerService(
-            @NotNull final CustomerRepository repository,
-            @NotNull final UserService userService) {
+    public CustomerService(@NotNull final CustomerRepository repository, @NotNull final UserService userService) {
         this.repository = repository;
         this.userService = userService;
     }
 
     @Override
-    public CustomerResponseDto createResponseDtoFromEntity(
-            @NotNull final Customer customer) {
-        return new CustomerResponseDto(
-                this.userService.createResponseDtoFromEntity(customer.getUser()));
+    public CustomerResponseDto createResponseDtoFromEntity(@NotNull final Customer customer) {
+        return new CustomerResponseDto(this.userService.createResponseDtoFromEntity(customer.getUser()));
     }
 
     @Override
@@ -44,8 +38,7 @@ public class CustomerService
     }
 
     @Override
-    protected Customer updateEntityFromRequestDto(
-            @NotNull final Customer customer,
+    protected Customer updateEntityFromRequestDto(@NotNull final Customer customer,
             @NotNull final CustomerRequestDto requestDto) {
         final var user = this.userService.updateEntityFromRequestDto(customer.getUser(), requestDto.userRequestDto());
         if (user == null) {
