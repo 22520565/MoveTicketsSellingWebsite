@@ -1,9 +1,6 @@
 package com.movie.main.entity;
 
-import static org.junit.jupiter.api.Assertions.fail;
-
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import jakarta.persistence.CascadeType;
