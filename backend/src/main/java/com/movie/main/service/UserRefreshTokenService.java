@@ -33,21 +33,17 @@ public class UserRefreshTokenService {
 
     public UserRefreshToken createRefreshToken(@NotNull final User user) {
         final var newUserRefreshToken = new UserRefreshToken(user);
-        while (this.repository.existsByRefreshToken(newUserRefreshToken.getRefreshToken())) {
-            newUserRefreshToken.setRefreshToken(UUID.randomUUID());
-        }
-
         return this.repository.save(newUserRefreshToken);
     }
 
     @Transactional
     public UserRefreshToken createRefreshToken(@NotNull final UserRefreshToken oldUserRefreshToken) {
-        this.deleteByRefreshToken(oldUserRefreshToken.getRefreshToken());
+        this.deleteById(oldUserRefreshToken.getId());
         return this.createRefreshToken(oldUserRefreshToken.getUser());
     }
 
-    public UserRefreshToken findByRefreshToken(final UUID refreshToken) {
-        return this.repository.findByRefreshToken(refreshToken).orElse(null);
+    public UserRefreshToken findById(final UUID id) {
+        return this.repository.findById(id).orElse(null);
     }
 
     public boolean isUserRefreshTokenValid(final UserRefreshToken userRefreshToken) {
@@ -60,8 +56,8 @@ public class UserRefreshTokenService {
     }
 
     @Transactional
-    public void deleteByRefreshToken(final UUID refreshToken) {
-        this.repository.deleteByRefreshToken(refreshToken);
+    public void deleteById(final UUID id) {
+        this.repository.deleteById(id);
     }
 
     @Scheduled(fixedDelay = 7, timeUnit = TimeUnit.DAYS)
