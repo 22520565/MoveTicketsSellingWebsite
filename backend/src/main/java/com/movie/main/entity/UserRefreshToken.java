@@ -4,8 +4,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.hibernate.annotations.NaturalId;
-
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -30,7 +29,9 @@ public class UserRefreshToken extends IntegerIdentifiableEntity {
     @NotNull
     private UUID refreshToken = UUID.randomUUID();
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(cascade = {
+            CascadeType.PERSIST, CascadeType.MERGE
+    }, fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
     @NotNull
     private User user = null;

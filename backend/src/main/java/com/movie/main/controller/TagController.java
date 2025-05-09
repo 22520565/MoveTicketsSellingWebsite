@@ -12,7 +12,7 @@ import jakarta.validation.constraints.NotNull;
 
 @RestController
 @RequestMapping("/api/tags")
-public class TagController extends AbstractEntityController<TagRequestDto, TagResponseDto, Tag, Integer> {
+public class TagController extends AbstractPublicFindEntityController<TagRequestDto, TagResponseDto, Tag, Integer> {
     @NotNull
     private TagService service;
 

@@ -12,7 +12,7 @@ import jakarta.validation.constraints.NotNull;
 
 @RestController
 @RequestMapping("/api/rooms")
-public class RoomController extends AbstractEntityController<RoomRequestDto, RoomResponseDto, Room, Integer> {
+public class RoomController extends AbstractPublicFindEntityController<RoomRequestDto, RoomResponseDto, Room, Integer> {
     @NotNull
     private final RoomService service;
 

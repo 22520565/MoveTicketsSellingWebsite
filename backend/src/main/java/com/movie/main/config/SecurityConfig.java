@@ -10,7 +10,6 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
-import com.movie.main.auth.JwtTokenProvider;
 import com.movie.main.service.EmployeeService;
 import com.movie.main.service.UserService;
 

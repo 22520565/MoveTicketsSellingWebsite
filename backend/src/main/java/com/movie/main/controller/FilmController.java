@@ -12,7 +12,7 @@ import jakarta.validation.constraints.NotNull;
 
 @RestController
 @RequestMapping("/api/films")
-public class FilmController extends AbstractEntityController<FilmRequestDto, FilmResponseDto, Film, Integer> {
+public class FilmController extends AbstractPublicFindEntityController<FilmRequestDto, FilmResponseDto, Film, Integer> {
     @NotNull
     private final FilmService service;
 

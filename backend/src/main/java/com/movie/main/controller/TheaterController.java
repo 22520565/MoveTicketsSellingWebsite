@@ -13,7 +13,7 @@ import jakarta.validation.constraints.NotNull;
 @RestController
 @RequestMapping("/api/theaters")
 public class TheaterController
-        extends AbstractEntityController<TheaterRequestDto, TheaterResponseDto, Theater, Integer> {
+        extends AbstractPublicFindEntityController<TheaterRequestDto, TheaterResponseDto, Theater, Integer> {
     @NotNull
     private final TheaterService service;
 
