@@ -1,7 +1,6 @@
 package com.movie.main.controller;
 
 import org.hibernate.validator.constraints.Range;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
