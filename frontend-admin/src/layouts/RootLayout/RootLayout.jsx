@@ -59,7 +59,6 @@ const revenueOverviewTab = {
   icon: <FiBarChart2 className="w-6 h-6" />,
 };
 
-
 const roomTab = {
   name: "Quản lý phòng",
   path: "/admin/room-management",
@@ -90,75 +89,104 @@ const employeeTab = {
   path: "/admin/employee-management",
   icon: <FiUser className="w-6 h-6" />,
 };
-const permissionTab = {
-  name: "Phân quyền nhân viên",
-  path: "/admin/role-division",
-  icon: <FiLock className="w-6 h-6" />,
-};
 const promotionTab = {
   name: "Quản lý sự kiện",
   path: "/admin/promotion-management",
   icon: <FiLock className="w-6 h-6" />,
-}
+};
 
+const allTabs = [
+  filmTab,
+  filmShowListTab,
+  filmShowChartTab,
+  offlineTicketTab,
+  printTicketTab,
+  serveTicketTab,
+  dailyReportTab,
+  revenueOverviewTab,
+  roomTab,
+  statisticTab,
+  otherProductTab,
+  accountTab,
+  otherRuleTab,
+  employeeTab,
+  promotionTab,
+];
 
 const RootLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const {
-    employeeDetail,
-    setEmployeeDetail,
-    fetchEmployeeDetail,
-    signOut,
-    signInNotification,
-  } = useAuth();
-  const [tabs, setTabs] = useState([]);
+  const { employeeDetail, setEmployeeDetail, fetchEmployeeDetail, signOut } =
+    useAuth();
+  const [tabs, setTabs] = useState(allTabs);
   const navigate = useNavigate();
-  const fetchRole = async () => {
-    if (employeeDetail) {
-      const roleList = await employeeDetail.roles.map(
-        (role) => role.permissionID.symbol
-      );
-      const updatedTab = [];
-      if (roleList.includes("film")) {
-        updatedTab.push(filmTab);
-      }
-      if (roleList.includes("film_show")) {
-        updatedTab.push(filmShowListTab, filmShowChartTab);
-      }
-      if (roleList.includes("ticket")) {
-        updatedTab.push(printTicketTab, serveTicketTab,offlineTicketTab);
-      }
-      if (roleList.includes("room")) {
-        updatedTab.push(roomTab);
-      }
-      if (roleList.includes("statistic")) {
-        updatedTab.push(statisticTab);
-      }
-      if (roleList.includes("additional_item")) {
-        updatedTab.push(otherProductTab);
-      }
-      if (roleList.includes("user_account")) {
-        updatedTab.push(accountTab);
-      }
-      if (roleList.includes("admin_param")) {
-        updatedTab.push(otherRuleTab);
-      }
-      if (roleList.includes("employee")) {
-        updatedTab.push(employeeTab);
-      }
-      if (roleList.includes("role_division")) {
-        updatedTab.push(permissionTab);
-      }
-      if (roleList.includes("promotion")) {
-        updatedTab.push(promotionTab);
-      }
-      setTabs(updatedTab);
-    }
-  };
   useEffect(() => {
-    () => console.log("Hi");
-    fetchRole();
-  }, [signInNotification]);
+    setTabs(allTabs);
+  }, []);
+  // const fetchRole = async () => {
+  //   if (employeeDetail) {
+  //     const roleList = await employeeDetail.roles.map(
+  //       (role) => role.permissionID.symbol
+  //     );
+  //     const updatedTab = [];
+  //     if (roleList.includes("film")) {
+  //       updatedTab.push(filmTab);
+  //     }
+  //     if (roleList.includes("film_show")) {
+  //       updatedTab.push(filmShowListTab, filmShowChartTab);
+  //     }
+  //     if (roleList.includes("ticket")) {
+  //       updatedTab.push(printTicketTab, serveTicketTab, offlineTicketTab);
+  //     }
+  //     if (roleList.includes("room")) {
+  //       updatedTab.push(roomTab);
+  //     }
+  //     if (roleList.includes("statistic")) {
+  //       updatedTab.push(statisticTab);
+  //     }
+  //     if (roleList.includes("additional_item")) {
+  //       updatedTab.push(otherProductTab);
+  //     }
+  //     if (roleList.includes("user_account")) {
+  //       updatedTab.push(accountTab);
+  //     }
+  //     if (roleList.includes("admin_param")) {
+  //       updatedTab.push(otherRuleTab);
+  //     }
+  //     if (roleList.includes("employee")) {
+  //       updatedTab.push(employeeTab);
+  //     }
+  //     if (roleList.includes("role_division")) {
+  //       updatedTab.push(permissionTab);
+  //     }
+  //     if (roleList.includes("promotion")) {
+  //       updatedTab.push(promotionTab);
+  //     }
+  //     setTabs(updatedTab);
+  //   }
+  // };
+  // useEffect(() => {
+  //   () => console.log("Hi");
+  //   fetchRole();
+  // }, [signInNotification]);
+  // useEffect(() => {
+  //   if (!localStorage.getItem("access_token")) {
+  //     alert("Có lỗi khi xác thực người dùng, vui lòng đăng nhập lại");
+  //     signOut();
+  //     navigate("/admin/auth");
+  //   }
+  //   if (!employeeDetail) {
+  //     fetchEmployeeDetail().catch((error) => {
+  //       console.log(error);
+  //       alert("Xác thực người dùng thất bại, vui lòng đăng nhập lại");
+  //       signOut();
+  //       navigate("/admin/auth");
+  //     });
+  //   }
+  //   if (employeeDetail) {
+  //     fetchRole();
+  //   }
+  // }, [employeeDetail]);
+
   useEffect(() => {
     if (!localStorage.getItem("access_token")) {
       alert("Có lỗi khi xác thực người dùng, vui lòng đăng nhập lại");
@@ -172,9 +200,6 @@ const RootLayout = () => {
         signOut();
         navigate("/admin/auth");
       });
-    }
-    if (employeeDetail) {
-      fetchRole();
     }
   }, [employeeDetail]);
 

@@ -2,15 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-
-=======
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 /* Tùy chỉnh toàn bộ thanh cuộn */
 ::-webkit-scrollbar {
   width: 6px; /* Độ rộng thanh cuộn dọc */
@@ -31,18 +22,7 @@
   border-radius: 10px; /* Bo góc track */
 }
 
-<<<<<<<
-  Updated
-  upstream
-  <<<<<<<
-  Updated
-  upstream>>>>>>>Stashed
-  changes
-  =======>>>>>>>Stashed
-  changes
-  =======>>>>>>>Stashed
-  changes
-  h1 {
+h1 {
   display: block;
   font-size: 2em;
   margin-block-start: 0.67em;
