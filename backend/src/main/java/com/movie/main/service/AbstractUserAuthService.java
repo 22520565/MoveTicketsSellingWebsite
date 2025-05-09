@@ -52,9 +52,7 @@ public abstract class AbstractUserAuthService<
             }
 
             final var accessToken = JwtTokenProvider.generateToken(requestDto.username(), this.getUserRole());
-            final var refreshToken = this.getUserRefreshTokenService()
-                    .createRefreshToken(userEntity.getUser())
-                    .getRefreshToken();
+            final var refreshToken = this.getUserRefreshTokenService().createRefreshToken(userEntity.getUser()).getId();
 
             return Expected.success(new LoginResponseDto(userEntity.getId(), accessToken, refreshToken));
         }
@@ -84,7 +82,7 @@ public abstract class AbstractUserAuthService<
         final var userRefreshTokenService = this.getUserRefreshTokenService();
         final var oldRefreshToken = requestDto.token();
 
-        final var oldUserRefreshToken = userRefreshTokenService.findByRefreshToken(oldRefreshToken);
+        final var oldUserRefreshToken = userRefreshTokenService.findById(oldRefreshToken);
         if (oldUserRefreshToken == null) {
             return Expected.failure(RefreshTokenError.NOT_FOUND);
         }
@@ -96,13 +94,13 @@ public abstract class AbstractUserAuthService<
         final var newUserRefreshToken = userRefreshTokenService.createRefreshToken(oldUserRefreshToken);
         final var accessToken = JwtTokenProvider.generateToken(newUserRefreshToken.getUser().getUsername(),
                 this.getUserRole());
-        final var responseDto = new TokenRefreshResponseDto(accessToken, newUserRefreshToken.getRefreshToken());
+        final var responseDto = new TokenRefreshResponseDto(accessToken, newUserRefreshToken.getId());
 
         return Expected.success(responseDto);
     }
 
     public void logout(@NotNull final UUID refreshToken) {
-        this.getUserRefreshTokenService().deleteByRefreshToken(refreshToken);
+        this.getUserRefreshTokenService().deleteById(refreshToken);
     }
 
     @NotNull
