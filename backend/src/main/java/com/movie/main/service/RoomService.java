@@ -10,7 +10,7 @@ import com.movie.main.repository.RoomRepository;
 import jakarta.validation.constraints.NotNull;
 
 @Service
-public class RoomService extends AbstractEntityService<RoomRequestDto, RoomResponseDto, Room, Integer> {
+public class RoomService extends AbstractSoftDeletableEntityService<RoomRequestDto, RoomResponseDto, Room, Integer> {
     @NotNull
     private final RoomRepository repository;
 

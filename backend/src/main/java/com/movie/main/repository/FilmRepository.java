@@ -5,5 +5,4 @@ import org.springframework.stereotype.Repository;
 import com.movie.main.entity.Film;
 
 @Repository
-public interface FilmRepository extends InterfaceRepository<Film, Integer> {
-}
+public interface FilmRepository extends InterfaceSoftDeletableRepository<Film, Integer> {}

@@ -29,7 +29,7 @@ public abstract class AbstractUserAuthService<
     }
 
     public enum LoginError {
-        UsernameNotExists, WrongPassword, Unspecified,
+        UsernameNotExists, WrongPassword, Blocked, Unspecified,
     }
 
     public enum RefreshTokenError {
@@ -41,13 +41,18 @@ public abstract class AbstractUserAuthService<
         try {
             final var userEntity = this.getUserDetailsService()
                     .getRepository()
-                    .findByUserUsername(requestDto.username())
+                    .findByUserUsernameAndDeletedFalse(requestDto.username())
                     .orElse(null);
             if (userEntity == null) {
                 return Expected.failure(LoginError.UsernameNotExists);
             }
 
-            if (!this.getPasswordEncoder().matches(requestDto.password(), userEntity.getUser().getHashedPassword())) {
+            final var user = userEntity.getUser();
+            if (user.isBlocked()) {
+                return Expected.failure(LoginError.Blocked);
+            }
+
+            if (!this.getPasswordEncoder().matches(requestDto.password(), user.getHashedPassword())) {
                 return Expected.failure(LoginError.WrongPassword);
             }
 

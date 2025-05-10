@@ -59,7 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final var username = JwtTokenProvider.getUsernameFromJWT(token);
         final var user = this.userService.findEntityByUsername(username);
-        if (user == null) {
+        if ((user == null) || user.isBlocked()) {
             filterChain.doFilter(request, response);
             return;
         }

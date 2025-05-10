@@ -4,8 +4,6 @@ import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,7 +19,7 @@ import lombok.experimental.FieldNameConstants;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
-public final class Film extends IntegerIdentifiableEntity {
+public final class Film extends IntegerIdentifiableEntity implements SoftDeletable {
     public static final int MinLengthName = 1;
     public static final int MaxLengthName = 100;
     public static final int MinLengthDescription = 1;

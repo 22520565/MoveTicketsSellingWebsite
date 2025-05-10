@@ -22,7 +22,7 @@ import lombok.experimental.FieldNameConstants;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
-public final class User extends IntegerIdentifiableEntity {
+public final class User extends IntegerIdentifiableEntity implements SoftDeletable {
     public static final int MinLengthName = 1;
     public static final int MaxLengthName = 50;
     public static final int MinLengthUsername = 1;

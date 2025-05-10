@@ -22,7 +22,7 @@ import lombok.experimental.FieldNameConstants;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
-public final class FilmShow extends IntegerIdentifiableEntity {
+public final class FilmShow extends IntegerIdentifiableEntity implements SoftDeletable {
     @ManyToOne(cascade = {
             CascadeType.PERSIST, CascadeType.MERGE
     }, fetch = FetchType.LAZY, optional = false)

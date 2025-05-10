@@ -10,7 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
 
 @Service
-public class FilmService extends AbstractEntityService<FilmRequestDto, FilmResponseDto, Film, Integer> {
+public class FilmService extends AbstractSoftDeletableEntityService<FilmRequestDto, FilmResponseDto, Film, Integer> {
     @NotNull
     private final FilmRepository repository;
 

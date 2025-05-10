@@ -61,6 +61,7 @@ public abstract class AbstractUserAuthController<
 
         return switch (result.getError()) {
         case UsernameNotExists, WrongPassword -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        case Blocked -> ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         case Unspecified -> ResponseEntity.internalServerError().build();
         default -> ResponseEntity.internalServerError().build();
         };

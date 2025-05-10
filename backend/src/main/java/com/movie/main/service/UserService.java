@@ -12,24 +12,21 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 
 @Service
-public class UserService
-        extends AbstractEntityService<UserRequestDto, UserResponseDto, User, Integer> {
+public class UserService extends AbstractSoftDeletableEntityService<UserRequestDto, UserResponseDto, User, Integer> {
     @NotNull
     private final UserRepository repository;
 
     @NotNull
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(
-            @NotNull final UserRepository repository,
-            @NotNull final PasswordEncoder passwordEncoder) {
+    public UserService(@NotNull final UserRepository repository, @NotNull final PasswordEncoder passwordEncoder) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Nullable
     public User findEntityByUsername(@Nullable final String username) {
-        return this.getRepository().findByUsername(username).orElse(null);
+        return this.getRepository().findByUsernameAndDeletedFalse(username).orElse(null);
     }
 
     @Nullable
@@ -43,35 +40,23 @@ public class UserService
     }
 
     public boolean existsByUsername(@Nullable final String username) {
-        return this.getRepository().existsByUsername(username);
+        return this.getRepository().existsByUsernameAndDeletedFalse(username);
     }
 
     @Override
     protected UserResponseDto createResponseDtoFromEntity(@NotNull final User user) {
-        return new UserResponseDto(
-                user.getId(),
-                user.getName(),
-                user.getBirthDate(),
-                user.getEmail(),
-                user.getPhoneNumber(),
-                user.getUsername());
+        return new UserResponseDto(user.getId(), user.getName(), user.getBirthDate(), user.getEmail(),
+                user.getPhoneNumber(), user.getUsername(), user.isBlocked());
     }
 
     @Override
     protected User createEntityFromRequestDto(@NotNull final UserRequestDto requestDto) {
-        return new User(
-                requestDto.name(),
-                requestDto.birthDate(),
-                requestDto.email(),
-                requestDto.phoneNumber(),
-                requestDto.username(),
-                this.passwordEncoder.encode(requestDto.password()));
+        return new User(requestDto.name(), requestDto.birthDate(), requestDto.email(), requestDto.phoneNumber(),
+                requestDto.username(), this.passwordEncoder.encode(requestDto.password()));
     }
 
     @Override
-    protected User updateEntityFromRequestDto(
-            @NotNull final User user,
-            @NotNull final UserRequestDto requestDto) {
+    protected User updateEntityFromRequestDto(@NotNull final User user, @NotNull final UserRequestDto requestDto) {
         user.setName(requestDto.name());
         user.setBirthDate(requestDto.birthDate());
         user.setEmail(requestDto.email());

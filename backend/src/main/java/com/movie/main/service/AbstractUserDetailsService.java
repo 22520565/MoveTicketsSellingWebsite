@@ -14,12 +14,12 @@ public abstract class AbstractUserDetailsService<TUserDetailsRequestDto extends 
         extends AbstractEntityService<TUserDetailsRequestDto, TUserDetailsResponseDto, TUserDetails, Integer> {
     @Nullable
     public TUserDetails findEntityByUsername(@Nullable final String username) {
-        return this.getRepository().findByUserUsername(username).orElse(null);
+        return this.getRepository().findByUserUsernameAndDeletedFalse(username).orElse(null);
     }
 
     @Nullable
     public TUserDetailsResponseDto findByUsername(@Nullable final String username) {
-        final TUserDetails user = this.findEntityByUsername(username);
+        final var user = this.findEntityByUsername(username);
         if (user == null) {
             return null;
         }
@@ -28,7 +28,7 @@ public abstract class AbstractUserDetailsService<TUserDetailsRequestDto extends 
     }
 
     public boolean existByUsername(@Nullable final String username) {
-        return this.getRepository().existsByUserUsername(username);
+        return this.getRepository().existsByUserUsernameAndDeletedFalse(username);
     }
 
     @NotNull

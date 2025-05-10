@@ -10,9 +10,9 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 
 @Repository
-public interface UserRepository extends InterfaceRepository<User, Integer> {
+public interface UserRepository extends InterfaceSoftDeletableRepository<User, Integer> {
     @NotNull
-    Optional<User> findByUsername(@Nullable final String username);
+    Optional<User> findByUsernameAndDeletedFalse(@Nullable final String username);
 
-    boolean existsByUsername(@Nullable final String username);
+    boolean existsByUsernameAndDeletedFalse(@Nullable final String username);
 }

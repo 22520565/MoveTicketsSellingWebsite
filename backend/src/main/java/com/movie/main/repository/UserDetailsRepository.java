@@ -16,7 +16,7 @@ public interface UserDetailsRepository<TUser extends AbstractUserDetail> extends
     Optional<TUser> findByUser(@Nullable final User user);
 
     @NotNull
-    Optional<TUser> findByUserUsername(@Nullable final String username);
+    Optional<TUser> findByUserUsernameAndDeletedFalse(@Nullable final String username);
 
-    boolean existsByUserUsername(@Nullable final String username);
+    boolean existsByUserUsernameAndDeletedFalse(@Nullable final String username);
 }

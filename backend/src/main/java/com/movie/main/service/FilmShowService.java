@@ -9,7 +9,8 @@ import com.movie.main.repository.FilmShowRepository;
 import jakarta.validation.constraints.NotNull;
 
 @Service
-public class FilmShowService extends AbstractEntityService<FilmShowRequestDto, FilmShowResponseDto, FilmShow, Integer> {
+public class FilmShowService
+        extends AbstractSoftDeletableEntityService<FilmShowRequestDto, FilmShowResponseDto, FilmShow, Integer> {
     @NotNull
     private final FilmShowRepository filmShowRepository;
 
