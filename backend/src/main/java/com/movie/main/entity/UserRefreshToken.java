@@ -26,7 +26,7 @@ import lombok.experimental.FieldNameConstants;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
-public class UserRefreshToken implements Identifiable<UUID> {
+public class UserRefreshToken {
     public static final Duration REFRESH_TOKEN_DURATION = Duration.ofDays(7);
 
     @Id

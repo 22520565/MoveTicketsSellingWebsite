@@ -24,12 +24,10 @@ import lombok.experimental.FieldNameConstants;
 
 @Entity
 @Data
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
-public class Employee extends AbstractUserDetail {
-    public static final UserRole userRole = UserRole.EMPLOYEE;
-
+public class Employee extends User {
     public enum Permission {
         NORMAL, ADMIN,
     }
@@ -57,9 +55,11 @@ public class Employee extends AbstractUserDetail {
     @Setter(value = AccessLevel.NONE)
     private Set<Permission> permissions = Collections.emptySet();
 
-    public Employee(final User user, final String jobTitle, final int salary, final LocalTime shiftStart,
-            final LocalTime shiftEnd, final LocalDate beginWorkingDate, final Set<Permission> permissions) {
-        super(user);
+    public Employee(final String name, final LocalDate birthDate, final String email, final String phoneNumber,
+            final String username, final String hashedPassword, final String jobTitle, final int salary,
+            final LocalTime shiftStart, final LocalTime shiftEnd, final LocalDate beginWorkingDate,
+            final Set<Permission> permissions) {
+        super(name, birthDate, email, phoneNumber, username, hashedPassword);
         this.jobTitle = jobTitle;
         this.salary = salary;
         this.shiftStart = shiftStart;

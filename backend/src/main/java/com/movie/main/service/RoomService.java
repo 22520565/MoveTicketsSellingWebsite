@@ -1,16 +1,33 @@
 package com.movie.main.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.movie.main.dto.request.RoomRequestDto;
-import com.movie.main.dto.response.RoomResponseDto;
 import com.movie.main.entity.Room;
 import com.movie.main.repository.RoomRepository;
+import com.movie.main.ulti.Expected;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
-public class RoomService extends AbstractEntityService<RoomRequestDto, RoomResponseDto, Room, Integer> {
+@Slf4j
+public class RoomService {
+    public enum CreationError {
+        ENTITY_NOT_EXISTS, UNSPECIFIED,
+    }
+
+    public enum UpdateError {
+        ENTITY_NOT_EXISTS, UNSPECIFIED,
+    }
+
+    public enum MarkDeletedStatusResult {
+        SUCCESS, ENTITY_NOT_EXISTS_ERROR, UNSPECIFIED_ERROR,
+    }
+
     @NotNull
     private final RoomRepository repository;
 
@@ -22,33 +39,57 @@ public class RoomService extends AbstractEntityService<RoomRequestDto, RoomRespo
         this.theaterService = theaterService;
     }
 
-    @Override
-    protected RoomResponseDto createResponseDtoFromEntity(@NotNull final Room room) {
-        return new RoomResponseDto(room.getId(), room.getName(), room.getNumberOfSeatRow(),
-                room.getNumberOfSeatColumn(), room.getCenterX1(), room.getCenterX2(), room.getCenterY1(),
-                room.getCenterY2(), room.getNote(), room.getTheater().getId());
+    @NotNull
+    public Page<@NotNull Room> findAllByDeletedFalse(@NotNull final PageRequest pageRequest) {
+        return this.repository.findAllByDeletedFalse(pageRequest);
     }
 
-    @Override
-    protected Room createEntityFromRequestDto(@NotNull final RoomRequestDto requestDto) {
-        final var theater = this.theaterService.findEntityById(requestDto.theaterId());
+    @NotNull
+    public Page<@NotNull Room> findAll(@NotNull final PageRequest pageRequest) {
+        return this.repository.findAll(pageRequest);
+    }
+
+    @Nullable
+    public Room findByIdAndDeletedFalse(final int id) {
+        return this.repository.findByIdAndDeletedFalse(id).orElse(null);
+    }
+
+    @Nullable
+    public Room findById(final int id) {
+        return this.repository.findById(id).orElse(null);
+    }
+
+    @NotNull
+    public Expected<Room, CreationError> create(@NotNull final RoomRequestDto requestDto) {
+        final var theater = this.theaterService.findById(requestDto.theaterId());
         if (theater == null) {
-            return null;
+            return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
         }
 
-        return new Room(requestDto.name(), requestDto.numberOfSeatRow(), requestDto.numberOfSeatColumn(),
+        final var newRoom = new Room(requestDto.name(), requestDto.numberOfSeatRow(), requestDto.numberOfSeatColumn(),
                 requestDto.centerX1(), requestDto.centerX2(), requestDto.centerY1(), requestDto.centerY2(),
                 requestDto.note(), theater);
+
+        try {
+            return Expected.success(this.repository.save(newRoom));
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return Expected.failure(CreationError.UNSPECIFIED);
+        }
     }
 
-    @Override
-    protected Room updateEntityFromRequestDto(@NotNull final Room room, @NotNull final RoomRequestDto requestDto) {
-        var theater = room.getTheater();
-        if (theater.getId() != requestDto.theaterId()) {
-            theater = this.theaterService.findEntityById(requestDto.theaterId());
-            if (theater == null) {
-                return null;
-            }
+    @NotNull
+    public Expected<Room, UpdateError> updateByIdAndDeletedFalse(final int id,
+            @NotNull final RoomRequestDto requestDto) {
+        final var theater = this.theaterService.findById(requestDto.theaterId());
+        if (theater == null) {
+            return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
+        }
+
+        final var room = this.findByIdAndDeletedFalse(id);
+        if (room == null) {
+            return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
         }
 
         room.setName(requestDto.name());
@@ -61,11 +102,29 @@ public class RoomService extends AbstractEntityService<RoomRequestDto, RoomRespo
         room.setNote(requestDto.note());
         room.setTheater(theater);
 
-        return room;
+        try {
+            return Expected.success(this.repository.save(room));
+        }
+        catch (final Exception exception) {
+            return Expected.failure(UpdateError.UNSPECIFIED);
+        }
     }
 
-    @Override
-    protected @NotNull RoomRepository getRepository() {
-        return this.repository;
+    @NotNull
+    public MarkDeletedStatusResult markAsDeletedById(final int id) {
+        final var room = this.findByIdAndDeletedFalse(id);
+        if (room == null) {
+            return MarkDeletedStatusResult.ENTITY_NOT_EXISTS_ERROR;
+        }
+
+        room.setDeleted(true);
+        try {
+            this.repository.save(room);
+            return MarkDeletedStatusResult.SUCCESS;
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return MarkDeletedStatusResult.UNSPECIFIED_ERROR;
+        }
     }
 }

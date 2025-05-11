@@ -1,17 +1,35 @@
 package com.movie.main.service;
 
-import org.springframework.stereotype.Service;
-
 import com.movie.main.dto.request.FilmShowRequestDto;
-import com.movie.main.dto.response.FilmShowResponseDto;
 import com.movie.main.entity.FilmShow;
 import com.movie.main.repository.FilmShowRepository;
+import com.movie.main.ulti.Expected;
+
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
 
 @Service
-public class FilmShowService extends AbstractEntityService<FilmShowRequestDto, FilmShowResponseDto, FilmShow, Integer> {
+@Slf4j
+public class FilmShowService {
+    public enum CreationError {
+        ENTITY_NOT_EXISTS, UNSPECIFIED,
+    }
+
+    public enum UpdateError {
+        ENTITY_NOT_EXISTS, UNSPECIFIED,
+    }
+
+    public enum MarkDeletedStatusResult {
+        SUCCESS, ENTITY_NOT_EXISTS_ERROR, UNSPECIFIED_ERROR,
+    }
+
     @NotNull
-    private final FilmShowRepository filmShowRepository;
+    private final FilmShowRepository repository;
 
     @NotNull
     private final FilmService filmService;
@@ -19,51 +37,72 @@ public class FilmShowService extends AbstractEntityService<FilmShowRequestDto, F
     @NotNull
     private final RoomService roomService;
 
-    public FilmShowService(@NotNull final FilmShowRepository filmShowRepository, @NotNull final FilmService filmService,
-            @NotNull final RoomService roomSeatService) {
-        this.filmShowRepository = filmShowRepository;
+    protected FilmShowService(@NotNull final FilmShowRepository repository, @NotNull final FilmService filmService,
+            @NotNull final RoomService roomService) {
+        this.repository = repository;
         this.filmService = filmService;
-        this.roomService = roomSeatService;
+        this.roomService = roomService;
     }
 
-    @Override
-    protected FilmShowResponseDto createResponseDtoFromEntity(@NotNull final FilmShow filmShow) {
-        return new FilmShowResponseDto(filmShow.getId(), filmShow.getFilm().getId(), filmShow.getRoom().getId(),
-                filmShow.getShowDate(), filmShow.getShowTime(), filmShow.getType());
+    @NotNull
+    public Page<@NotNull FilmShow> findAllByDeletedFalse(@NotNull final PageRequest pageRequest) {
+        return this.repository.findAllByDeletedFalse(pageRequest);
     }
 
-    @Override
-    protected FilmShow createEntityFromRequestDto(@NotNull final FilmShowRequestDto requestDto) {
-        final var film = this.filmService.findEntityById(requestDto.filmId());
-        if (film == null) {
-            return null;
-        }
+    @NotNull
+    public Page<@NotNull FilmShow> findAll(@NotNull final PageRequest pageRequest) {
+        return this.repository.findAll(pageRequest);
+    }
 
-        final var room = this.roomService.findEntityById(requestDto.roomId());
+    @Nullable
+    public FilmShow findByIdAndDeletedFalse(final int id) {
+        return this.repository.findByIdAndDeletedFalse(id).orElse(null);
+    }
+
+    @Nullable
+    public FilmShow findById(final int id) {
+        return this.repository.findById(id).orElse(null);
+    }
+
+    @NotNull
+    public Expected<FilmShow, CreationError> create(@NotNull final FilmShowRequestDto requestDto) {
+        final var room = this.roomService.findById(requestDto.roomId());
         if (room == null) {
-            return null;
+            return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
         }
 
-        return new FilmShow(film, room, requestDto.showDate(), requestDto.showTime(), requestDto.type());
+        final var film = this.filmService.findByIdAndDeletedFalse(requestDto.filmId());
+        if (film == null) {
+            return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
+        }
+
+        final var newFilmShow = new FilmShow(film, room, requestDto.showDate(), requestDto.showTime(),
+                requestDto.type());
+
+        try {
+            return Expected.success(this.repository.save(newFilmShow));
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return Expected.failure(CreationError.UNSPECIFIED);
+        }
     }
 
-    @Override
-    protected FilmShow updateEntityFromRequestDto(@NotNull final FilmShow filmShow,
-            @NotNull final FilmShowRequestDto requestDto) {
-        var film = filmShow.getFilm();
-        if (film.getId() != requestDto.filmId()) {
-            film = this.filmService.findEntityById(requestDto.filmId());
-            if (film == null) {
-                return null;
-            }
+    @NotNull
+    public Expected<FilmShow, UpdateError> updateById(final int id, @NotNull final FilmShowRequestDto requestDto) {
+        final var room = this.roomService.findById(requestDto.roomId());
+        if (room == null) {
+            return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
         }
 
-        var room = filmShow.getRoom();
-        if (room.getId() != requestDto.roomId()) {
-            room = this.roomService.findEntityById(requestDto.roomId());
-            if (room == null) {
-                return null;
-            }
+        final var film = this.filmService.findByIdAndDeletedFalse(requestDto.filmId());
+        if (film == null) {
+            return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
+        }
+
+        final var filmShow = this.findByIdAndDeletedFalse(id);
+        if (filmShow == null) {
+            return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
         }
 
         filmShow.setFilm(film);
@@ -71,12 +110,30 @@ public class FilmShowService extends AbstractEntityService<FilmShowRequestDto, F
         filmShow.setShowTime(requestDto.showTime());
         filmShow.setType(requestDto.type());
 
-        return filmShow;
+        try {
+            return Expected.success(this.repository.save(filmShow));
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return Expected.failure(UpdateError.UNSPECIFIED);
+        }
     }
 
-    @Override
-    protected FilmShowRepository getRepository() {
-        return filmShowRepository;
-    }
+    @NotNull
+    public MarkDeletedStatusResult markAsDeletedById(final int id) {
+        final var filmShow = this.findByIdAndDeletedFalse(id);
+        if (filmShow == null) {
+            return MarkDeletedStatusResult.ENTITY_NOT_EXISTS_ERROR;
+        }
 
+        filmShow.setDeleted(true);
+        try {
+            this.repository.save(filmShow);
+            return MarkDeletedStatusResult.SUCCESS;
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return MarkDeletedStatusResult.UNSPECIFIED_ERROR;
+        }
+    }
 }

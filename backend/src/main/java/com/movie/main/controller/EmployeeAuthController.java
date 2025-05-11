@@ -1,19 +1,34 @@
 package com.movie.main.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.movie.main.auth.JwtTokenProvider;
+import com.movie.main.config.JwtAuthenticationFilter;
 import com.movie.main.dto.request.EmployeeRequestDto;
+import com.movie.main.dto.request.LoginRequestDto;
+import com.movie.main.dto.request.LogoutRequestDto;
+import com.movie.main.dto.request.TokenRefreshRequestDto;
 import com.movie.main.dto.response.EmployeeResponseDto;
-import com.movie.main.entity.Employee;
+import com.movie.main.dto.response.LoginResponseDto;
+import com.movie.main.dto.response.TokenRefreshResponseDto;
+import com.movie.main.entity.User.UserRole;
+import com.movie.main.exception.ConflictException;
 import com.movie.main.service.EmployeeAuthService;
-import com.movie.main.service.EmployeeService;
+
+import jakarta.annotation.security.PermitAll;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 @RestController
 @RequestMapping("/api/auth/employee")
-public class EmployeeAuthController extends
-        AbstractUserAuthController<EmployeeAuthService, EmployeeService, EmployeeRequestDto, EmployeeResponseDto, Employee> {
+@PermitAll
+public class EmployeeAuthController {
     @NotNull
     private final EmployeeAuthService employeeAuthService;
 
@@ -21,9 +36,71 @@ public class EmployeeAuthController extends
         this.employeeAuthService = employeeAuthService;
     }
 
-    @Override
-    protected EmployeeAuthService getUserAuthService() {
-        return this.employeeAuthService;
+    @PostMapping("/register")
+    public ResponseEntity<EmployeeResponseDto> register(@RequestBody @Valid final EmployeeRequestDto requestDto) {
+        final var result = this.employeeAuthService.register(requestDto);
+
+        final var employee = result.getValue();
+        if (employee != null) {
+            return ResponseEntity.ok(EmployeeController.getResponseDtoFrom(employee));
+        }
+
+        return switch (result.getError()) {
+        case USERNAME_EXISTS -> throw new ConflictException("Username exists");
+        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+        default -> ResponseEntity.internalServerError().build();
+        };
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDto> login(@RequestBody @Valid final LoginRequestDto requestDto) {
+        final var result = this.employeeAuthService.login(requestDto);
+
+        final var authResponseDto = result.getValue();
+        if (authResponseDto != null) {
+            return ResponseEntity.ok(authResponseDto);
+        }
+
+        return switch (result.getError()) {
+        case USERNAME_NOT_EXISTS, WRONG_PASSWORD -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        case BLOCKED -> ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+        default -> ResponseEntity.internalServerError().build();
+        };
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<TokenRefreshResponseDto> refreshToken(
+            @RequestBody @Valid final TokenRefreshRequestDto requestDto) {
+        final var result = this.employeeAuthService.refreshToken(requestDto);
+
+        final var responseDto = result.getValue();
+        if (responseDto != null) {
+            return ResponseEntity.ok(responseDto);
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestBody @Valid final LogoutRequestDto requestDto) {
+        this.employeeAuthService.logout(requestDto.refreshToken());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/validateJWT")
+    public ResponseEntity<Void> validateJWT(@NotNull final HttpServletRequest request) {
+        final var token = JwtAuthenticationFilter.getJwtFromRequest(request);
+
+        if (JwtTokenProvider.getRoleFromJWT(token) != UserRole.EMPLOYEE) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        if (!JwtTokenProvider.validateToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return ResponseEntity.noContent().build();
     }
 
 }

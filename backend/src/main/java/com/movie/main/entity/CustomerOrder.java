@@ -6,6 +6,9 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.Min;
@@ -14,6 +17,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 
 @Entity
@@ -21,7 +25,14 @@ import lombok.experimental.FieldNameConstants;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
-public class CustomerOrder extends IntegerIdentifiableEntity {
+public class CustomerOrder {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false, unique = true, updatable = false)
+    @Setter(value = AccessLevel.PACKAGE)
+    @NotNull
+    private int id = 0;
+
     @Column(nullable = false)
     private LocalDate date = LocalDate.now();
 
@@ -42,4 +53,13 @@ public class CustomerOrder extends IntegerIdentifiableEntity {
     @JoinColumn(nullable = false)
     @NotNull
     private Customer customer = null;
+
+    public CustomerOrder(final LocalDate date, final String verifyCode, final int totalPrice,
+            final int totalPriceAfterDiscount, final Customer customer) {
+        this.date = date;
+        this.verifyCode = verifyCode;
+        this.totalPrice = totalPrice;
+        this.totalPriceAfterDiscount = totalPriceAfterDiscount;
+        this.customer = customer;
+    }
 }

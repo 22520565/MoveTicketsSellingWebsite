@@ -1,16 +1,29 @@
 package com.movie.main.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.movie.main.dto.request.TagRequestDto;
-import com.movie.main.dto.response.TagResponseDto;
 import com.movie.main.entity.Tag;
 import com.movie.main.repository.TagRepository;
+import com.movie.main.ulti.Expected;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
-public class TagService extends AbstractEntityService<TagRequestDto, TagResponseDto, Tag, Integer> {
+@Slf4j
+public class TagService {
+    public enum CreationError {
+        ENTITY_NOT_EXISTS, UNSPECIFIED,
+    }
+
+    public enum UpdateError {
+        ENTITY_NOT_EXISTS, UNSPECIFIED,
+    }
+
     @NotNull
     private final TagRepository repository;
 
@@ -18,28 +31,48 @@ public class TagService extends AbstractEntityService<TagRequestDto, TagResponse
         this.repository = repository;
     }
 
-    @Override
-    protected TagResponseDto createResponseDtoFromEntity(@NotNull final Tag tag) {
-        return new TagResponseDto(
-                tag.getId(),
-                tag.getName());
+    @NotNull
+    public Page<@NotNull Tag> findAll(@NotNull final PageRequest pageRequest) {
+        return this.repository.findAll(pageRequest);
     }
 
-    @Override
-    protected Tag createEntityFromRequestDto(@NotNull final TagRequestDto requestDto) {
-        return new Tag(requestDto.name());
+    @Nullable
+    public Tag findById(final int id) {
+        return this.repository.findById(id).orElse(null);
     }
 
-    @Override
-    protected Tag updateEntityFromRequestDto(
-            @NotNull final Tag tag,
-            @NotNull final TagRequestDto requestDto) {
+    @NotNull
+    public Expected<Tag, CreationError> create(@NotNull final TagRequestDto requestDto) {
+        final var newTag = new Tag(requestDto.name());
+
+        try {
+            return Expected.success(this.repository.save(newTag));
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return Expected.failure(CreationError.UNSPECIFIED);
+        }
+    }
+
+    @NotNull
+    public Expected<Tag, UpdateError> updateById(final int id, @NotNull final TagRequestDto requestDto) {
+        final var tag = this.findById(id);
+        if (tag == null) {
+            return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
+        }
+
         tag.setName(requestDto.name());
-        return tag;
+
+        try {
+            return Expected.success(this.repository.save(tag));
+        }
+        catch (final Exception exception) {
+            return Expected.failure(UpdateError.UNSPECIFIED);
+        }
     }
 
-    @Override
-    protected TagRepository getRepository() {
-        return this.repository;
+    @NotNull
+    public void deleteById(final int id) {
+        this.repository.deleteById(id);
     }
 }

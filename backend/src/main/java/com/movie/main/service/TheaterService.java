@@ -1,50 +1,79 @@
 package com.movie.main.service;
 
-import com.movie.main.dto.request.TheaterRequestDto;
-import com.movie.main.dto.response.TheaterResponseDto;
-import com.movie.main.entity.Theater;
-import com.movie.main.repository.TheaterRepository;
-
-import jakarta.validation.constraints.NotNull;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import com.movie.main.dto.request.TheaterRequestDto;
+import com.movie.main.entity.Theater;
+import com.movie.main.repository.TheaterRepository;
+import com.movie.main.ulti.Expected;
+
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
+import lombok.extern.slf4j.Slf4j;
+
 @Service
-public class TheaterService extends AbstractEntityService<TheaterRequestDto, TheaterResponseDto, Theater, Integer> {
+@Slf4j
+public class TheaterService {
+    public enum CreationError {
+        ENTITY_NOT_EXISTS, UNSPECIFIED,
+    }
+
+    public enum UpdateError {
+        ENTITY_NOT_EXISTS, UNSPECIFIED,
+    }
+
     @NotNull
     private final TheaterRepository repository;
 
-    protected TheaterService(@NotNull final TheaterRepository repository) {
+    public TheaterService(@NotNull final TheaterRepository repository) {
         this.repository = repository;
     }
 
-    @Override
-    protected TheaterResponseDto createResponseDtoFromEntity(@NotNull final Theater theater) {
-        return new TheaterResponseDto(
-                theater.getId(),
-                theater.getName(),
-                theater.getAddress());
+    @NotNull
+    public Page<@NotNull Theater> findAll(@NotNull final PageRequest pageRequest) {
+        return this.repository.findAll(pageRequest);
     }
 
-    @Override
-    protected Theater createEntityFromRequestDto(@NotNull final TheaterRequestDto requestDto) {
-        return new Theater(
-                requestDto.name(),
-                requestDto.address());
+    @Nullable
+    public Theater findById(final int id) {
+        return this.repository.findById(id).orElse(null);
     }
 
-    @Override
-    protected Theater updateEntityFromRequestDto(
-            @NotNull final Theater theater,
-            @NotNull final TheaterRequestDto requestDto) {
+    @NotNull
+    public Expected<Theater, CreationError> create(@NotNull final TheaterRequestDto requestDto) {
+        final var newTheater = new Theater(requestDto.name(), requestDto.address());
+
+        try {
+            return Expected.success(this.repository.save(newTheater));
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return Expected.failure(CreationError.UNSPECIFIED);
+        }
+    }
+
+    @NotNull
+    public Expected<Theater, UpdateError> updateById(final int id, @NotNull final TheaterRequestDto requestDto) {
+        final var theater = this.findById(id);
+        if (theater == null) {
+            return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
+        }
+
         theater.setName(requestDto.name());
         theater.setAddress(requestDto.address());
 
-        return theater;
+        try {
+            return Expected.success(this.repository.save(theater));
+        }
+        catch (final Exception exception) {
+            return Expected.failure(UpdateError.UNSPECIFIED);
+        }
     }
 
-    @Override
-    protected TheaterRepository getRepository() {
-        return this.repository;
+    @NotNull
+    public void deleteById(final int id) {
+        this.repository.deleteById(id);
     }
 }

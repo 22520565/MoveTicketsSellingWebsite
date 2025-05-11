@@ -7,22 +7,28 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 
 @Entity
 @Data
-@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
+@Inheritance(strategy = InheritanceType.JOINED)
 @FieldNameConstants
-public final class User extends IntegerIdentifiableEntity {
+public class User {
+    public enum UserRole {
+        CUSTOMER, EMPLOYEE
+    }
+
     public static final int MinLengthName = 1;
     public static final int MaxLengthName = 50;
     public static final int MinLengthUsername = 1;
@@ -33,7 +39,9 @@ public final class User extends IntegerIdentifiableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
-    private Integer id = 0;
+    @Setter(value = AccessLevel.PACKAGE)
+    @NotNull
+    private int id = 0;
 
     @Column(length = MaxLengthName, nullable = false, unique = true)
     @NotBlank
@@ -68,7 +76,7 @@ public final class User extends IntegerIdentifiableEntity {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public User(final String name, final LocalDate birthDate, final String email, final String phoneNumber,
+    protected User(final String name, final LocalDate birthDate, final String email, final String phoneNumber,
             final String username, final String hashedPassword) {
         this.name = name;
         this.birthDate = birthDate;
