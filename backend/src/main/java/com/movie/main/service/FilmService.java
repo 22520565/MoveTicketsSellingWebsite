@@ -1,43 +1,83 @@
 package com.movie.main.service;
 
 import com.movie.main.dto.request.FilmRequestDto;
-import com.movie.main.dto.response.FilmResponseDto;
 import com.movie.main.entity.Film;
 import com.movie.main.repository.FilmRepository;
+import com.movie.main.ulti.Expected;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
+import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
-public class FilmService extends AbstractSoftDeletableEntityService<FilmRequestDto, FilmResponseDto, Film, Integer> {
+@Slf4j
+public class FilmService {
+    public enum CreationError {
+        ENTITY_NOT_EXISTS, UNSPECIFIED,
+    }
+
+    public enum UpdateError {
+        ENTITY_NOT_EXISTS, UNSPECIFIED,
+    }
+
+    public enum MarkDeletedStatusResult {
+        SUCCESS, ENTITY_NOT_EXISTS_ERROR, UNSPECIFIED_ERROR,
+    }
+
     @NotNull
     private final FilmRepository repository;
 
-    @NotNull
-    private final TagService tagService;
-
-    protected FilmService(@NotNull final FilmRepository repository, @NotNull final TagService tagService) {
+    protected FilmService(@NotNull final FilmRepository repository) {
         this.repository = repository;
-        this.tagService = tagService;
     }
 
-    @Override
-    protected FilmResponseDto createResponseDtoFromEntity(@NotNull final Film film) {
-        return new FilmResponseDto(film.getId(), film.getName(), film.getThumbnailUrl(), film.getTrailerUrl(),
-                film.getDuration(), film.getAgeRestriction(), film.getVoice(), film.getOriginatedCountry(), film.is3D(),
-                film.getDescription(), film.getContent(), film.getBeginDate());
+    @NotNull
+    public Page<@NotNull Film> findAllByDeletedFalse(@NotNull final PageRequest pageRequest) {
+        return this.repository.findAllByDeletedFalse(pageRequest);
     }
 
-    @Override
-    protected Film createEntityFromRequestDto(@NotNull final FilmRequestDto requestDto) {
-        return new Film(requestDto.name(), requestDto.thumbnailUrl(), requestDto.trailerUrl(), requestDto.duration(),
-                requestDto.ageRestriction(), requestDto.voice(), requestDto.originatedCountry(), requestDto.is3D(),
-                requestDto.content(), requestDto.beginDate());
+    @NotNull
+    public Page<@NotNull Film> findAll(@NotNull final PageRequest pageRequest) {
+        return this.repository.findAll(pageRequest);
     }
 
-    @Override
-    protected Film updateEntityFromRequestDto(@NotNull final Film film, @NotNull final FilmRequestDto requestDto) {
+    @Nullable
+    public Film findByIdAndDeletedFalse(final int id) {
+        return this.repository.findByIdAndDeletedFalse(id).orElse(null);
+    }
+
+    @Nullable
+    public Film findById(final int id) {
+        return this.repository.findById(id).orElse(null);
+    }
+
+    @NotNull
+    public Expected<Film, CreationError> create(@NotNull final FilmRequestDto requestDto) {
+        final var newFilm = new Film(requestDto.name(), requestDto.thumbnailUrl(), requestDto.trailerUrl(),
+                requestDto.duration(), requestDto.ageRestriction(), requestDto.voice(), requestDto.originatedCountry(),
+                requestDto.is3D(), requestDto.content(), requestDto.beginDate());
+
+        try {
+            return Expected.success(this.repository.save(newFilm));
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return Expected.failure(CreationError.UNSPECIFIED);
+        }
+    }
+
+    @NotNull
+    public Expected<Film, UpdateError> updateByIdAndDeletedFalse(final int id,
+            @NotNull final FilmRequestDto requestDto) {
+        final var film = this.findByIdAndDeletedFalse(id);
+        if (film == null) {
+            return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
+        }
+
         film.setName(requestDto.name());
         film.setThumbnailUrl(requestDto.thumbnailUrl());
         film.setTrailerUrl(requestDto.trailerUrl());
@@ -49,12 +89,30 @@ public class FilmService extends AbstractSoftDeletableEntityService<FilmRequestD
         film.setContent(requestDto.content());
         film.setBeginDate(requestDto.beginDate());
 
-        return film;
+        try {
+            return Expected.success(this.repository.save(film));
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return Expected.failure(UpdateError.UNSPECIFIED);
+        }
     }
 
-    @Override
-    protected FilmRepository getRepository() {
-        return this.repository;
-    }
+    @NotNull
+    public MarkDeletedStatusResult markAsDeletedById(final int id) {
+        final var film = this.findByIdAndDeletedFalse(id);
+        if (film == null) {
+            return MarkDeletedStatusResult.ENTITY_NOT_EXISTS_ERROR;
+        }
 
+        film.setDeleted(true);
+        try {
+            this.repository.save(film);
+            return MarkDeletedStatusResult.SUCCESS;
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return MarkDeletedStatusResult.UNSPECIFIED_ERROR;
+        }
+    }
 }

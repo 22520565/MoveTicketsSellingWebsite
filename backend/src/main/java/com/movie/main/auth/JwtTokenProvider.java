@@ -7,7 +7,8 @@ import java.util.Date;
 
 import javax.crypto.SecretKey;
 
-import com.movie.main.entity.AbstractUserDetail.UserRole;
+import com.movie.main.entity.User;
+import com.movie.main.entity.User.UserRole;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -25,7 +26,8 @@ public final class JwtTokenProvider {
     private JwtTokenProvider() {}
 
     @NotBlank
-    public static String generateToken(@NotBlank final String username, @NotBlank final UserRole userRole) {
+    public static <TUSER extends User> String generateToken(@NotBlank final String username,
+            @NotBlank final UserRole userRole) {
         final var now = Instant.now();
         final var expiry = now.plus(TOKEN_DURATION);
 

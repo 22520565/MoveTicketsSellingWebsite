@@ -2,8 +2,6 @@ package com.movie.main.dto.request;
 
 import java.util.UUID;
 
-import com.movie.main.dto.InterfaceDto;
-
 import jakarta.validation.constraints.NotNull;
 
-public record LogoutRequestDto(@NotNull UUID refreshToken) implements InterfaceDto {}
+public record LogoutRequestDto(@NotNull UUID refreshToken) {}

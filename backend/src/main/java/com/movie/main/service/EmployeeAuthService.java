@@ -1,18 +1,38 @@
 package com.movie.main.service;
 
+import java.util.UUID;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.movie.main.auth.JwtTokenProvider;
 import com.movie.main.dto.request.EmployeeRequestDto;
-import com.movie.main.dto.response.EmployeeResponseDto;
+import com.movie.main.dto.request.LoginRequestDto;
+import com.movie.main.dto.request.TokenRefreshRequestDto;
+import com.movie.main.dto.response.LoginResponseDto;
+import com.movie.main.dto.response.TokenRefreshResponseDto;
 import com.movie.main.entity.Employee;
-import com.movie.main.entity.AbstractUserDetail.UserRole;
+import com.movie.main.entity.User.UserRole;
+import com.movie.main.ulti.Expected;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
-public class EmployeeAuthService
-        extends AbstractUserAuthService<EmployeeService, EmployeeRequestDto, EmployeeResponseDto, Employee> {
+@Slf4j
+public class EmployeeAuthService {
+    public enum RegisterError {
+        USERNAME_EXISTS, UNSPECIFIED,
+    }
+
+    public enum LoginError {
+        USERNAME_NOT_EXISTS, WRONG_PASSWORD, BLOCKED, UNSPECIFIED,
+    }
+
+    public enum RefreshTokenError {
+        NOT_FOUND, EXPRIED,
+    }
+
     @NotNull
     private final EmployeeService employeeService;
 
@@ -30,23 +50,71 @@ public class EmployeeAuthService
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Override
-    public UserRole getUserRole() {
-        return Employee.userRole;
+    @NotNull
+    public Expected<LoginResponseDto, LoginError> login(@NotNull final LoginRequestDto requestDto) {
+        try {
+            final var employee = this.employeeService.findByUsernameAndDeletedFalse(requestDto.username());
+            if (employee == null) {
+                return Expected.failure(LoginError.USERNAME_NOT_EXISTS);
+            }
+
+            if (employee.isBlocked()) {
+                return Expected.failure(LoginError.BLOCKED);
+            }
+
+            if (!this.passwordEncoder.matches(requestDto.password(), employee.getHashedPassword())) {
+                return Expected.failure(LoginError.WRONG_PASSWORD);
+            }
+
+            final var accessToken = JwtTokenProvider.generateToken(requestDto.username(), UserRole.EMPLOYEE);
+            final var refreshToken = this.userRefreshTokenService.createRefreshToken(employee).getId();
+
+            return Expected.success(new LoginResponseDto(employee.getId(), accessToken, refreshToken));
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return Expected.failure(LoginError.UNSPECIFIED);
+        }
     }
 
-    @Override
-    protected EmployeeService getUserDetailsService() {
-        return this.employeeService;
+    @NotNull
+    public Expected<Employee, RegisterError> register(@NotNull final EmployeeRequestDto requestDto) {
+        final var result = this.employeeService.create(requestDto);
+
+        final var newEmployee = result.getValue();
+        if (newEmployee != null) {
+            return Expected.success(newEmployee);
+        }
+
+        return switch (result.getError()) {
+        case USERNAME_EXISTS -> Expected.failure(RegisterError.USERNAME_EXISTS);
+        case UNSPECIFIED -> Expected.failure(RegisterError.UNSPECIFIED);
+        default -> Expected.failure(RegisterError.UNSPECIFIED);
+        };
     }
 
-    @Override
-    protected UserRefreshTokenService getUserRefreshTokenService() {
-        return this.userRefreshTokenService;
+    @NotNull
+    public Expected<TokenRefreshResponseDto, RefreshTokenError> refreshToken(final TokenRefreshRequestDto requestDto) {
+        final var oldRefreshToken = requestDto.token();
+
+        final var oldUserRefreshToken = userRefreshTokenService.findById(oldRefreshToken);
+        if (oldUserRefreshToken == null) {
+            return Expected.failure(RefreshTokenError.NOT_FOUND);
+        }
+
+        if (!userRefreshTokenService.isUserRefreshTokenValid(oldUserRefreshToken)) {
+            return Expected.failure(RefreshTokenError.EXPRIED);
+        }
+
+        final var newUserRefreshToken = userRefreshTokenService.createRefreshToken(oldUserRefreshToken);
+        final var accessToken = JwtTokenProvider.generateToken(newUserRefreshToken.getUser().getUsername(),
+                UserRole.EMPLOYEE);
+        final var responseDto = new TokenRefreshResponseDto(accessToken, newUserRefreshToken.getId());
+
+        return Expected.success(responseDto);
     }
 
-    @Override
-    protected PasswordEncoder getPasswordEncoder() {
-        return this.passwordEncoder;
+    public void logout(@NotNull final UUID refreshToken) {
+        this.userRefreshTokenService.deleteById(refreshToken);
     }
 }

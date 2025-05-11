@@ -1,8 +1,6 @@
 package com.movie.main.dto.response;
 
-import jakarta.validation.constraints.NotNull;
+import java.time.LocalDate;
 
-public record CustomerResponseDto(
-                @NotNull UserResponseDto userResponseDto)
-                implements UserDetailsResponseDtoInterface {
-}
+public record CustomerResponseDto(int id, String name, LocalDate birthDate, String email, String phoneNumber,
+        String username) {}

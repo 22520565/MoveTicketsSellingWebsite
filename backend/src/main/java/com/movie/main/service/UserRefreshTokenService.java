@@ -22,13 +22,8 @@ public class UserRefreshTokenService {
     @NotNull
     private final UserRefreshTokenRepository repository;
 
-    @NotNull
-    private final UserService userService;
-
-    public UserRefreshTokenService(@NotNull final UserRefreshTokenRepository repository,
-            @NotNull final UserService userService) {
+    public UserRefreshTokenService(@NotNull final UserRefreshTokenRepository repository) {
         this.repository = repository;
-        this.userService = userService;
     }
 
     public UserRefreshToken createRefreshToken(@NotNull final User user) {

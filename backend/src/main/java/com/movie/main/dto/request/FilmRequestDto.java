@@ -13,4 +13,4 @@ public record FilmRequestDto(@NotBlank @Size(min = Film.MinLengthName, max = Fil
         @NotBlank String thumbnailUrl, @NotBlank String trailerUrl, @Min(1) int duration,
         @NotBlank String ageRestriction, @NotBlank String voice, @NotBlank String originatedCountry, boolean is3D,
         @NotBlank @Size(min = Film.MinLengthDescription, max = Film.MaxLengthDescription) String description,
-        @NotBlank String content, @NotNull LocalDate beginDate) implements EntityRequestDtoInterface {}
+        @NotBlank String content, @NotNull LocalDate beginDate) {}

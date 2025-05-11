@@ -58,7 +58,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final var username = JwtTokenProvider.getUsernameFromJWT(token);
-        final var user = this.userService.findEntityByUsername(username);
+        final var user = this.userService.findByUsernameAndDeletedFalse(username);
         if ((user == null) || user.isBlocked()) {
             filterChain.doFilter(request, response);
             return;
@@ -66,7 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final var role = JwtTokenProvider.getRoleFromJWT(token);
         final var roleAuthority = new SimpleGrantedAuthority("ROLE_" + role);
-        final var employee = this.employeeService.findEntityById(user.getId());
+        final var employee = this.employeeService.findByIdAndDeletedFalse(user.getId());
 
         final List<SimpleGrantedAuthority> permissionAuthorities;
         if (employee != null) {

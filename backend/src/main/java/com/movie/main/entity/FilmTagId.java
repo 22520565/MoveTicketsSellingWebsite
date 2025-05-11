@@ -16,6 +16,6 @@ import lombok.experimental.FieldNameConstants;
 public class FilmTagId implements Serializable {
     private static final long serialVersionUID = 1;
 
-    private Integer filmId = 0;
-    private Integer tagId = 0;
+    private int filmId = 0;
+    private int tagId = 0;
 }
