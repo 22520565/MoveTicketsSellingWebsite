@@ -1,29 +1,32 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { getEmployeeDetail } from "../config/api";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [employeeDetail, setEmployeeDetail] = useState(null);
-  const signIn = async (newToken, id) => {
-    localStorage.setItem("access_token", newToken);
+  const signIn = async (newToken, refreshToken, id) => {
+    localStorage.setItem("accessToken", newToken);
+    localStorage.setItem("refreshToken", refreshToken);
     localStorage.setItem("userId", id);
     await fetchEmployeeDetail();
   };
 
   const signOut = () => {
-    localStorage.removeItem("access_token");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("accessToken");
     localStorage.removeItem("userId");
   };
-  const fetchEmployeeDetail = async (id) => {
-    const token = localStorage.getItem("access_token");
+  const fetchEmployeeDetail = async () => {
+    const token = localStorage.getItem("accessToken");
     if (!token) {
       return;
     }
     try {
       const id = localStorage.getItem("userId");
-      console.log(id);
 
+      // const response = await getEmployeeDetail(id);
       const response = await axios.get(
         `http://localhost:8080/api/employees/${id}`,
         {
@@ -32,8 +35,9 @@ export const AuthProvider = ({ children }) => {
           },
         }
       );
-      console.log(response);
-      const data = response.data.userResponseDto;
+
+      const data = response.data;
+
       setEmployeeDetail(data);
     } catch (error) {
       if (error.response) {

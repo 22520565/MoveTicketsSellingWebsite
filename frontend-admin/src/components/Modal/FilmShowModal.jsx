@@ -5,6 +5,7 @@ import { Combobox } from "@headlessui/react";
 import RefreshLoader from "../Loading";
 import Dialog from "../Dialog/ConfirmDialog";
 import SuccessDialog from "../Dialog/SuccessDialog";
+import { getAllRooms, getAllFilms, addFilmShows } from "../../config/api";
 
 const FilmShowModal = ({ isOpen, onClose, onAddSuccess }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -21,11 +22,11 @@ const FilmShowModal = ({ isOpen, onClose, onAddSuccess }) => {
 
   const fetchRooms = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/rooms");
-      const data = response.data.data;
+      const response = await getAllRooms();
+      const data = response.data._embedded.roomResponseDtoList;
       const processedData = data.map((room) => ({
-        id: room._id, // Lấy ID
-        name: room.roomName, // Lấy tên phòng
+        id: room.id, // Lấy ID
+        name: room.name, // Lấy tên phòng
       }));
       setRooms(processedData); // Lưu dữ liệu vào state
     } catch (error) {
@@ -35,10 +36,10 @@ const FilmShowModal = ({ isOpen, onClose, onAddSuccess }) => {
 
   const fetchFilms = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/films");
-      const data = response.data.data;
+      const response = await getAllFilms();
+      const data = response.data._embedded.filmResponseDtoList;
       const processedData = data.map((film) => ({
-        id: film._id, // Lấy ID
+        id: film.id, // Lấy ID
         name: film.name, // Lấy tên phòng
       }));
       setMovies(processedData); // Lưu dữ liệu vào state
@@ -77,17 +78,17 @@ const FilmShowModal = ({ isOpen, onClose, onAddSuccess }) => {
     setSelectedMovie(movie);
     setFormData((prev) => ({
       ...prev,
-      film: movie.id, // Lưu ID phim đã chọn vào formData
+      filmId: movie.id, // Lưu ID phim đã chọn vào formData
     }));
   };
 
   const [formData, setFormData] = useState({
-    film: "",
+    filmId: "",
     showDate: "",
     hour: "",
     minute: "",
     roomId: "",
-    showType: "",
+    type: "",
   });
 
   //set rỗng data
@@ -95,24 +96,24 @@ const FilmShowModal = ({ isOpen, onClose, onAddSuccess }) => {
     if (isOpen) {
       setSelectedMovie("");
       setFormData({
-        film: "",
+        filmId: "",
         showDate: "",
         hour: "",
         minute: "",
         roomId: "",
-        showType: "",
+        type: "",
       });
     }
   }, [isOpen]);
 
   const isFormValid = useMemo(() => {
     const requiredFields = [
-      "film",
+      "filmId",
       "showDate",
       "hour",
       "minute",
       "roomId",
-      "showType",
+      "type",
     ];
     return requiredFields.every(
       (field) => String(formData[field]).trim() !== ""
@@ -133,28 +134,25 @@ const FilmShowModal = ({ isOpen, onClose, onAddSuccess }) => {
   const handleFilmshow = async () => {
     setIsLoading(true);
     try {
-      const { film, showDate, hour, minute, roomId, showType } = formData;
+      const { filmId, showDate, hour, minute, roomId, type } = formData;
 
       // Ghép giờ và phút thành showTime
       // const showTime = `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}:00`;
-      const showTime = `${hour}:${minute}`;
+      const showTime = `${hour}:${minute}:00`;
 
       const payload = {
-        film,
+        filmId,
         showDate,
         showTime,
-        roomId,
-        showType,
+        roomId: Number(roomId),
+        type,
       };
 
       console.log("Dữ liệu gửi đi:", payload);
 
       // Gửi dữ liệu đến API
 
-      const response = await axios.post(
-        "http://localhost:8000/api/film-show",
-        payload
-      );
+      const response = await addFilmShows(payload);
       setDialogData({
         title: "Thành công",
         message: "Thêm suất chiếu thành công",
@@ -170,7 +168,7 @@ const FilmShowModal = ({ isOpen, onClose, onAddSuccess }) => {
       }
     } catch (error) {
       console.error("Lỗi từ server:", error.response?.data || error.message);
-      console.error("Chi tiết lỗi:", error.response?.data?.errors);
+      console.error("Chi tiết lỗi:", error.response?.data);
       setIsLoading(false);
     }
   };
@@ -374,11 +372,11 @@ const FilmShowModal = ({ isOpen, onClose, onAddSuccess }) => {
               </label>
               <select
                 name="twoDthreeD"
-                value={formData.showType || ""}
+                value={formData.type || ""}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    showType: e.target.value,
+                    type: e.target.value,
                   }))
                 }
                 className="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"

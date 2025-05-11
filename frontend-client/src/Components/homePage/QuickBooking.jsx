@@ -89,7 +89,9 @@ const QuickBooking = () => {
     fetchCinemas();
   }, []);
 
-  console.log(cinemas);
+  useEffect(() => {
+    console.log(cinemas);
+  }, [cinemas]);
 
   // useEffect(() => {
   //   const fetchFilmShowing = async () => {

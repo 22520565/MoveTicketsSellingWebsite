@@ -188,7 +188,7 @@ const RootLayout = () => {
   // }, [employeeDetail]);
 
   useEffect(() => {
-    if (!localStorage.getItem("access_token")) {
+    if (!localStorage.getItem("accessToken")) {
       alert("Có lỗi khi xác thực người dùng, vui lòng đăng nhập lại");
       signOut();
       navigate("/admin/auth");

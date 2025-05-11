@@ -2,6 +2,7 @@ import { IoClose } from "react-icons/io5";
 
 const FilmShow_FilmDetailModal = ({ isOpen, onClose, filmShowDetail }) => {
   if (!isOpen) return null;
+  console.log(filmShowDetail);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

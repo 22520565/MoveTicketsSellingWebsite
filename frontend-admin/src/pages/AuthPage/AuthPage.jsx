@@ -8,7 +8,7 @@ import {
 } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import axios from "axios";
+import { callLogin } from "../../config/api";
 import loginBG from "../../assets/loginBG.png";
 const AuthPage = () => {
   const [formData, setFormData] = useState({
@@ -38,20 +38,13 @@ const AuthPage = () => {
     e.preventDefault();
     if (validateForm()) {
       try {
-        console.log(formData);
-
-        const response = await axios.post(
-          "http://localhost:8080/api/auth/employee/login",
-          formData,
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await callLogin(formData);
         console.log(response);
-
-        signIn(response.data.token, response.data.userId);
+        signIn(
+          response.data.accessToken,
+          response.data.refreshToken,
+          response.data.userId
+        );
         alert("Đăng nhập thành công!");
         navigate("/admin");
       } catch (error) {

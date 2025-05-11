@@ -10,6 +10,7 @@ import axios from "axios";
 import Dialog from "../../components/Dialog/ConfirmDialog";
 import SuccessDialog from "../../components/Dialog/SuccessDialog";
 import RefreshLoader from "../../components/Loading";
+import { getAllFilms } from "../../config/api";
 
 const FilmManagementPage = () => {
   const [films, setFilms] = useState([]);
@@ -41,8 +42,9 @@ const FilmManagementPage = () => {
   const fetchFilms = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:8000/api/films");
-      setFilms(response.data.data); // Lưu dữ liệu vào state
+      const response = await getAllFilms();
+      console.log("films: ", response.data._embedded.filmResponseDtoList);
+      setFilms(response.data._embedded.filmResponseDtoList); // Lưu dữ liệu vào state
     } catch (error) {
       console.error("Error fetching films:", error);
     } finally {
@@ -50,21 +52,21 @@ const FilmManagementPage = () => {
     }
   };
 
-  const fetchAgeRes = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:8000/api/param/age-restriction-symbol"
-      );
-      setAgeTags(response.data.data);
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+  // const fetchAgeRes = async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       "http://localhost:8000/api/param/age-restriction-symbol"
+  //     );
+  //     setAgeTags(response.data.data);
+  //   } catch (err) {
+  //     setError(err.message);
+  //   }
+  // };
 
   // Gọi API khi component được render lần đầu
   useEffect(() => {
     fetchFilms();
-    fetchAgeRes();
+    // fetchAgeRes();
   }, []);
 
   const handleEditClick = (film) => {
@@ -137,7 +139,7 @@ const FilmManagementPage = () => {
   };
   const columns = [
     { header: "Tên phim", key: "name" },
-    { header: "Thời lượng", key: "filmDuration" },
+    { header: "Thời lượng", key: "duration" },
     { header: "Quốc gia", key: "originatedCountry" },
     { header: "Độ tuổi", key: "ageRestriction" },
     {

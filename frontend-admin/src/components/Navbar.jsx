@@ -26,28 +26,41 @@ const Navbar = () => {
     const seconds = date.getSeconds().toString().padStart(2, "0");
     return `${day}/${month}/${year} - Giờ hiện tại: ${hours}:${minutes}:${seconds}`;
   };
-  const token = localStorage.getItem("access_token")
-  const {signOut,employeeDetail} = useAuth();
+  const token = localStorage.getItem("accessToken");
+  const { signOut, employeeDetail } = useAuth();
   return (
-    <div style={{padding:" 5px 50px"}}className="flex items-center justify-between mb-6 bg-white rounded-lg shadow-sm p-3">
+    <div
+      style={{ padding: " 5px 50px" }}
+      className="flex items-center justify-between mb-6 bg-white rounded-lg shadow-sm p-3"
+    >
       <div className="flex items-center w-2/3">
-        <p>Xin chào {employeeDetail && employeeDetail.name}. Hôm nay là: {formatDateTime(time)}</p>
+        <p>
+          Xin chào {employeeDetail && employeeDetail.userResponseDto.name}. Hôm
+          nay là: {formatDateTime(time)}
+        </p>
       </div>
       <div className="flex items-center space-x-4">
         <div className="sc_dropdown">
-            {token && <div className="Login_Dropdown">
-            <label onClick={()=>{
-              signOut() 
-              navigate('/admin/auth')
-              }} 
-              className="abc_label">Đăng xuất</label>
-          </div>}
-          <button onClick={()=>navigate('/admin/auth')}className="p-2 text-gray-600 hover:text-gray-800">
+          {token && (
+            <div className="Login_Dropdown">
+              <label
+                onClick={() => {
+                  signOut();
+                  navigate("/admin/auth");
+                }}
+                className="abc_label"
+              >
+                Đăng xuất
+              </label>
+            </div>
+          )}
+          <button
+            onClick={() => navigate("/admin/auth")}
+            className="p-2 text-gray-600 hover:text-gray-800"
+          >
             <FiUser className="w-6 h-6" />
           </button>
         </div>
-        
-        
       </div>
     </div>
   );

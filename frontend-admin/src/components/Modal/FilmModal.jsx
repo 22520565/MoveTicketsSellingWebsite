@@ -2,6 +2,7 @@ import React from "react";
 import { FiX } from "react-icons/fi";
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
+import { getAllTags } from "../../config/api";
 import { debounce } from "lodash";
 import { Combobox, ComboboxOption } from "@headlessui/react";
 import { FiSearch } from "react-icons/fi";
@@ -31,10 +32,15 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
   /////////////////////////fetch tags and ageRes///////////////////////////
   const fetchAgeRes = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:8000/api/param/age-restriction-symbol"
-      );
-      setAgeResData(response.data.data);
+      const mockData = [
+        { id: 1, symbol: "P", description: "Phổ biến cho mọi lứa tuổi" },
+        { id: 2, symbol: "K", description: "Dành cho trẻ em" },
+        { id: 3, symbol: "C", description: "Cấm trẻ em dưới 13 tuổi" },
+        { id: 4, symbol: "T13", description: "Trên 13 tuổi" },
+        { id: 5, symbol: "T16", description: "Trên 16 tuổi" },
+        { id: 6, symbol: "T18", description: "Trên 18 tuổi" },
+      ];
+      setAgeResData(mockData);
     } catch (err) {
       setError(err.message);
     }
@@ -42,8 +48,8 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
 
   const fetchFilmTags = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/tags");
-      setFilmTags(response.data.data);
+      const response = await getAllTags();
+      setFilmTags(response.data._embedded.tagResponseDtoList);
     } catch (err) {
       setError(err.message);
     }
@@ -70,10 +76,12 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
       setSelectedTags([...selectedTags, tag]);
     }
   };
+
   //console.log(`Input Changed: Name=${selectedTags}`);
   const removeTag = (tagToRemove) => {
     setSelectedTags(selectedTags.filter((tag) => tag._id !== tagToRemove._id));
   };
+
   useEffect(() => {
     //console.log("SelectedTag" + selectedTags);
     const tagIds = selectedTags.map((tag) => tag._id);
@@ -82,33 +90,37 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
       tagsRef: tagIds,
     }));
   }, [selectedTags]);
-  const initTagChoices = (tagIDs) => {
-    tagIDs.forEach((tagID) => {
-      const tagExists = filmTags.find((filmTag) => filmTag._id === tagID); // Check if tag exists in filmTags
 
-      if (tagExists) {
-        setSelectedTags((prevSelectedTags) => {
-          // Check if the tag already exists in the selectedTags
-          const alreadySelected = prevSelectedTags.some(
-            (tag) => tag._id === tagExists._id
-          );
+  // const initTagChoices = (tagIDs) => {
+  //   tagIDs.forEach((tagID) => {
+  //     const tagExists = filmTags.find((filmTag) => filmTag._id === tagID); // Check if tag exists in filmTags
 
-          // Only add the tag if it's not already in the list
-          if (!alreadySelected) {
-            return [...prevSelectedTags, tagExists];
-          }
-          return prevSelectedTags; // If duplicate, return unchanged state
-        });
-      }
-    });
-    /*
-    console.log("TAGGGG");
-    console.log(tagIDs);
-    console.log(selectedTags);
-    */
-  };
+  //     if (tagExists) {
+  //       setSelectedTags((prevSelectedTags) => {
+  //         // Check if the tag already exists in the selectedTags
+  //         const alreadySelected = prevSelectedTags.some(
+  //           (tag) => tag._id === tagExists._id
+  //         );
+
+  //         // Only add the tag if it's not already in the list
+  //         if (!alreadySelected) {
+  //           return [...prevSelectedTags, tagExists];
+  //         }
+  //         return prevSelectedTags; // If duplicate, return unchanged state
+  //       });
+  //     }
+  //   });
+  //   /*
+  //   console.log("TAGGGG");
+  //   console.log(tagIDs);
+  //   console.log(selectedTags);
+  //   */
+  // };
+
   const initAgeChoice = (ageSymbol) => {
-    const age = ageResData.find((ageItem) => ageItem === ageSymbol);
+    const ageobj = ageResData.find((ageItem) => ageItem.symbol === ageSymbol);
+    const age = ageobj ? ageobj.symbol : "";
+
     /*
     console.log("AGEGE")
     console.log(ageSymbol);
@@ -121,30 +133,34 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
 
   const [formData, setFormData] = useState({
     name: film?.name || "",
-    trailerURL: film?.trailerURL || "",
+    trailerURL: film?.trailerUrl || "",
 
-    thumbnailURL: film?.thumbnailURL,
+    thumbnailURL: film?.thumbnailUrl,
     thumbnailFile: null,
 
     tagsRef: film?.tagsRef || [],
-    filmDuration: film?.filmDuration || "",
+    filmDuration: film?.duration || "",
     ageRestriction: film?.ageRestriction || "",
     voice: film?.voice || "",
     originatedCountry: film?.originatedCountry || "",
-    twoDthreeD: film?.twoDthreeD || "",
-    filmDescription: film?.filmDescription || "",
-    filmContent: film?.filmContent || "",
+    twoDthreeD: film ? (film.is3D ? "2D, 3D" : "2D") : "",
+    filmDescription: film?.description || "",
+    filmContent: film?.content || "",
 
     beginDate: film?.beginDate.split("T")[0] || "",
   });
+
+  console.log(formData.twoDthreeD);
+
   useEffect(() => {
     if (!isEditMode) {
       return;
     }
     //console.log("Film value: " + JSON.stringify(film));
     initAgeChoice(film.ageRestriction);
-    initTagChoices(film.tagsRef);
+    // initTagChoices(film.tagsRef);
   }, [film, filmTags, ageResData]);
+
   const isFormValid = useMemo(() => {
     const requiredFields = [
       "name",
@@ -191,15 +207,15 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
       data.append("tagsRef", JSON.stringify(formData.tagsRef));
       // Append all other fields individually
       data.append("name", formData.name);
-      data.append("trailerURL", formData.trailerURL);
-      data.append("thumbnailURL", formData.thumbnailURL || "");
-      data.append("filmDuration", formData.filmDuration);
+      data.append("trailerUrl", formData.trailerURL);
+      data.append("thumbnailUrl", formData.thumbnailURL || "");
+      data.append("duration", formData.filmDuration);
       data.append("ageRestriction", formData.ageRestriction);
       data.append("voice", formData.voice);
       data.append("originatedCountry", formData.originatedCountry);
-      data.append("twoDthreeD", formData.twoDthreeD);
-      data.append("filmDescription", formData.filmDescription);
-      data.append("filmContent", formData.filmContent);
+      data.append("is3D", formData.twoDthreeD);
+      data.append("description", formData.filmDescription);
+      data.append("content", formData.filmContent);
       data.append("beginDate", formData.beginDate);
 
       let response;
@@ -385,8 +401,8 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
                     Vui lòng chọn độ tuổi
                   </option>
                   {ageResData.map((ageRes, index) => (
-                    <option key={index} value={ageRes}>
-                      {`${ageRes}`}
+                    <option key={index} value={ageRes.symbol}>
+                      {`${ageRes.symbol}`}
                     </option>
                   ))}
                 </select>
@@ -441,8 +457,7 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
                     vui lòng chọn dạng
                   </option>
                   <option value="2D">2D</option>
-                  <option value="3D">3D</option>
-                  <option value="2D,3D">2D, 3D</option>
+                  <option value="2D, 3D">2D, 3D</option>
                 </select>
               </div>
               <div>

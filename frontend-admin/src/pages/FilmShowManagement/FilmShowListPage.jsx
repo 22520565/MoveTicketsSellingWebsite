@@ -11,6 +11,13 @@ import Dialog from "../../components/Dialog/ConfirmDialog";
 import SuccessDialog from "../../components/Dialog/SuccessDialog";
 import FailedDialog from "../../components/Dialog/FailedDialog";
 import axios from "axios";
+import {
+  getAllFilmShows,
+  getFilmById,
+  getRoomById,
+  getAllRooms,
+  getTheaterById,
+} from "../../config/api";
 
 const FilmShowListPage = () => {
   const [filmNameQuery, setFilmNameQuery] = useState("");
@@ -46,34 +53,33 @@ const FilmShowListPage = () => {
   const fetchFilmShows = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        "http://localhost:8000/api/film-show/getAll"
-      );
-      const data = response.data.data;
+      const response = await getAllFilmShows();
+      const data = response.data._embedded.filmShowResponseDtoList;
 
       const now = new Date();
       const processedData = await Promise.all(
         data.map(async (show) => {
           // Lấy tên phim
-          const filmRes = await axios.get(
-            `http://localhost:8000/api/films/${show.film}/getFilmDetail`
-          );
-          let filmName = filmRes.data.data.name;
+          const filmRes = await getFilmById(show.filmId);
+          console.log(filmRes);
 
-          const twoDthreeD = filmRes.data.data.twoDthreeD; // Giả sử mảng là ['2D', '3D']
-          const result = twoDthreeD.join(", ");
-          if (show.cancelled === true) {
-            console.log("true");
+          let filmName = filmRes.data.name;
 
-            filmName += " (Đã hủy)"; // Thêm chữ "Đã hủy" vào tên phim
-          }
+          const is3D = filmRes.data.is3D;
+          const result = is3D ? "2D, 3D" : "2D";
+          // if (show.cancelled === true) {
+          //   console.log("true");
 
-          const duration = filmRes.data.data.filmDuration;
+          //   filmName += " (Đã hủy)"; // Thêm chữ "Đã hủy" vào tên phim
+          // }
+
+          const duration = filmRes.data.duration;
           // Lấy tên phòng
-          const roomRes = await axios.get(
-            `http://localhost:8000/api/rooms/${show.roomId}`
-          );
-          const roomName = roomRes.data.data.roomName;
+          const roomRes = await getRoomById(show.roomId);
+          const roomName = roomRes.data.name;
+
+          const theaterRes = await getTheaterById(roomRes.data.theaterId);
+          const theaterName = theaterRes.data.name;
 
           // Xử lý dữ liệu để hiển thị
           const showDate = new Date(show.showDate); // Ngày chiếu
@@ -107,6 +113,7 @@ const FilmShowListPage = () => {
             film: filmName,
             showDate: new Date(show.showDate).toLocaleDateString(),
             room: roomName,
+            theater: theaterName,
             status: status,
             showType: result,
             //  seatList: seatList.join(", "),
@@ -124,8 +131,8 @@ const FilmShowListPage = () => {
 
   const fetchRooms = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/rooms");
-      const data = response.data.data;
+      const response = await getAllRooms();
+      const data = response.data._embedded.roomResponseDtoList;
 
       setRooms(data);
     } catch (error) {
@@ -199,6 +206,7 @@ const FilmShowListPage = () => {
     { header: "Ngày chiếu", key: "showDate" },
     { header: "Suất chiếu", key: "showTime" },
     { header: "Phòng", key: "room" },
+    { header: "Rạp phim", key: "theater" },
     {
       header: "Trạng thái",
       key: "status",
@@ -366,8 +374,8 @@ const FilmShowListPage = () => {
                   </option>
                   <option value="all">Tất cả</option>
                   {rooms.map((room) => (
-                    <option key={room._id} value={room.roomName}>
-                      {`${room.roomName}`}
+                    <option key={room.id} value={room.name}>
+                      {`${room.name}`}
                     </option>
                   ))}
                 </select>
