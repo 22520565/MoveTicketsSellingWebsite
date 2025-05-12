@@ -69,7 +69,7 @@ public class EmployeeAuthService {
             final var accessToken = JwtTokenProvider.generateToken(requestDto.username(), UserRole.EMPLOYEE);
             final var refreshToken = this.userRefreshTokenService.createRefreshToken(employee).getId();
 
-            return Expected.success(new LoginResponseDto(employee.getId(), accessToken, refreshToken));
+            return Expected.success(new LoginResponseDto(accessToken, refreshToken));
         }
         catch (final Exception exception) {
             log.error(exception.getMessage());

@@ -69,7 +69,7 @@ public class CustomerAuthService {
             final var accessToken = JwtTokenProvider.generateToken(requestDto.username(), UserRole.CUSTOMER);
             final var refreshToken = this.userRefreshTokenService.createRefreshToken(customer).getId();
 
-            return Expected.success(new LoginResponseDto(customer.getId(), accessToken, refreshToken));
+            return Expected.success(new LoginResponseDto(accessToken, refreshToken));
         }
         catch (final Exception exception) {
             log.error(exception.getMessage());

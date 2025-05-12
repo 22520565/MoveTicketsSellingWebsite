@@ -3,6 +3,7 @@ package com.movie.main.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,8 +32,18 @@ public class CustomerSelfController {
         this.service = service;
     }
 
+    @GetMapping
+    public ResponseEntity<CustomerResponseDto> findSelfInfo(@AuthenticationPrincipal final User user) {
+        final var customer = service.findByIdAndBlockedFalseAndDeletedFalse(user.getId());
+        if (customer != null) {
+            return ResponseEntity.ok(CustomerController.getResponseDtoFrom(customer));
+        }
+
+        return ResponseEntity.notFound().build();
+    }
+
     @PutMapping
-    public ResponseEntity<CustomerResponseDto> updateSelf(@RequestBody @Valid final CustomerRequestDto requestDto,
+    public ResponseEntity<CustomerResponseDto> updateSelfInfo(@RequestBody @Valid final CustomerRequestDto requestDto,
             @AuthenticationPrincipal final User user) {
         final var result = service.updateByIdAndDeletedFalse(user.getId(), requestDto);
         final var customer = result.getValue();
