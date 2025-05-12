@@ -7,21 +7,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.movie.main.auth.JwtTokenProvider;
-import com.movie.main.config.JwtAuthenticationFilter;
-import com.movie.main.dto.request.EmployeeRequestDto;
 import com.movie.main.dto.request.LoginRequestDto;
 import com.movie.main.dto.request.LogoutRequestDto;
 import com.movie.main.dto.request.TokenRefreshRequestDto;
-import com.movie.main.dto.response.EmployeeResponseDto;
 import com.movie.main.dto.response.LoginResponseDto;
 import com.movie.main.dto.response.TokenRefreshResponseDto;
-import com.movie.main.entity.User.UserRole;
-import com.movie.main.exception.ConflictException;
 import com.movie.main.service.EmployeeAuthService;
 
 import jakarta.annotation.security.PermitAll;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
@@ -71,20 +64,4 @@ public class EmployeeAuthController {
         this.employeeAuthService.logout(requestDto.refreshToken());
         return ResponseEntity.noContent().build();
     }
-
-    @PostMapping("/validateJWT")
-    public ResponseEntity<Void> validateJWT(@NotNull final HttpServletRequest request) {
-        final var token = JwtAuthenticationFilter.getJwtFromRequest(request);
-
-        if (JwtTokenProvider.getRoleFromJWT(token) != UserRole.EMPLOYEE) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        if (!JwtTokenProvider.validateToken(token)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        return ResponseEntity.noContent().build();
-    }
-
 }

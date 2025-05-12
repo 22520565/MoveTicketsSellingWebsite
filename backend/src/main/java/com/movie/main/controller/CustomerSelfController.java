@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -82,5 +83,19 @@ public class CustomerSelfController {
         case WRONG_OLD_PASSWORD -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         default -> ResponseEntity.internalServerError().build();
         };
+    }
+
+    @GetMapping("/validate-jwt")
+    public ResponseEntity<Void> validateJWT(@AuthenticationPrincipal final User user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        final var employee = this.service.findByIdAndBlockedFalseAndDeletedFalse(user.getId());
+        if (employee == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return ResponseEntity.noContent().build();
     }
 }
