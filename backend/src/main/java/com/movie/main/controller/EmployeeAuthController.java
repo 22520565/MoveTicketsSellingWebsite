@@ -36,22 +36,6 @@ public class EmployeeAuthController {
         this.employeeAuthService = employeeAuthService;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<EmployeeResponseDto> register(@RequestBody @Valid final EmployeeRequestDto requestDto) {
-        final var result = this.employeeAuthService.register(requestDto);
-
-        final var employee = result.getValue();
-        if (employee != null) {
-            return ResponseEntity.ok(EmployeeController.getResponseDtoFrom(employee));
-        }
-
-        return switch (result.getError()) {
-        case USERNAME_EXISTS -> throw new ConflictException("Username exists");
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
-        };
-    }
-
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody @Valid final LoginRequestDto requestDto) {
         final var result = this.employeeAuthService.login(requestDto);

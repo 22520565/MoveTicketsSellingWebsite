@@ -78,22 +78,6 @@ public class EmployeeAuthService {
     }
 
     @NotNull
-    public Expected<Employee, RegisterError> register(@NotNull final EmployeeRequestDto requestDto) {
-        final var result = this.employeeService.create(requestDto);
-
-        final var newEmployee = result.getValue();
-        if (newEmployee != null) {
-            return Expected.success(newEmployee);
-        }
-
-        return switch (result.getError()) {
-        case USERNAME_EXISTS -> Expected.failure(RegisterError.USERNAME_EXISTS);
-        case UNSPECIFIED -> Expected.failure(RegisterError.UNSPECIFIED);
-        default -> Expected.failure(RegisterError.UNSPECIFIED);
-        };
-    }
-
-    @NotNull
     public Expected<TokenRefreshResponseDto, RefreshTokenError> refreshToken(final TokenRefreshRequestDto requestDto) {
         final var oldRefreshToken = requestDto.token();
 
