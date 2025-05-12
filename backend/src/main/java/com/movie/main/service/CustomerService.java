@@ -134,7 +134,7 @@ public class CustomerService {
     @NotNull
     public Expected<Customer, UpdateError> updateByIdAndDeletedFalse(final int id,
             @NotNull final CustomerRequestDto requestDto) {
-        final var customer = this.findByIdAndBlockedFalseAndDeletedFalse(id);
+        final var customer = this.findByIdAndDeletedFalse(id);
         if (customer == null) {
             return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
         }
@@ -161,7 +161,7 @@ public class CustomerService {
     }
 
     @NotNull
-    public Expected<Customer, UpdateError> updateByIdAndDeletedFalse(final int id,
+    public Expected<Customer, UpdateError> updateByIdAndBlockedFalseAndDeletedFalse(final int id,
             @NotNull final CustomerSelfRequestDto requestDto) {
         final var customer = this.findByIdAndBlockedFalseAndDeletedFalse(id);
         if (customer == null) {
@@ -190,7 +190,7 @@ public class CustomerService {
 
     @NotNull
     public SetPasswordResult setPasswordByIdAndDeletedFalse(final int id, final String newPassword) {
-        final var customer = this.findByIdAndBlockedFalseAndDeletedFalse(id);
+        final var customer = this.findByIdAndDeletedFalse(id);
         if (customer == null) {
             return SetPasswordResult.ENTITY_NOT_EXISTS;
         }
@@ -208,7 +208,7 @@ public class CustomerService {
     }
 
     @NotNull
-    public ResetPasswordResult resetPasswordAndDeletedFalse(final int id, final String oldPassword,
+    public ResetPasswordResult resetPasswordByIdAndBlockedFalseAndDeletedFalse(final int id, final String oldPassword,
             final String newPassword) {
         var customer = this.findByIdAndBlockedFalseAndDeletedFalse(id);
         if (customer == null)

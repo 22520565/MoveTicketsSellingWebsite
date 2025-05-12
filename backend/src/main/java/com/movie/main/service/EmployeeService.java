@@ -136,7 +136,7 @@ public class EmployeeService {
     @NotNull
     public Expected<Employee, UpdateError> updateByIdAndDeletedFalse(final int id,
             @NotNull final EmployeeRequestDto requestDto) {
-        final var employee = this.findByIdAndBlockedFalseAndDeletedFalse(id);
+        final var employee = this.findByIdAndDeletedFalse(id);
         if (employee == null) {
             return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
         }
@@ -169,7 +169,7 @@ public class EmployeeService {
     }
 
     @NotNull
-    public Expected<Employee, UpdateError> updateByIdAndDeletedFalse(final int id,
+    public Expected<Employee, UpdateError> updateByIdAndBlockedFalseAndDeletedFalse(final int id,
             @NotNull final EmployeeSelfRequestDto requestDto) {
         final var employee = this.findByIdAndBlockedFalseAndDeletedFalse(id);
         if (employee == null) {
@@ -202,6 +202,48 @@ public class EmployeeService {
     }
 
     @NotNull
+    public SetPasswordResult setPasswordByIdAndDeletedFalse(final int id, final String newPassword) {
+        final var employee = this.findByIdAndDeletedFalse(id);
+        if (employee == null) {
+            return SetPasswordResult.ENTITY_NOT_EXISTS;
+        }
+
+        employee.setHashedPassword(this.passwordEncoder.encode(newPassword));
+
+        try {
+            this.repository.save(employee);
+            return SetPasswordResult.SUCCESS;
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return SetPasswordResult.UNSPECIFIED;
+        }
+    }
+
+    @NotNull
+    public ResetPasswordResult resetPasswordByIdAndBlockedFalseAndDeletedFalse(final int id, final String oldPassword,
+            final String newPassword) {
+        var employee = this.findByIdAndBlockedFalseAndDeletedFalse(id);
+        if (employee == null)
+            return ResetPasswordResult.ENTITY_NOT_EXISTS;
+
+        if (!this.passwordEncoder.matches(oldPassword, employee.getHashedPassword())) {
+            return ResetPasswordResult.WRONG_OLD_PASSWORD;
+        }
+
+        employee.setHashedPassword(this.passwordEncoder.encode(newPassword));
+
+        try {
+            this.repository.save(employee);
+            return ResetPasswordResult.SUCCESS;
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return ResetPasswordResult.UNSPECIFIED;
+        }
+    }
+
+    @NotNull
     public MarkBlockedStatusResult markAsBlockedById(final int id) {
         return this.markBlockedStatusById(id, true);
     }
@@ -227,48 +269,6 @@ public class EmployeeService {
         catch (final Exception exception) {
             log.error(exception.getMessage());
             return MarkBlockedStatusResult.UNSPECIFIED_ERROR;
-        }
-    }
-
-    @NotNull
-    public SetPasswordResult setPasswordByIdAndDeletedFalse(final int id, final String newPassword) {
-        final var employee = this.findByIdAndBlockedFalseAndDeletedFalse(id);
-        if (employee == null) {
-            return SetPasswordResult.ENTITY_NOT_EXISTS;
-        }
-
-        employee.setHashedPassword(this.passwordEncoder.encode(newPassword));
-
-        try {
-            this.repository.save(employee);
-            return SetPasswordResult.SUCCESS;
-        }
-        catch (final Exception exception) {
-            log.error(exception.getMessage());
-            return SetPasswordResult.UNSPECIFIED;
-        }
-    }
-
-    @NotNull
-    public ResetPasswordResult resetPasswordAndDeletedFalse(final int id, final String oldPassword,
-            final String newPassword) {
-        var employee = this.findByIdAndBlockedFalseAndDeletedFalse(id);
-        if (employee == null)
-            return ResetPasswordResult.ENTITY_NOT_EXISTS;
-
-        if (!this.passwordEncoder.matches(oldPassword, employee.getHashedPassword())) {
-            return ResetPasswordResult.WRONG_OLD_PASSWORD;
-        }
-
-        employee.setHashedPassword(this.passwordEncoder.encode(newPassword));
-
-        try {
-            this.repository.save(employee);
-            return ResetPasswordResult.SUCCESS;
-        }
-        catch (final Exception exception) {
-            log.error(exception.getMessage());
-            return ResetPasswordResult.UNSPECIFIED;
         }
     }
 
