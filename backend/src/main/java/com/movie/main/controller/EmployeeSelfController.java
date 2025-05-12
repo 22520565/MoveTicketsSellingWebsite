@@ -34,6 +34,10 @@ public class EmployeeSelfController {
 
     @GetMapping
     public ResponseEntity<EmployeeResponseDto> findSelfInfo(@AuthenticationPrincipal final User user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         final var employee = service.findByIdAndBlockedFalseAndDeletedFalse(user.getId());
         if (employee != null) {
             return ResponseEntity.ok(EmployeeController.getResponseDtoFrom(employee));
@@ -45,6 +49,10 @@ public class EmployeeSelfController {
     @PutMapping
     public ResponseEntity<EmployeeResponseDto> updateSelfInfo(@RequestBody @Valid final EmployeeRequestDto requestDto,
             @AuthenticationPrincipal final User user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         final var result = service.updateByIdAndDeletedFalse(user.getId(), requestDto);
         final var employee = result.getValue();
         if (employee != null) {
@@ -62,6 +70,10 @@ public class EmployeeSelfController {
     @PatchMapping("/reset-password")
     public ResponseEntity<Void> resetPassword(@RequestBody @Valid final ResetPasswordRequestDto requestDto,
             @AuthenticationPrincipal final User user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         final var result = service.resetPasswordAndDeletedFalse(user.getId(), requestDto.oldPassword(),
                 requestDto.newPassword());
         return switch (result) {
