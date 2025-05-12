@@ -88,8 +88,7 @@ public class FilmShowController {
     }
 
     @PostMapping
-    public ResponseEntity<FilmShowResponseDto> create(
-            @RequestBody @NotNull @Valid final FilmShowRequestDto requestDto) {
+    public ResponseEntity<FilmShowResponseDto> create(@RequestBody @Valid final FilmShowRequestDto requestDto) {
         final var result = this.service.create(requestDto);
         final var newFilmShow = result.getValue();
 

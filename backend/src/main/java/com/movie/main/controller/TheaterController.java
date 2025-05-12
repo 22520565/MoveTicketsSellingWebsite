@@ -66,7 +66,7 @@ public class TheaterController {
     }
 
     @PostMapping
-    public ResponseEntity<TheaterResponseDto> create(@RequestBody @NotNull @Valid final TheaterRequestDto requestDto) {
+    public ResponseEntity<TheaterResponseDto> create(@RequestBody @Valid final TheaterRequestDto requestDto) {
         final var result = this.service.create(requestDto);
         final var newTheater = result.getValue();
 

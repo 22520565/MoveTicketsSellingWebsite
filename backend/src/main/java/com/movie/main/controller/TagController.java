@@ -66,7 +66,7 @@ public class TagController {
     }
 
     @PostMapping
-    public ResponseEntity<TagResponseDto> create(@RequestBody @NotNull @Valid final TagRequestDto requestDto) {
+    public ResponseEntity<TagResponseDto> create(@RequestBody @Valid final TagRequestDto requestDto) {
         final var result = this.service.create(requestDto);
         final var newTag = result.getValue();
 

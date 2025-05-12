@@ -102,5 +102,4 @@ public class CustomerAuthController {
 
         return ResponseEntity.noContent().build();
     }
-
 }

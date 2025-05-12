@@ -26,6 +26,14 @@ public class CustomerService {
         ENTITY_NOT_EXISTS, USERNAME_EXISTS, UNSPECIFIED,
     }
 
+    public enum SetPasswordResult {
+        SUCCESS, ENTITY_NOT_EXISTS, UNSPECIFIED,
+    }
+
+    public enum ResetPasswordResult {
+        SUCCESS, ENTITY_NOT_EXISTS, WRONG_OLD_PASSWORD, UNSPECIFIED,
+    }
+
     public enum MarkBlockedStatusResult {
         SUCCESS, ENTITY_NOT_EXISTS_ERROR, UNSPECIFIED_ERROR,
     }
@@ -148,6 +156,48 @@ public class CustomerService {
         catch (final Exception exception) {
             log.error(exception.getMessage());
             return Expected.failure(UpdateError.UNSPECIFIED);
+        }
+    }
+
+    @NotNull
+    public SetPasswordResult setPasswordByIdAndDeletedFalse(final int id, final String newPassword) {
+        final var customer = this.findByIdAndBlockedFalseAndDeletedFalse(id);
+        if (customer == null) {
+            return SetPasswordResult.ENTITY_NOT_EXISTS;
+        }
+
+        customer.setHashedPassword(this.passwordEncoder.encode(newPassword));
+
+        try {
+            this.repository.save(customer);
+            return SetPasswordResult.SUCCESS;
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return SetPasswordResult.UNSPECIFIED;
+        }
+    }
+
+    @NotNull
+    public ResetPasswordResult resetPasswordAndDeletedFalse(final int id, final String oldPassword,
+            final String newPassword) {
+        var customer = this.findByIdAndBlockedFalseAndDeletedFalse(id);
+        if (customer == null)
+            return ResetPasswordResult.ENTITY_NOT_EXISTS;
+
+        if (!this.passwordEncoder.matches(oldPassword, customer.getHashedPassword())) {
+            return ResetPasswordResult.WRONG_OLD_PASSWORD;
+        }
+
+        customer.setHashedPassword(this.passwordEncoder.encode(newPassword));
+
+        try {
+            this.repository.save(customer);
+            return ResetPasswordResult.SUCCESS;
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return ResetPasswordResult.UNSPECIFIED;
         }
     }
 

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.movie.main.auth.RequirePermission;
 import com.movie.main.config.OpenApiConfig;
 import com.movie.main.dto.request.EmployeeRequestDto;
+import com.movie.main.dto.request.SetPasswordRequestDto;
 import com.movie.main.dto.response.EmployeeResponseDto;
 import com.movie.main.entity.Employee;
 import com.movie.main.entity.Employee.Permission;
@@ -107,8 +108,7 @@ public class EmployeeController {
     }
 
     @PostMapping
-    public ResponseEntity<EmployeeResponseDto> create(
-            @RequestBody @NotNull @Valid final EmployeeRequestDto requestDto) {
+    public ResponseEntity<EmployeeResponseDto> create(@RequestBody @Valid final EmployeeRequestDto requestDto) {
         final var result = this.service.create(requestDto);
         final var newEmployee = result.getValue();
 
@@ -140,6 +140,17 @@ public class EmployeeController {
         return switch (result.getError()) {
         case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
         case USERNAME_EXISTS -> throw new ConflictException("Username exists");
+        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+        default -> ResponseEntity.internalServerError().build();
+        };
+    }
+
+    @PatchMapping("set-password/{id}")
+    public ResponseEntity<Void> setPasswordByIdAndDeletedFalse(@PathVariable final int id,
+            @RequestBody @Valid final SetPasswordRequestDto requestDto) {
+        return switch (this.service.setPasswordByIdAndDeletedFalse(id, requestDto.password())) {
+        case SUCCESS -> ResponseEntity.noContent().build();
+        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
         case UNSPECIFIED -> ResponseEntity.internalServerError().build();
         default -> ResponseEntity.internalServerError().build();
         };

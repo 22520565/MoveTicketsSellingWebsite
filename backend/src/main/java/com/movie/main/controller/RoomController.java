@@ -88,7 +88,7 @@ public class RoomController {
     }
 
     @PostMapping
-    public ResponseEntity<RoomResponseDto> create(@RequestBody @NotNull @Valid final RoomRequestDto requestDto) {
+    public ResponseEntity<RoomResponseDto> create(@RequestBody @Valid final RoomRequestDto requestDto) {
         final var result = this.service.create(requestDto);
         final var newRoom = result.getValue();
 

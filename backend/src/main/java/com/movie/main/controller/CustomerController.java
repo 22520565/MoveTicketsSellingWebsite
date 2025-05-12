@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.movie.main.auth.RequirePermission;
 import com.movie.main.config.OpenApiConfig;
 import com.movie.main.dto.request.CustomerRequestDto;
+import com.movie.main.dto.request.SetPasswordRequestDto;
 import com.movie.main.dto.response.CustomerResponseDto;
 import com.movie.main.entity.Customer;
 import com.movie.main.entity.Employee.Permission;
@@ -107,8 +108,7 @@ public class CustomerController {
     }
 
     @PostMapping
-    public ResponseEntity<CustomerResponseDto> create(
-            @RequestBody @NotNull @Valid final CustomerRequestDto requestDto) {
+    public ResponseEntity<CustomerResponseDto> create(@RequestBody @Valid final CustomerRequestDto requestDto) {
         final var result = this.service.create(requestDto);
         final var newCustomer = result.getValue();
 
@@ -140,6 +140,17 @@ public class CustomerController {
         return switch (result.getError()) {
         case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
         case USERNAME_EXISTS -> throw new ConflictException("Username exists");
+        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+        default -> ResponseEntity.internalServerError().build();
+        };
+    }
+
+    @PatchMapping("set-password/{id}")
+    public ResponseEntity<Void> setPasswordByIdAndDeletedFalse(@PathVariable final int id,
+            @RequestBody @Valid final SetPasswordRequestDto requestDto) {
+        return switch (this.service.setPasswordByIdAndDeletedFalse(id, requestDto.password())) {
+        case SUCCESS -> ResponseEntity.noContent().build();
+        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
         case UNSPECIFIED -> ResponseEntity.internalServerError().build();
         default -> ResponseEntity.internalServerError().build();
         };
