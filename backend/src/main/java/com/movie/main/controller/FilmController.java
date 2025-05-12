@@ -1,6 +1,7 @@
 package com.movie.main.controller;
 
 import org.hibernate.validator.constraints.Range;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
@@ -29,6 +30,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.annotation.security.PermitAll;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @RestController
@@ -49,9 +51,9 @@ public class FilmController {
             @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
             @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
             final PagedResourcesAssembler<FilmResponseDto> assembler) {
-        final var movies = this.service.findAllByDeletedFalse(PageRequest.of(page, size))
+        final var result = this.service.findAllByDeletedFalse(PageRequest.of(page, size))
                 .map(FilmController::getResponseDtoFrom);
-        return ResponseEntity.ok(assembler.toModel(movies));
+        return ResponseEntity.ok(assembler.toModel(result));
     }
 
     @GetMapping("deleted")
@@ -59,9 +61,21 @@ public class FilmController {
             @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
             @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
             final PagedResourcesAssembler<FilmResponseDto> assembler) {
-        final var movies = this.service.findAllByDeletedTrue(PageRequest.of(page, size))
+        final var result = this.service.findAllByDeletedTrue(PageRequest.of(page, size))
                 .map(FilmController::getResponseDtoFrom);
-        return ResponseEntity.ok(assembler.toModel(movies));
+        return ResponseEntity.ok(assembler.toModel(result));
+    }
+
+    @PostMapping("/search")
+    @PermitAll
+    public ResponseEntity<PagedModel<EntityModel<FilmResponseDto>>> searchAllFilmsWithTagsByDeletedFalse(
+            @RequestParam @NotBlank final String keyword,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
+            final PagedResourcesAssembler<FilmResponseDto> assembler) {
+        var result = service.searchAllFilmsWithTagsByDeletedFalse(keyword, PageRequest.of(page, size))
+                .map(FilmController::getResponseDtoFrom);
+        return ResponseEntity.ok(assembler.toModel(result));
     }
 
     @GetMapping("{id}")
@@ -148,7 +162,8 @@ public class FilmController {
     @NotNull
     public static FilmResponseDto getResponseDtoFrom(@NotNull final Film film) {
         return new FilmResponseDto(film.getId(), film.getName(), film.getThumbnailUrl(), film.getTrailerUrl(),
-                film.getDuration(), film.getAgeRestriction(), film.getVoice(), film.getOriginatedCountry(), film.is3D(),
-                film.getDescription(), film.getContent(), film.getBeginDate());
+                film.getTags(), film.getDuration(), film.getAgeRestriction(), film.getVoice(),
+                film.getOriginatedCountry(), film.is3D(), film.getDescription(), film.getContent(),
+                film.getBeginDate());
     }
 }

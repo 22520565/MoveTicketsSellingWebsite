@@ -49,9 +49,9 @@ public class CustomerController {
             @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
             @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
             final PagedResourcesAssembler<CustomerResponseDto> assembler) {
-        final var movies = this.service.findAllByBlockedFalseAndDeletedFalse(PageRequest.of(page, size))
+        final var result = this.service.findAllByBlockedFalseAndDeletedFalse(PageRequest.of(page, size))
                 .map(CustomerController::getResponseDtoFrom);
-        return ResponseEntity.ok(assembler.toModel(movies));
+        return ResponseEntity.ok(assembler.toModel(result));
     }
 
     @GetMapping("blocked")
@@ -59,9 +59,9 @@ public class CustomerController {
             @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
             @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
             final PagedResourcesAssembler<CustomerResponseDto> assembler) {
-        final var movies = this.service.findAllByBlockedTrueAndDeletedFalse(PageRequest.of(page, size))
+        final var result = this.service.findAllByBlockedTrueAndDeletedFalse(PageRequest.of(page, size))
                 .map(CustomerController::getResponseDtoFrom);
-        return ResponseEntity.ok(assembler.toModel(movies));
+        return ResponseEntity.ok(assembler.toModel(result));
     }
 
     @GetMapping("deleted")

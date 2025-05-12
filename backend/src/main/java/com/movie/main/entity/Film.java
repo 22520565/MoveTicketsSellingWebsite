@@ -1,18 +1,25 @@
 package com.movie.main.entity;
 
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
@@ -24,6 +31,7 @@ import lombok.experimental.FieldNameConstants;
 public class Film {
     public static final int MinLengthName = 1;
     public static final int MaxLengthName = 100;
+    public static final int MaxAmountTags = 5;
     public static final int MinLengthDescription = 1;
     public static final int MaxLengthDescription = 1000;
 
@@ -46,6 +54,12 @@ public class Film {
     @Column(nullable = false, unique = true)
     @NotBlank
     private String trailerUrl = "";
+
+    @ManyToMany
+    @Size(max = MaxAmountTags)
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
+    private Set<Tag> tags = Collections.emptySet();
 
     @Column(nullable = false)
     @NotNull
@@ -83,12 +97,13 @@ public class Film {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public Film(final String name, final String thumbnailUrl, final String trailerUrl, final int duration,
-            final String ageRestriction, final String voice, final String originatedCountry, final boolean is3D,
-            final String content, final LocalDate beginDate) {
+    public Film(final String name, final String thumbnailUrl, final String trailerUrl, final Set<Tag> tags,
+            final int duration, final String ageRestriction, final String voice, final String originatedCountry,
+            final boolean is3D, final String content, final LocalDate beginDate) {
         this.name = name;
         this.thumbnailUrl = thumbnailUrl;
         this.trailerUrl = trailerUrl;
+        this.tags = Collections.unmodifiableSet(tags);
         this.duration = duration;
         this.ageRestriction = ageRestriction;
         this.voice = voice;
@@ -96,5 +111,13 @@ public class Film {
         this.is3D = is3D;
         this.content = content;
         this.beginDate = beginDate;
+    }
+
+    public void setTags(final Set<Tag> tags) {
+        this.tags = Collections.unmodifiableSet(tags);
+    }
+
+    public Set<Tag> getTags() {
+        return new HashSet<>(this.tags);
     }
 }

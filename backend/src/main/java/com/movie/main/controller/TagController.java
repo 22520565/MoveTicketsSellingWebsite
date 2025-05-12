@@ -49,8 +49,8 @@ public class TagController {
             @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
             @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
             final PagedResourcesAssembler<TagResponseDto> assembler) {
-        final var movies = this.service.findAll(PageRequest.of(page, size)).map(TagController::getResponseDtoFrom);
-        return ResponseEntity.ok(assembler.toModel(movies));
+        final var result = this.service.findAll(PageRequest.of(page, size)).map(TagController::getResponseDtoFrom);
+        return ResponseEntity.ok(assembler.toModel(result));
     }
 
     @GetMapping("{id}")

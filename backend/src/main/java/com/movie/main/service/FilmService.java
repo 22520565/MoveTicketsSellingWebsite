@@ -1,6 +1,8 @@
 package com.movie.main.service;
 
+import com.movie.main.controller.FilmController;
 import com.movie.main.dto.request.FilmRequestDto;
+import com.movie.main.dto.response.FilmResponseDto;
 import com.movie.main.entity.Film;
 import com.movie.main.repository.FilmRepository;
 import com.movie.main.ulti.Expected;
@@ -45,6 +47,11 @@ public class FilmService {
         return this.repository.findAllByDeletedTrue(pageRequest);
     }
 
+    public Page<@NotNull Film> searchAllFilmsWithTagsByDeletedFalse(String keyword,
+            @NotNull final PageRequest pageRequest) {
+        return this.repository.searchAllFilmsWithTagsByDeletedFalse(keyword, pageRequest);
+    }
+
     @Nullable
     public Film findById(final int id) {
         return this.repository.findById(id).orElse(null);
@@ -63,8 +70,8 @@ public class FilmService {
     @NotNull
     public Expected<Film, CreationError> create(@NotNull final FilmRequestDto requestDto) {
         final var newFilm = new Film(requestDto.name(), requestDto.thumbnailUrl(), requestDto.trailerUrl(),
-                requestDto.duration(), requestDto.ageRestriction(), requestDto.voice(), requestDto.originatedCountry(),
-                requestDto.is3D(), requestDto.content(), requestDto.beginDate());
+                requestDto.tags(), requestDto.duration(), requestDto.ageRestriction(), requestDto.voice(),
+                requestDto.originatedCountry(), requestDto.is3D(), requestDto.content(), requestDto.beginDate());
 
         try {
             return Expected.success(this.repository.save(newFilm));
