@@ -50,8 +50,13 @@ public class FilmShowService {
     }
 
     @NotNull
-    public Page<@NotNull FilmShow> findAll(@NotNull final PageRequest pageRequest) {
-        return this.repository.findAll(pageRequest);
+    public Page<@NotNull FilmShow> findAllByDeletedTrue(@NotNull final PageRequest pageRequest) {
+        return this.repository.findAllByDeletedTrue(pageRequest);
+    }
+
+    @Nullable
+    public FilmShow findById(final int id) {
+        return this.repository.findById(id).orElse(null);
     }
 
     @Nullable
@@ -60,13 +65,13 @@ public class FilmShowService {
     }
 
     @Nullable
-    public FilmShow findById(final int id) {
-        return this.repository.findById(id).orElse(null);
+    public FilmShow findByIdAndDeletedTrue(final int id) {
+        return this.repository.findByIdAndDeletedTrue(id).orElse(null);
     }
 
     @NotNull
     public Expected<FilmShow, CreationError> create(@NotNull final FilmShowRequestDto requestDto) {
-        final var room = this.roomService.findById(requestDto.roomId());
+        final var room = this.roomService.findByIdAndDeletedTrue(requestDto.roomId());
         if (room == null) {
             return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
         }
@@ -90,7 +95,7 @@ public class FilmShowService {
 
     @NotNull
     public Expected<FilmShow, UpdateError> updateById(final int id, @NotNull final FilmShowRequestDto requestDto) {
-        final var room = this.roomService.findById(requestDto.roomId());
+        final var room = this.roomService.findByIdAndDeletedTrue(requestDto.roomId());
         if (room == null) {
             return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
         }
@@ -121,12 +126,23 @@ public class FilmShowService {
 
     @NotNull
     public MarkDeletedStatusResult markAsDeletedById(final int id) {
-        final var filmShow = this.findByIdAndDeletedFalse(id);
+        return this.markDeletedStatusById(id, true);
+    }
+
+    @NotNull
+    public MarkDeletedStatusResult markAsUndeletedById(final int id) {
+        return this.markDeletedStatusById(id, false);
+    }
+
+    @NotNull
+    public MarkDeletedStatusResult markDeletedStatusById(final int id, final boolean deletedStatusToMark) {
+        final var filmShow = this.findById(id);
         if (filmShow == null) {
             return MarkDeletedStatusResult.ENTITY_NOT_EXISTS_ERROR;
         }
 
-        filmShow.setDeleted(true);
+        filmShow.setDeleted(deletedStatusToMark);
+
         try {
             this.repository.save(filmShow);
             return MarkDeletedStatusResult.SUCCESS;

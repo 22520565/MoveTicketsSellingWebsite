@@ -12,6 +12,7 @@ import com.movie.main.ulti.Expected;
 
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -26,7 +27,7 @@ public class EmployeeService {
     }
 
     public enum MarkBlockedStatusResult {
-        SUCCESS, ENTITY_NOT_EXISTS, UNSPECIFIED,
+        SUCCESS, ENTITY_NOT_EXISTS_ERROR, UNSPECIFIED_ERROR,
     }
 
     public enum MarkDeletedStatusResult {
@@ -34,13 +35,13 @@ public class EmployeeService {
     }
 
     @NotNull
+    private final EmployeeRepository repository;
+
+    @NotNull
     private final PasswordEncoder passwordEncoder;
 
     @NotNull
     private final UserRefreshTokenService userRefreshTokenService;
-
-    @NotNull
-    private final EmployeeRepository repository;
 
     public EmployeeService(@NotNull final EmployeeRepository repository, @NotNull final PasswordEncoder passwordEncoder,
             @NotNull final UserRefreshTokenService userRefreshTokenService) {
@@ -50,13 +51,33 @@ public class EmployeeService {
     }
 
     @Nullable
-    public Page<Employee> findAllByDeletedFalse(@NotNull final PageRequest pageRequest) {
-        return this.repository.findAllByDeletedFalse(pageRequest);
+    public Page<Employee> findAllByBlockedFalseAndDeletedFalse(@NotNull final PageRequest pageRequest) {
+        return this.repository.findAllByBlockedFalseAndDeletedFalse(pageRequest);
     }
 
     @Nullable
-    public Page<Employee> findAll(@NotNull final PageRequest pageRequest) {
-        return this.repository.findAll(pageRequest);
+    public Page<Employee> findAllByBlockedTrueAndDeletedFalse(@NotNull final PageRequest pageRequest) {
+        return this.repository.findAllByBlockedTrueAndDeletedFalse(pageRequest);
+    }
+
+    @Nullable
+    public Page<Employee> findAllByDeletedTrue(@NotNull final PageRequest pageRequest) {
+        return this.repository.findAllByDeletedTrue(pageRequest);
+    }
+
+    @Nullable
+    public Employee findByIdAndBlockedFalseAndDeletedFalse(final int id) {
+        return this.repository.findByIdAndBlockedFalseAndDeletedFalse(id).orElse(null);
+    }
+
+    @Nullable
+    public Employee findByIdAndBlockedTrueAndDeletedFalse(final int id) {
+        return this.repository.findByIdAndBlockedTrueAndDeletedFalse(id).orElse(null);
+    }
+
+    @Nullable
+    public Employee findById(final int id) {
+        return this.repository.findById(id).orElse(null);
     }
 
     @Nullable
@@ -65,8 +86,8 @@ public class EmployeeService {
     }
 
     @Nullable
-    public Employee findById(final int id) {
-        return this.repository.findById(id).orElse(null);
+    public Employee findByIdAndDeletedTrue(final int id) {
+        return this.repository.findByIdAndDeletedTrue(id).orElse(null);
     }
 
     @Nullable
@@ -105,14 +126,14 @@ public class EmployeeService {
 
     @NotNull
     public Expected<Employee, UpdateError> updateByIdAndDeletedFalse(final int id,
-            final EmployeeRequestDto requestDto) {
-        final var employee = this.findByIdAndDeletedFalse(id);
+            @NotNull final EmployeeRequestDto requestDto) {
+        final var employee = this.findByIdAndBlockedFalseAndDeletedFalse(id);
         if (employee == null) {
             return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
         }
 
         final var newUsername = requestDto.username();
-        if ((employee.getUsername() != newUsername) && (this.existsByUsername(newUsername))) {
+        if ((!Objects.equals(employee.getUsername(), newUsername)) && (this.existsByUsername(newUsername))) {
             return Expected.failure(UpdateError.USERNAME_EXISTS);
         }
 
@@ -139,42 +160,53 @@ public class EmployeeService {
     }
 
     @NotNull
-    public MarkBlockedStatusResult markAsBlockById(final int id) {
+    public MarkBlockedStatusResult markAsBlockedById(final int id) {
         return this.markBlockedStatusById(id, true);
     }
 
     @NotNull
-    public MarkBlockedStatusResult markAsUnblockById(final int id) {
+    public MarkBlockedStatusResult markAsUnblockedById(final int id) {
         return this.markBlockedStatusById(id, false);
     }
 
     @NotNull
     public MarkBlockedStatusResult markBlockedStatusById(final int id, final boolean blockedStatusToMark) {
-        final var customer = this.findById(id);
-        if (customer == null) {
-            return MarkBlockedStatusResult.ENTITY_NOT_EXISTS;
+        final var employee = this.findByIdAndDeletedFalse(id);
+        if (employee == null) {
+            return MarkBlockedStatusResult.ENTITY_NOT_EXISTS_ERROR;
         }
 
-        customer.setBlocked(blockedStatusToMark);
+        employee.setBlocked(blockedStatusToMark);
 
         try {
-            this.repository.save(customer);
+            this.repository.save(employee);
             return MarkBlockedStatusResult.SUCCESS;
         }
         catch (final Exception exception) {
             log.error(exception.getMessage());
-            return MarkBlockedStatusResult.UNSPECIFIED;
+            return MarkBlockedStatusResult.UNSPECIFIED_ERROR;
         }
     }
 
     @NotNull
     public MarkDeletedStatusResult markAsDeletedById(final int id) {
-        final var employee = this.findByIdAndDeletedFalse(id);
+        return this.markDeletedStatusById(id, true);
+    }
+
+    @NotNull
+    public MarkDeletedStatusResult markAsUndeletedById(final int id) {
+        return this.markDeletedStatusById(id, false);
+    }
+
+    @NotNull
+    public MarkDeletedStatusResult markDeletedStatusById(final int id, final boolean deletedStatusToMark) {
+        final var employee = this.findById(id);
         if (employee == null) {
             return MarkDeletedStatusResult.ENTITY_NOT_EXISTS_ERROR;
         }
 
-        employee.setDeleted(true);
+        employee.setDeleted(deletedStatusToMark);
+
         try {
             this.repository.save(employee);
             return MarkDeletedStatusResult.SUCCESS;

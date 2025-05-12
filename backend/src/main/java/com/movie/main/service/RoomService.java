@@ -45,8 +45,13 @@ public class RoomService {
     }
 
     @NotNull
-    public Page<@NotNull Room> findAll(@NotNull final PageRequest pageRequest) {
+    public Page<@NotNull Room> findAllByDeletedTrue(@NotNull final PageRequest pageRequest) {
         return this.repository.findAll(pageRequest);
+    }
+
+    @Nullable
+    public Room findById(final int id) {
+        return this.repository.findById(id).orElse(null);
     }
 
     @Nullable
@@ -55,8 +60,8 @@ public class RoomService {
     }
 
     @Nullable
-    public Room findById(final int id) {
-        return this.repository.findById(id).orElse(null);
+    public Room findByIdAndDeletedTrue(final int id) {
+        return this.repository.findByIdAndDeletedTrue(id).orElse(null);
     }
 
     @NotNull
@@ -112,12 +117,23 @@ public class RoomService {
 
     @NotNull
     public MarkDeletedStatusResult markAsDeletedById(final int id) {
-        final var room = this.findByIdAndDeletedFalse(id);
+        return this.markDeletedStatusById(id, true);
+    }
+
+    @NotNull
+    public MarkDeletedStatusResult markAsUndeletedById(final int id) {
+        return this.markDeletedStatusById(id, false);
+    }
+
+    @NotNull
+    public MarkDeletedStatusResult markDeletedStatusById(final int id, final boolean deletedStatusToMark) {
+        final var room = this.findById(id);
         if (room == null) {
             return MarkDeletedStatusResult.ENTITY_NOT_EXISTS_ERROR;
         }
 
-        room.setDeleted(true);
+        room.setDeleted(deletedStatusToMark);
+
         try {
             this.repository.save(room);
             return MarkDeletedStatusResult.SUCCESS;

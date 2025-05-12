@@ -7,8 +7,8 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -44,27 +44,38 @@ public class CustomerController {
     }
 
     @GetMapping
-    public ResponseEntity<PagedModel<EntityModel<CustomerResponseDto>>> findAllByDeletedFalse(
+    public ResponseEntity<PagedModel<EntityModel<CustomerResponseDto>>> findAllByBlockedFalseAndDeletedFalse(
             @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
             @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
             final PagedResourcesAssembler<CustomerResponseDto> assembler) {
-        final var movies = this.service.findAllByDeletedFalse(PageRequest.of(page, size))
+        final var movies = this.service.findAllByBlockedFalseAndDeletedFalse(PageRequest.of(page, size))
                 .map(CustomerController::getResponseDtoFrom);
         return ResponseEntity.ok(assembler.toModel(movies));
     }
 
-    @GetMapping("all")
-    public ResponseEntity<PagedModel<EntityModel<CustomerResponseDto>>> findAll(
+    @GetMapping("blocked")
+    public ResponseEntity<PagedModel<EntityModel<CustomerResponseDto>>> findAllByBlockedTrueAndDeletedFalse(
             @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
             @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
             final PagedResourcesAssembler<CustomerResponseDto> assembler) {
-        final var movies = this.service.findAll(PageRequest.of(page, size)).map(CustomerController::getResponseDtoFrom);
+        final var movies = this.service.findAllByBlockedTrueAndDeletedFalse(PageRequest.of(page, size))
+                .map(CustomerController::getResponseDtoFrom);
+        return ResponseEntity.ok(assembler.toModel(movies));
+    }
+
+    @GetMapping("deleted")
+    public ResponseEntity<PagedModel<EntityModel<CustomerResponseDto>>> findAllByDeletedTrue(
+            @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
+            final PagedResourcesAssembler<CustomerResponseDto> assembler) {
+        final var movies = this.service.findAllByDeletedTrue(PageRequest.of(page, size))
+                .map(CustomerController::getResponseDtoFrom);
         return ResponseEntity.ok(assembler.toModel(movies));
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<CustomerResponseDto> findByIdAndDeletedFalse(@PathVariable final int id) {
-        final var result = this.service.findByIdAndDeletedFalse(id);
+    public ResponseEntity<CustomerResponseDto> findByIdAndBlockedFalseAndDeletedFalse(@PathVariable final int id) {
+        final var result = this.service.findByIdAndBlockedFalseAndDeletedFalse(id);
 
         if (result == null) {
             return ResponseEntity.notFound().build();
@@ -73,9 +84,20 @@ public class CustomerController {
         return ResponseEntity.ok(CustomerController.getResponseDtoFrom(result));
     }
 
-    @GetMapping("all/{id}")
-    public ResponseEntity<CustomerResponseDto> findById(@PathVariable final int id) {
-        final var result = this.service.findById(id);
+    @GetMapping("blocked/{id}")
+    public ResponseEntity<CustomerResponseDto> findByIdAndBlockedTrueAndDeletedFalse(@PathVariable final int id) {
+        final var result = this.service.findByIdAndBlockedTrueAndDeletedFalse(id);
+
+        if (result == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(CustomerController.getResponseDtoFrom(result));
+    }
+
+    @GetMapping("deleted/{id}")
+    public ResponseEntity<CustomerResponseDto> findByIdAndDeletedTrue(@PathVariable final int id) {
+        final var result = this.service.findByIdAndDeletedTrue(id);
 
         if (result == null) {
             return ResponseEntity.notFound().build();
@@ -92,9 +114,8 @@ public class CustomerController {
 
         if (newCustomer != null) {
             final var responseDto = CustomerController.getResponseDtoFrom(newCustomer);
-            final var location = WebMvcLinkBuilder
-                    .linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).findByIdAndDeletedFalse(responseDto.id()))
-                    .toUri();
+            final var location = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass())
+                    .findByIdAndBlockedFalseAndDeletedFalse(responseDto.id())).toUri();
 
             return ResponseEntity.created(location).body(responseDto);
         }
@@ -107,7 +128,7 @@ public class CustomerController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<CustomerResponseDto> updateById(@PathVariable final int id,
+    public ResponseEntity<CustomerResponseDto> updateByIdAndDeletedFalse(@PathVariable final int id,
             @RequestBody @Valid final CustomerRequestDto requestDto) {
         final var result = this.service.updateByIdAndDeletedFalse(id, requestDto);
         final var customer = result.getValue();
@@ -124,9 +145,39 @@ public class CustomerController {
         };
     }
 
-    @DeleteMapping("{id}")
+    @PatchMapping("block/{id}")
+    public ResponseEntity<Void> markAsBlockedById(@PathVariable final int id) {
+        return switch (this.service.markAsBlockedById(id)) {
+        case SUCCESS -> ResponseEntity.noContent().build();
+        case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
+        case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
+        default -> ResponseEntity.internalServerError().build();
+        };
+    }
+
+    @PatchMapping("unblock/{id}")
+    public ResponseEntity<Void> markAsUnblockedById(@PathVariable final int id) {
+        return switch (this.service.markAsUnblockedById(id)) {
+        case SUCCESS -> ResponseEntity.noContent().build();
+        case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
+        case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
+        default -> ResponseEntity.internalServerError().build();
+        };
+    }
+
+    @PatchMapping("delete/{id}")
     public ResponseEntity<Void> markAsDeletedById(@PathVariable final int id) {
         return switch (this.service.markAsDeletedById(id)) {
+        case SUCCESS -> ResponseEntity.noContent().build();
+        case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
+        case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
+        default -> ResponseEntity.internalServerError().build();
+        };
+    }
+
+    @PatchMapping("undelete/{id}")
+    public ResponseEntity<Void> markAsUndeletedById(@PathVariable final int id) {
+        return switch (this.service.markAsUndeletedById(id)) {
         case SUCCESS -> ResponseEntity.noContent().build();
         case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
         case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();

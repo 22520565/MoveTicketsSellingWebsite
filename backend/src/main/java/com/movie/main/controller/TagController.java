@@ -43,9 +43,7 @@ public class TagController {
         this.service = service;
     }
 
-    @GetMapping({
-            "", "all"
-    })
+    @GetMapping
     @PermitAll
     public ResponseEntity<PagedModel<EntityModel<TagResponseDto>>> findAll(
             @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
@@ -55,9 +53,7 @@ public class TagController {
         return ResponseEntity.ok(assembler.toModel(movies));
     }
 
-    @GetMapping({
-            "{id}", "all/{id}"
-    })
+    @GetMapping("{id}")
     @PermitAll
     public ResponseEntity<TagResponseDto> findById(@PathVariable final int id) {
         final var result = this.service.findById(id);

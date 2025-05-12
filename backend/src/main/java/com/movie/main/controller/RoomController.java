@@ -7,8 +7,8 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -54,19 +54,20 @@ public class RoomController {
         return ResponseEntity.ok(assembler.toModel(movies));
     }
 
-    @GetMapping("all")
-    public ResponseEntity<PagedModel<EntityModel<RoomResponseDto>>> findAll(
+    @GetMapping("deleted")
+    public ResponseEntity<PagedModel<EntityModel<RoomResponseDto>>> findAllByDeletedTrue(
             @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
             @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
             final PagedResourcesAssembler<RoomResponseDto> assembler) {
-        final var movies = this.service.findAll(PageRequest.of(page, size)).map(RoomController::getResponseDtoFrom);
+        final var movies = this.service.findAllByDeletedTrue(PageRequest.of(page, size))
+                .map(RoomController::getResponseDtoFrom);
         return ResponseEntity.ok(assembler.toModel(movies));
     }
 
     @GetMapping("{id}")
     @PermitAll
-    public ResponseEntity<RoomResponseDto> findById(@PathVariable final int id) {
-        final var result = this.service.findById(id);
+    public ResponseEntity<RoomResponseDto> findByIdAndDeletedFalse(@PathVariable final int id) {
+        final var result = this.service.findByIdAndDeletedFalse(id);
 
         if (result == null) {
             return ResponseEntity.notFound().build();
@@ -75,9 +76,9 @@ public class RoomController {
         return ResponseEntity.ok(RoomController.getResponseDtoFrom(result));
     }
 
-    @GetMapping("all/{id}")
-    public ResponseEntity<RoomResponseDto> findByIdAndDeletedFalse(@PathVariable final int id) {
-        final var result = this.service.findByIdAndDeletedFalse(id);
+    @GetMapping("deleted/{id}")
+    public ResponseEntity<RoomResponseDto> findByIdAndDeletedTrue(@PathVariable final int id) {
+        final var result = this.service.findByIdAndDeletedTrue(id);
 
         if (result == null) {
             return ResponseEntity.notFound().build();
@@ -94,7 +95,7 @@ public class RoomController {
         if (newRoom != null) {
             final var responseDto = RoomController.getResponseDtoFrom(newRoom);
             final var location = WebMvcLinkBuilder
-                    .linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).findById(responseDto.id()))
+                    .linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).findByIdAndDeletedFalse(responseDto.id()))
                     .toUri();
 
             return ResponseEntity.created(location).body(responseDto);
@@ -124,9 +125,19 @@ public class RoomController {
         };
     }
 
-    @DeleteMapping("{id}")
+    @PatchMapping("delete/{id}")
     public ResponseEntity<Void> markAsDeletedById(@PathVariable final int id) {
         return switch (this.service.markAsDeletedById(id)) {
+        case SUCCESS -> ResponseEntity.noContent().build();
+        case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
+        case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
+        default -> ResponseEntity.internalServerError().build();
+        };
+    }
+
+    @PatchMapping("undelete/{id}")
+    public ResponseEntity<Void> markAsUndeletedById(@PathVariable final int id) {
+        return switch (this.service.markAsUndeletedById(id)) {
         case SUCCESS -> ResponseEntity.noContent().build();
         case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
         case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();

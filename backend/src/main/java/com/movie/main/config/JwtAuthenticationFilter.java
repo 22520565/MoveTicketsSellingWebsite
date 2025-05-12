@@ -66,7 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final var role = JwtTokenProvider.getRoleFromJWT(token);
         final var roleAuthority = new SimpleGrantedAuthority("ROLE_" + role);
-        final var employee = this.employeeService.findByIdAndDeletedFalse(user.getId());
+        final var employee = this.employeeService.findByIdAndBlockedFalseAndDeletedFalse(user.getId());
 
         final List<SimpleGrantedAuthority> permissionAuthorities;
         if (employee != null) {

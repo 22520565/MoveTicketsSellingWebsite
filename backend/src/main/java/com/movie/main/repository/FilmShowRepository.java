@@ -17,9 +17,12 @@ public interface FilmShowRepository extends JpaRepository<FilmShow, Integer> {
     @NotNull
     Optional<FilmShow> findByIdAndDeletedFalse(final int id);
 
-    @NonNull
-    Page<@NotNull FilmShow> findAll(@NonNull final Pageable pageable);
+    @NotNull
+    Optional<FilmShow> findByIdAndDeletedTrue(final int id);
 
     @NonNull
     Page<@NotNull FilmShow> findAllByDeletedFalse(@NonNull final Pageable pageable);
+
+    @NonNull
+    Page<@NotNull FilmShow> findAllByDeletedTrue(@NonNull final Pageable pageable);
 }

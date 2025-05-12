@@ -16,13 +16,25 @@ import jakarta.validation.constraints.NotNull;
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
     @NotNull
+    Optional<Employee> findByIdAndBlockedFalseAndDeletedFalse(final int id);
+
+    @NotNull
+    Optional<Employee> findByIdAndBlockedTrueAndDeletedFalse(final int id);
+
+    @NotNull
     Optional<Employee> findByIdAndDeletedFalse(final int id);
 
-    @NonNull
-    Page<@NotNull Employee> findAll(@NonNull final Pageable pageable);
+    @NotNull
+    Optional<Employee> findByIdAndDeletedTrue(final int id);
 
     @NonNull
-    Page<@NotNull Employee> findAllByDeletedFalse(@NonNull final Pageable pageable);
+    Page<@NotNull Employee> findAllByBlockedFalseAndDeletedFalse(@NonNull final Pageable pageable);
+
+    @NonNull
+    Page<@NotNull Employee> findAllByBlockedTrueAndDeletedFalse(@NonNull final Pageable pageable);
+
+    @NonNull
+    Page<@NotNull Employee> findAllByDeletedTrue(@NonNull final Pageable pageable);
 
     @NotNull
     Optional<Employee> findByUsernameAndDeletedFalse(@Nullable final String username);

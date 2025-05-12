@@ -41,8 +41,13 @@ public class FilmService {
     }
 
     @NotNull
-    public Page<@NotNull Film> findAll(@NotNull final PageRequest pageRequest) {
-        return this.repository.findAll(pageRequest);
+    public Page<@NotNull Film> findAllByDeletedTrue(@NotNull final PageRequest pageRequest) {
+        return this.repository.findAllByDeletedTrue(pageRequest);
+    }
+
+    @Nullable
+    public Film findById(final int id) {
+        return this.repository.findById(id).orElse(null);
     }
 
     @Nullable
@@ -51,8 +56,8 @@ public class FilmService {
     }
 
     @Nullable
-    public Film findById(final int id) {
-        return this.repository.findById(id).orElse(null);
+    public Film findByIdAndDeletedTrue(final int id) {
+        return this.repository.findByIdAndDeletedTrue(id).orElse(null);
     }
 
     @NotNull
@@ -100,12 +105,23 @@ public class FilmService {
 
     @NotNull
     public MarkDeletedStatusResult markAsDeletedById(final int id) {
-        final var film = this.findByIdAndDeletedFalse(id);
+        return this.markDeletedStatusById(id, true);
+    }
+
+    @NotNull
+    public MarkDeletedStatusResult markAsUndeletedById(final int id) {
+        return this.markDeletedStatusById(id, false);
+    }
+
+    @NotNull
+    public MarkDeletedStatusResult markDeletedStatusById(final int id, final boolean deletedStatusToMark) {
+        final var film = this.findById(id);
         if (film == null) {
             return MarkDeletedStatusResult.ENTITY_NOT_EXISTS_ERROR;
         }
 
-        film.setDeleted(true);
+        film.setDeleted(deletedStatusToMark);
+
         try {
             this.repository.save(film);
             return MarkDeletedStatusResult.SUCCESS;

@@ -17,9 +17,12 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
     @NotNull
     Optional<Room> findByIdAndDeletedFalse(final int id);
 
-    @NonNull
-    Page<@NotNull Room> findAll(@NonNull final Pageable pageable);
+    @NotNull
+    Optional<Room> findByIdAndDeletedTrue(final int id);
 
     @NonNull
     Page<@NotNull Room> findAllByDeletedFalse(@NonNull final Pageable pageable);
+
+    @NonNull
+    Page<@NotNull Room> findAllByDeletedTrue(@NonNull final Pageable pageable);
 }

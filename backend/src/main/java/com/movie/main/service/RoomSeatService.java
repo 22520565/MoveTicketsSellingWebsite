@@ -47,7 +47,7 @@ public class RoomSeatService {
 
     @NotNull
     public Expected<RoomSeat, CreationError> create(@NotNull final RoomSeatRequestDto requestDto) {
-        final var room = this.roomService.findById(requestDto.roomId());
+        final var room = this.roomService.findByIdAndDeletedTrue(requestDto.roomId());
         if (room == null) {
             return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
         }
@@ -65,7 +65,7 @@ public class RoomSeatService {
 
     @NotNull
     public Expected<RoomSeat, UpdateError> updateById(final int id, @NotNull final RoomSeatRequestDto requestDto) {
-        final var room = this.roomService.findById(requestDto.roomId());
+        final var room = this.roomService.findByIdAndDeletedTrue(requestDto.roomId());
         if (room == null) {
             return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
         }
