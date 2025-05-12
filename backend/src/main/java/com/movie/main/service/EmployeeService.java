@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.movie.main.dto.request.EmployeeRequestDto;
+import com.movie.main.dto.request.EmployeeSelfRequestDto;
 import com.movie.main.entity.Employee;
 import com.movie.main.repository.EmployeeRepository;
 import com.movie.main.ulti.Expected;
@@ -157,6 +158,39 @@ public class EmployeeService {
         employee.setShiftEnd(requestDto.shiftEnd());
         employee.setBeginWorkingDate(requestDto.beginWorkingDate());
         employee.setPermissions(requestDto.permissions());
+
+        try {
+            return Expected.success(this.repository.save(employee));
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return Expected.failure(UpdateError.UNSPECIFIED);
+        }
+    }
+
+    @NotNull
+    public Expected<Employee, UpdateError> updateByIdAndDeletedFalse(final int id,
+            @NotNull final EmployeeSelfRequestDto requestDto) {
+        final var employee = this.findByIdAndBlockedFalseAndDeletedFalse(id);
+        if (employee == null) {
+            return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
+        }
+
+        final var newUsername = requestDto.username();
+        if ((!Objects.equals(employee.getUsername(), newUsername)) && (this.existsByUsername(newUsername))) {
+            return Expected.failure(UpdateError.USERNAME_EXISTS);
+        }
+
+        employee.setName(requestDto.name());
+        employee.setBirthDate(requestDto.birthDate());
+        employee.setEmail(requestDto.email());
+        employee.setPhoneNumber(requestDto.phoneNumber());
+        employee.setUsername(requestDto.username());
+        employee.setJobTitle(requestDto.jobTitle());
+        employee.setSalary(requestDto.salary());
+        employee.setShiftStart(requestDto.shiftStart());
+        employee.setShiftEnd(requestDto.shiftEnd());
+        employee.setBeginWorkingDate(requestDto.beginWorkingDate());
 
         try {
             return Expected.success(this.repository.save(employee));

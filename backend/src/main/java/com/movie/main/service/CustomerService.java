@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.movie.main.dto.request.CustomerRequestDto;
+import com.movie.main.dto.request.CustomerSelfRequestDto;
 import com.movie.main.entity.Customer;
 import com.movie.main.repository.CustomerRepository;
 import com.movie.main.ulti.Expected;
@@ -149,6 +150,34 @@ public class CustomerService {
         customer.setPhoneNumber(requestDto.phoneNumber());
         customer.setUsername(requestDto.username());
         customer.setHashedPassword(this.passwordEncoder.encode(requestDto.password()));
+
+        try {
+            return Expected.success(this.repository.save(customer));
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return Expected.failure(UpdateError.UNSPECIFIED);
+        }
+    }
+
+    @NotNull
+    public Expected<Customer, UpdateError> updateByIdAndDeletedFalse(final int id,
+            @NotNull final CustomerSelfRequestDto requestDto) {
+        final var customer = this.findByIdAndBlockedFalseAndDeletedFalse(id);
+        if (customer == null) {
+            return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
+        }
+
+        final var newUsername = requestDto.username();
+        if ((!Objects.equals(customer.getUsername(), newUsername)) && (this.existsByUsername(newUsername))) {
+            return Expected.failure(UpdateError.USERNAME_EXISTS);
+        }
+
+        customer.setName(requestDto.name());
+        customer.setBirthDate(requestDto.birthDate());
+        customer.setEmail(requestDto.email());
+        customer.setPhoneNumber(requestDto.phoneNumber());
+        customer.setUsername(requestDto.username());
 
         try {
             return Expected.success(this.repository.save(customer));

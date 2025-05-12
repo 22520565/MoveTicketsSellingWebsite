@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.movie.main.dto.request.CustomerRequestDto;
+import com.movie.main.dto.request.CustomerSelfRequestDto;
 import com.movie.main.dto.request.ResetPasswordRequestDto;
 import com.movie.main.dto.response.CustomerResponseDto;
 import com.movie.main.entity.User;
@@ -47,8 +47,8 @@ public class CustomerSelfController {
     }
 
     @PutMapping
-    public ResponseEntity<CustomerResponseDto> updateSelfInfo(@RequestBody @Valid final CustomerRequestDto requestDto,
-            @AuthenticationPrincipal final User user) {
+    public ResponseEntity<CustomerResponseDto> updateSelfInfo(
+            @RequestBody @Valid final CustomerSelfRequestDto requestDto, @AuthenticationPrincipal final User user) {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
