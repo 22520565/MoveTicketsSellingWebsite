@@ -46,7 +46,7 @@ public class RoomService {
 
     @NotNull
     public Page<@NotNull Room> findAllByDeletedTrue(@NotNull final PageRequest pageRequest) {
-        return this.repository.findAll(pageRequest);
+        return this.repository.findAllByDeletedTrue(pageRequest);
     }
 
     @Nullable

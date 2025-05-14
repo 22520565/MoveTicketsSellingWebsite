@@ -1,8 +1,6 @@
 package com.movie.main.service;
 
-import com.movie.main.controller.FilmController;
 import com.movie.main.dto.request.FilmRequestDto;
-import com.movie.main.dto.response.FilmResponseDto;
 import com.movie.main.entity.Film;
 import com.movie.main.repository.FilmRepository;
 import com.movie.main.ulti.Expected;
