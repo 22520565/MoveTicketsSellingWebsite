@@ -71,7 +71,7 @@ public class FilmShowService {
 
     @NotNull
     public Expected<FilmShow, CreationError> create(@NotNull final FilmShowRequestDto requestDto) {
-        final var room = this.roomService.findByIdAndDeletedTrue(requestDto.roomId());
+        final var room = this.roomService.findByIdAndDeletedFalse(requestDto.roomId());
         if (room == null) {
             return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
         }
@@ -95,7 +95,7 @@ public class FilmShowService {
 
     @NotNull
     public Expected<FilmShow, UpdateError> updateById(final int id, @NotNull final FilmShowRequestDto requestDto) {
-        final var room = this.roomService.findByIdAndDeletedTrue(requestDto.roomId());
+        final var room = this.roomService.findByIdAndDeletedFalse(requestDto.roomId());
         if (room == null) {
             return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
         }
