@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { FaPlay, FaInfoCircle } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
+import {
+  getAllFilmShows,
+  getFilmById,
+  getRoomById,
+  getAllRooms,
+} from "../../config/api";
 
 const FilmShowChartPage = () => {
   const [rooms, setRooms] = useState([]); // State cho rooms
@@ -14,33 +20,39 @@ const FilmShowChartPage = () => {
 
   const fetchData = async (date) => {
     try {
-      const response = await fetch(
-        `http://localhost:8000/api/statistics/film-statistic?selectedDate=${date}`
+      const roomRes = await getAllRooms();
+      setRooms(roomRes.data._embedded.roomResponseDtoList);
+
+      const response = await getAllFilmShows();
+      const data = response.data._embedded.filmShowResponseDtoList;
+
+      const filteredShows = data.filter((show) => show.showDate === date);
+
+      const processedData = await Promise.all(
+        filteredShows.map(async (event) => {
+          // Gọi API lấy thông tin phim theo filmId
+          const filmRes = await getFilmById(event.filmId);
+          const filmData = filmRes.data;
+
+          // Gọi API lấy thông tin phòng
+          const roomRes = await getRoomById(event.roomId);
+          const roomData = roomRes.data;
+
+          return {
+            ...event,
+
+            room: roomData.name,
+            film: filmData.name,
+            duration: filmData.duration,
+            category: filmData.tags.join(", "),
+            description: filmData.description,
+          };
+        })
       );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch data");
-      }
-
-      const data = await response.json();
-
-      // Cập nhật rooms và events
-      setRooms(data.rooms);
-      setEvents(
-        data.events.map((event) => ({
-          id: event.id,
-          room: event.room,
-          film: event.film,
-          startTime: event.starttime,
-          duration: event.duration,
-          category: event.category.join(", "),
-          date: event.date,
-          description: event.description,
-        }))
-      );
-    } catch (err) {
-      setError(err.message); // Lưu lỗi
-      alert("Thao tác thất bại, lỗi: " + error.response.data.msg);
+      setEvents(processedData); // hoặc xử lý tiếp
+    } catch (error) {
+      console.error("Lỗi khi tải dữ liệu:", error);
     }
   };
 
@@ -49,32 +61,37 @@ const FilmShowChartPage = () => {
     fetchData(startDate);
   }, [startDate]);
 
-  console.log(rooms);
-  console.log(events);
-
   const getEventStyle = (startTime, duration, isSpanningEvent) => {
+    const slotWidth = 50;
     let width, left;
     if (isSpanningEvent) {
-      // Event continues from a previous day
-      width = `${Math.min(duration, 24) * 100}px`;
-      left = "25px"; // Starts from 0:00 AM
+      const widthPx = (Math.min(duration, 24 * 60) / 30) * slotWidth;
+      width = `${widthPx}px`;
+      left = "25px";
     } else {
       let endTime = startTime + duration;
-      let startPosition, endPosition;
+      // let startPosition, endPosition;
 
-      if (endTime > 24) {
-        // Event spans across midnight
-        startPosition = startTime * 100;
-        endPosition = 24 * 100 - 25;
-      } else {
-        startPosition = startTime * 100;
-        endPosition = endTime * 100;
-      }
+      // if (endTime > 24) {
+      //   // Event spans across midnight
+      //   startPosition = startTime * 100;
+      //   endPosition = 24 * 100 - 25;
+      // } else {
+      //   startPosition = startTime * 100;
+      //   endPosition = endTime * 100;
+      // }
 
-      width = `${endPosition - startPosition}px`;
-      left = `${startPosition + 25}px`;
+      // width = `${endPosition - startPosition}px`;
+      // left = `${startPosition + 25}px`;
+      const clampedEnd = Math.min(endTime, 24 * 60);
+      const widthPx = ((clampedEnd - startTime) / 30) * slotWidth;
+      const leftPx = (startTime / 30) * slotWidth + 25;
+      width = `${widthPx}px`;
+      left = `${leftPx}px`;
     }
-
+    console.log(
+      `start: ${startTime}m, duration: ${duration}m → left: ${left}, width: ${width}`
+    );
     return { width, left };
   };
 
@@ -93,13 +110,31 @@ const FilmShowChartPage = () => {
     setShowModal(true);
   };
 
-  const formatTime = (time) => {
-    const hour = Math.floor(time); // Lấy phần nguyên làm giờ
-    const minute = Math.round((time - hour) * 60);
+  //Hiển thị time trong modal
+  const formatTime = (timeStrOrMinutes) => {
+    // Nếu là chuỗi: "14:30:00"
+    if (typeof timeStrOrMinutes === "string") {
+      const [h, m] = timeStrOrMinutes.split(":").map(Number);
+      return `${h.toString().padStart(2, "0")}:${m
+        .toString()
+        .padStart(2, "0")}`;
+    }
+
+    // Nếu là phút: số nguyên
+    const hour = Math.floor(timeStrOrMinutes / 60);
+    const minute = timeStrOrMinutes % 60;
     return `${hour.toString().padStart(2, "0")}:${minute
       .toString()
       .padStart(2, "0")}`;
   };
+
+  const getMinutesFromTime = (timeStr) => {
+    if (!timeStr || typeof timeStr !== "string") return 0;
+    const [h, m] = timeStr.split(":").map(Number);
+    return h * 60 + m;
+  };
+
+  ////////////////////////////////////
 
   const formatTime2 = (index) => {
     const hour = Math.floor(index / 2); // Chuyển chỉ số thành giờ
@@ -108,13 +143,13 @@ const FilmShowChartPage = () => {
   };
 
   const formatDuration = (duration) => {
-    const hours = Math.floor(duration);
-    const minutes = Math.round((duration - hours) * 60);
+    const hours = Math.floor(duration / 60);
+    const minutes = duration % 60;
     return `${hours}h ${minutes}m`;
   };
 
   const filteredEvents = events.filter((event) => {
-    const eventDate = new Date(event.date);
+    const eventDate = new Date(event.showDate);
     const startDateObj = new Date(startDate);
 
     if (eventDate.getTime() === startDateObj.getTime()) {
@@ -125,13 +160,14 @@ const FilmShowChartPage = () => {
     // Event started the previous day and continues into the current day
     if (
       eventDate.getTime() === startDateObj.getTime() - 86400000 &&
-      event.startTime + event.duration > 24
+      event.showTime + event.duration > 24
     ) {
       return true;
     }
 
     return false;
   });
+
   useEffect(() => {
     console.log(filteredEvents), [filteredEvents];
   });
@@ -155,7 +191,7 @@ const FilmShowChartPage = () => {
       </div>
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4">
-          {new Date(startDate).toLocaleDateString( {
+          {new Date(startDate).toLocaleDateString({
             weekday: "long",
             year: "numeric",
             month: "long",
@@ -183,36 +219,49 @@ const FilmShowChartPage = () => {
               >
                 {rooms.map((room) => {
                   const filteredRoomEvents = filteredEvents.filter(
-                    (event) => event.room === room
+                    (event) => event.room === room.name
                   );
 
                   return (
                     <div
-                      key={`${room}-${startDate}`}
+                      key={`${room.id}-${startDate}`}
                       className="flex items-center h-20 border-t border-gray-300"
                     >
-                      <div className="w-40 flex-shrink-0 font-medium text-gray-700 pr-4">
-                        {room}
+                      <div className="w-40 flex-shrink-0 font-medium text-gray-700 pr-4 pl-2">
+                        {room.name}
                       </div>
-                      <div className="relative h-full bg-white">
+
+                      {/* Cột timeline */}
+                      <div className="relative h-20 flex-1  border-t bg-white">
                         {filteredRoomEvents.length === 0 && (
-                          <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                          <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-xl">
                             Không có lịch phim
                           </div>
                         )}
 
                         {filteredRoomEvents.map((event) => {
+                          const eventStartMinutes = getMinutesFromTime(
+                            event.showTime
+                          );
+                          // const isSpanningEvent =
+                          //   new Date(event.showDate).getTime() <
+                          //   new Date(startDate).getTime();
+
+                          // const adjustedStartTime = isSpanningEvent
+                          //   ? 0
+                          //   : eventStartMinutes;
+
+                          // const adjustedDuration = isSpanningEvent
+                          //   ? eventStartMinutes + event.duration - 24
+                          //   : event.duration;
                           const isSpanningEvent =
                             new Date(event.date).getTime() <
                             new Date(startDate).getTime();
 
                           const adjustedStartTime = isSpanningEvent
                             ? 0
-                            : event.startTime;
-
-                          const adjustedDuration = isSpanningEvent
-                            ? event.startTime + event.duration - 24
-                            : event.duration;
+                            : eventStartMinutes;
+                          const adjustedDuration = event.duration;
 
                           return (
                             <div
@@ -259,16 +308,23 @@ const FilmShowChartPage = () => {
             </div>
             <div className="mb-4">
               <p className="text-gray-600">
-                <FaInfoCircle className="inline mr-2" />
-                {selectedEvent.description}
+                {selectedEvent.description.split("\n").map((line, index) => (
+                  <p key={index}>
+                    {index === 0 && <FaInfoCircle className="inline mr-2" />}
+                    {line}
+                  </p>
+                ))}
               </p>
             </div>
-            <div className="text-sm text-gray-500">
+            <div className=" text-gray-500">
               <p>Phòng: {selectedEvent.room}</p>
-              <p>Ngày: {selectedEvent.date}</p>
+              <p>Ngày: {selectedEvent.showDate}</p>
               <p>
-                Time: {formatTime(selectedEvent.startTime, 0)} -{" "}
-                {formatTime(selectedEvent.startTime + selectedEvent.duration)}
+                Time: {formatTime(selectedEvent.showTime)} -{" "}
+                {formatTime(
+                  getMinutesFromTime(selectedEvent.showTime) +
+                    selectedEvent.duration
+                )}
               </p>
               <p>Thời lượng: {formatDuration(selectedEvent.duration)}</p>
               <p>Thể loại: {selectedEvent.category}</p>

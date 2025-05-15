@@ -2,6 +2,7 @@ import React from "react";
 import { FiX } from "react-icons/fi";
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
+import { addNewFilm } from "../../config/api";
 import { getAllTags } from "../../config/api";
 import { debounce } from "lodash";
 import { Combobox, ComboboxOption } from "@headlessui/react";
@@ -11,6 +12,7 @@ import Dialog from "../Dialog/ConfirmDialog";
 import slugify from "slugify";
 import slugifyOption from "../../ulitilities/slugifyOption";
 import RefreshLoader from "../Loading";
+
 const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
   if (!isOpen) return null;
   const isEditMode = mode === "edit";
@@ -72,50 +74,42 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
     if (!tag) {
       return;
     }
-    if (!selectedTags.some((selectedTag) => selectedTag._id === tag._id)) {
+    if (!selectedTags.some((selectedTag) => selectedTag.id === tag.id)) {
       setSelectedTags([...selectedTags, tag]);
     }
   };
 
   //console.log(`Input Changed: Name=${selectedTags}`);
   const removeTag = (tagToRemove) => {
-    setSelectedTags(selectedTags.filter((tag) => tag._id !== tagToRemove._id));
+    setSelectedTags(selectedTags.filter((tag) => tag.id !== tagToRemove.id));
   };
 
   useEffect(() => {
     //console.log("SelectedTag" + selectedTags);
-    const tagIds = selectedTags.map((tag) => tag._id);
+    // const tagIds = selectedTags.map((tag) => tag.id);
     setFormData((prevData) => ({
       ...prevData,
-      tagsRef: tagIds,
+      tags: selectedTags,
     }));
   }, [selectedTags]);
 
-  // const initTagChoices = (tagIDs) => {
-  //   tagIDs.forEach((tagID) => {
-  //     const tagExists = filmTags.find((filmTag) => filmTag._id === tagID); // Check if tag exists in filmTags
+  const initTagChoices = (tagIDs) => {
+    const tagsToSet = [];
 
-  //     if (tagExists) {
-  //       setSelectedTags((prevSelectedTags) => {
-  //         // Check if the tag already exists in the selectedTags
-  //         const alreadySelected = prevSelectedTags.some(
-  //           (tag) => tag._id === tagExists._id
-  //         );
+    tagIDs.forEach((tagID) => {
+      const tagExists = filmTags.find((filmTag) => filmTag.id === tagID.id);
 
-  //         // Only add the tag if it's not already in the list
-  //         if (!alreadySelected) {
-  //           return [...prevSelectedTags, tagExists];
-  //         }
-  //         return prevSelectedTags; // If duplicate, return unchanged state
-  //       });
-  //     }
-  //   });
-  //   /*
-  //   console.log("TAGGGG");
-  //   console.log(tagIDs);
-  //   console.log(selectedTags);
-  //   */
-  // };
+      if (tagExists && !tagsToSet.some((tag) => tag.id === tagExists.id)) {
+        tagsToSet.push(tagExists);
+      }
+    });
+
+    setSelectedTags(tagsToSet);
+
+    // console.log("TAGGGG");
+    // console.log(tagIDs);
+    // console.log(tagsToSet); // ✅ sẽ thấy mảng đúng ở đây
+  };
 
   const initAgeChoice = (ageSymbol) => {
     const ageobj = ageResData.find((ageItem) => ageItem.symbol === ageSymbol);
@@ -138,7 +132,7 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
     thumbnailURL: film?.thumbnailUrl,
     thumbnailFile: null,
 
-    tagsRef: film?.tagsRef || [],
+    tags: film?.tags || [],
     filmDuration: film?.duration || "",
     ageRestriction: film?.ageRestriction || "",
     voice: film?.voice || "",
@@ -150,22 +144,19 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
     beginDate: film?.beginDate.split("T")[0] || "",
   });
 
-  console.log(formData.twoDthreeD);
-
   useEffect(() => {
-    if (!isEditMode) {
-      return;
-    }
-    //console.log("Film value: " + JSON.stringify(film));
+    if (!isEditMode || !filmTags.length || !film?.tags?.length) return;
+    console.log("film.tags:", film.tags);
+    console.log("filmTags:", filmTags);
     initAgeChoice(film.ageRestriction);
-    // initTagChoices(film.tagsRef);
+    initTagChoices(film.tags);
   }, [film, filmTags, ageResData]);
 
   const isFormValid = useMemo(() => {
     const requiredFields = [
       "name",
       "trailerURL",
-      "tagsRef",
+      "tags",
       "filmDuration",
       "ageRestriction",
       "voice",
@@ -201,23 +192,23 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
     setIsLoading(true);
     try {
       //console.log(`data nè heheh:${data.otherDescription} `);
+      const trimmedDescription = formData.filmDescription?.trim() || "";
+      console.log("Độ dài description:", trimmedDescription.length);
 
-      const data = new FormData();
-      data.append("thumbnailFile", formData.thumbnailFile);
-      data.append("tagsRef", JSON.stringify(formData.tagsRef));
-      // Append all other fields individually
-      data.append("name", formData.name);
-      data.append("trailerUrl", formData.trailerURL);
-      data.append("thumbnailUrl", formData.thumbnailURL || "");
-      data.append("duration", formData.filmDuration);
-      data.append("ageRestriction", formData.ageRestriction);
-      data.append("voice", formData.voice);
-      data.append("originatedCountry", formData.originatedCountry);
-      data.append("is3D", formData.twoDthreeD);
-      data.append("description", formData.filmDescription);
-      data.append("content", formData.filmContent);
-      data.append("beginDate", formData.beginDate);
-
+      const payload = {
+        name: formData.name,
+        trailerUrl: formData.trailerURL,
+        thumbnailUrl: formData.thumbnailURL || "",
+        tags: formData.tags, // [{ id, name }]
+        duration: Number(formData.filmDuration),
+        ageRestriction: formData.ageRestriction,
+        voice: formData.voice,
+        originatedCountry: formData.originatedCountry,
+        is3D: formData.twoDthreeD.includes("3D"),
+        description: formData.filmDescription,
+        content: formData.filmContent,
+        beginDate: formData.beginDate,
+      };
       let response;
 
       if (mode === "edit") {
@@ -232,7 +223,7 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
         });
       } else {
         setIsLoading(true);
-        response = await axios.post("http://localhost:8000/api/films", data);
+        response = await addNewFilm(payload);
 
         setDialogData({
           title: "Thành công",
@@ -245,7 +236,7 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
         setIsSuccessDialogOpen(true); // Hiển thị dialog thành công
       }
     } catch (error) {
-      alert("Thao tác thất bại, lỗi: " + error.response.data.msg);
+      alert("Thao tác thất bại, lỗi: " + error);
       setIsConfirmDialogOpen(false);
       setIsLoading(false); // Tắt trạng thái loading
     }
@@ -320,7 +311,7 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
                       ) : (
                         filteredTags.map((tag) => (
                           <Combobox.Option
-                            key={tag._id}
+                            key={tag.id}
                             className={({ active }) =>
                               `relative cursor-default select-none py-2 pl-10 pr-4 ${
                                 active
@@ -351,7 +342,7 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
                     Array.isArray(selectedTags) &&
                     selectedTags.map((tag) => (
                       <div
-                        key={tag._id}
+                        key={tag.id}
                         className="inline-flex items-center bg-blue-100 text-blue-800 rounded-full px-3 py-1 text-sm"
                       >
                         {tag.name}
@@ -523,6 +514,24 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
                 setFormData((prev) => ({
                   ...prev,
                   trailerURL: e.target.value,
+                }))
+              }
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1 mt-4">
+              Thumbnail Link
+            </label>
+            <input
+              type="text"
+              name="thumbnailUrl"
+              value={formData.thumbnailURL}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  thumbnailURL: e.target.value,
                 }))
               }
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

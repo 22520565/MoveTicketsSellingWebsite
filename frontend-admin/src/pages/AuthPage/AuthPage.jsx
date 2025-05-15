@@ -40,11 +40,7 @@ const AuthPage = () => {
       try {
         const response = await callLogin(formData);
         console.log(response);
-        signIn(
-          response.data.accessToken,
-          response.data.refreshToken,
-          response.data.userId
-        );
+        signIn(response.data.accessToken, response.data.refreshToken);
         alert("Đăng nhập thành công!");
         navigate("/admin");
       } catch (error) {

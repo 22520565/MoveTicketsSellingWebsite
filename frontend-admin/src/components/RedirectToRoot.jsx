@@ -16,9 +16,9 @@ export default function RedirectToRoot() {
       } else {
         try {
           const response = await validateJWT({
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            // headers: {
+            //   Authorization: `Bearer ${token}`,
+            // },
           });
           const isValid = response.status === 200;
           if (!isValid) {

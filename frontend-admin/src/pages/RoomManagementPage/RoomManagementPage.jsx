@@ -3,7 +3,11 @@ import Table from "../../components/Table";
 import { FiSearch } from "react-icons/fi";
 import { BiRefresh } from "react-icons/bi";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import {
+  getAllRooms,
+  getAllRoomsDeleted,
+  getTheaterById,
+} from "../../config/api";
 import { useNavigate } from "react-router";
 import RefreshLoader from "../../components/Loading";
 
@@ -29,11 +33,36 @@ const RoomManagementPage = () => {
 
   const fetchRoom = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/rooms");
-      // Lọc những order có printed === false
-      setRooms(response.data.data);
+      const response = await getAllRooms();
+      const data = response.data._embedded?.roomResponseDtoList || [];
+
+      const huy = await getAllRoomsDeleted();
+      const huy_data = huy.data._embedded?.roomResponseDtoList || [];
+
+      const rawRooms = [
+        ...data.map((item) => ({ ...item, isDeleted: false })),
+        ...huy_data.map((item) => ({
+          ...item,
+          isDeleted: true,
+        })),
+      ];
+
+      const processedData = await Promise.all(
+        rawRooms.map(async (room) => {
+          const theaterRes = await getTheaterById(room.theaterId);
+          const theaterName = theaterRes.data.name;
+
+          return {
+            ...room,
+            theater: theaterName,
+          };
+        })
+      );
+      console.log(processedData);
+
+      setRooms(processedData);
     } catch (error) {
-      alert("Thao tác thất bại, lỗi: " + error.response.data.msg);
+      alert("Thao tác thất bại, lỗi: " + error);
     }
   };
 
@@ -81,7 +110,8 @@ const RoomManagementPage = () => {
   };
 
   const columns = [
-    { header: "Tên phòng", key: "roomName" },
+    { header: "Tên phòng", key: "name" },
+    { header: "Rạp phim", key: "theater" },
     {
       header: "Hành động",
       key: "actions",
@@ -104,7 +134,7 @@ const RoomManagementPage = () => {
   const itemsPerPage = 6;
 
   const filteredData = rooms.filter((item) =>
-    item.roomName
+    item.name
       .normalize("NFC")
       .toLowerCase()
       .includes(tableSearchQuery.normalize("NFC").toLowerCase())

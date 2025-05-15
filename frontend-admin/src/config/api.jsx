@@ -14,12 +14,12 @@ export const callLogin = async (data) => {
   );
 };
 
-export const getEmployeeDetail = async (id) => {
-  return await axios.get(`/employees/${id}`);
+export const getEmployeeDetail = async () => {
+  return await axios.get(`/self/employee`);
 };
 
-export const validateJWT = async (config) => {
-  return await axios.get(`/auth/employee/validateJWT`, config);
+export const validateJWT = async () => {
+  return await axios.get(`/self/employee/validate-jwt`);
 };
 
 export const getTheaterById = async (id) => {
@@ -30,6 +30,16 @@ export const getAllFilms = async () => {
   return await axios.get(`/films`);
 };
 
+export const addNewFilm = async (data) => {
+  console.log("Payload gửi đi:", data);
+  console.log("Mô tả:", `"${data.description}"`, data.description.length);
+  return await axios.post(`/films`, data, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};
+
 export const getFilmById = async (id) => {
   return await axios.get(`/films/${id}`);
 };
@@ -38,12 +48,20 @@ export const getAllFilmShows = async () => {
   return await axios.get(`/film-shows`);
 };
 
+export const getAllFilmShowsDeleted = async () => {
+  return await axios.get(`/film-shows/deleted`);
+};
+
 export const addFilmShows = async (data) => {
   return await axios.post(`/film-shows`, { ...data });
 };
 
 export const getAllRooms = async () => {
   return await axios.get(`/rooms`);
+};
+
+export const getAllRoomsDeleted = async () => {
+  return await axios.get(`/rooms/deleted`);
 };
 
 export const getRoomById = async (id) => {

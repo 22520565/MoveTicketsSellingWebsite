@@ -16,7 +16,6 @@ export const AuthProvider = ({ children }) => {
   const signOut = () => {
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("accessToken");
-    localStorage.removeItem("userId");
   };
   const fetchEmployeeDetail = async () => {
     const token = localStorage.getItem("accessToken");
@@ -24,17 +23,7 @@ export const AuthProvider = ({ children }) => {
       return;
     }
     try {
-      const id = localStorage.getItem("userId");
-
-      // const response = await getEmployeeDetail(id);
-      const response = await axios.get(
-        `http://localhost:8080/api/employees/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await getEmployeeDetail();
 
       const data = response.data;
 

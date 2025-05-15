@@ -17,6 +17,7 @@ import {
   getRoomById,
   getAllRooms,
   getTheaterById,
+  getAllFilmShowsDeleted,
 } from "../../config/api";
 
 const FilmShowListPage = () => {
@@ -56,22 +57,31 @@ const FilmShowListPage = () => {
       const response = await getAllFilmShows();
       const data = response.data._embedded.filmShowResponseDtoList;
 
+      const huy = await getAllFilmShowsDeleted();
+
+      const rawFilmShows = [
+        ...data.map((item) => ({ ...item, isDeleted: false })),
+        ...huy.data._embedded.filmShowResponseDtoList.map((item) => ({
+          ...item,
+          isDeleted: true,
+        })),
+      ];
+
       const now = new Date();
       const processedData = await Promise.all(
-        data.map(async (show) => {
+        rawFilmShows.map(async (show) => {
           // Lấy tên phim
           const filmRes = await getFilmById(show.filmId);
-          console.log(filmRes);
 
           let filmName = filmRes.data.name;
 
           const is3D = filmRes.data.is3D;
           const result = is3D ? "2D, 3D" : "2D";
-          // if (show.cancelled === true) {
-          //   console.log("true");
+          if (show.isDeleted === true) {
+            console.log("true");
 
-          //   filmName += " (Đã hủy)"; // Thêm chữ "Đã hủy" vào tên phim
-          // }
+            filmName += " (Đã hủy)"; // Thêm chữ "Đã hủy" vào tên phim
+          }
 
           const duration = filmRes.data.duration;
           // Lấy tên phòng

@@ -43,6 +43,8 @@ const FilmManagementPage = () => {
     try {
       setLoading(true);
       const response = await getAllFilms();
+      console.log(response);
+
       console.log("films: ", response.data._embedded.filmResponseDtoList);
       setFilms(response.data._embedded.filmResponseDtoList); // Lưu dữ liệu vào state
     } catch (error) {
