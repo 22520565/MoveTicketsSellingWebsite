@@ -1,6 +1,7 @@
 package com.movie.main.service;
 
 import com.movie.main.dto.request.FilmShowRequestDto;
+import com.movie.main.entity.Film;
 import com.movie.main.entity.FilmShow;
 import com.movie.main.repository.FilmShowRepository;
 import com.movie.main.ulti.Expected;
@@ -9,8 +10,11 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDate;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -52,6 +56,42 @@ public class FilmShowService {
     @NotNull
     public Page<@NotNull FilmShow> findAllByDeletedTrue(@NotNull final PageRequest pageRequest) {
         return this.repository.findAllByDeletedTrue(pageRequest);
+    }
+
+    @NotNull
+    public Page<@NotNull FilmShow> findAllByFilmIdOrderByDateTime(int filmId, @NotNull final PageRequest pageRequest) {
+        return this.repository.findAllByFilmIdOrderByDateTime(filmId, pageRequest);
+    }
+
+    @NotNull
+    public Page<@NotNull FilmShow> findAllByShowDateAndDeletedFalse(@NotNull final LocalDate date,
+            @NotNull final PageRequest pageRequest) {
+        return this.repository.findAllByShowDateAndDeletedFalse(date, pageRequest);
+    }
+
+    @NotNull
+    public Page<@NotNull FilmShow> findAllByFilmIdAndShowDateAndDeletedFalse(final int filmId,
+            @NotNull final LocalDate date, @NotNull final PageRequest pageRequest) {
+        return this.repository.findAllByFilmIdAndShowDateAndDeletedFalse(filmId, date, pageRequest);
+    }
+
+    @NotNull
+    public Page<@NotNull Film> findAllFilmsByShowDateAndDeletedFalse(@NotNull final LocalDate date,
+            @NotNull final Pageable pageable) {
+        return this.repository.findAllFilmsByShowDateAndDeletedFalse(date, pageable);
+    }
+
+    @NotNull
+    public Page<@NotNull Film> findAllFilmsShowingFromNowToEndOfTodayAndDeletedFalse(@NotNull final Pageable pageable) {
+        return this.repository.findAllFilmsShowingFromNowToEndOfTodayAndDeletedFalse(pageable);
+    }
+
+    @NotNull
+    public Page<@NotNull Film> findAllFilmsShowingFromTomorrowAndDeletedFalse(int days,
+            @NotNull final Pageable pageable) {
+        final var tomorrowDate = LocalDate.now().plusDays(1);
+        final var maxDate = LocalDate.now().plusDays(days);
+        return this.repository.findAllFilmsByShowDateRangeAndDeletedFalse(tomorrowDate, maxDate, pageable);
     }
 
     @Nullable

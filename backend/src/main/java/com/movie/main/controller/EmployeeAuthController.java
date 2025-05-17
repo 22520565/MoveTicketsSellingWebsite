@@ -19,7 +19,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 @RestController
-@RequestMapping("/api/auth/employee")
+@RequestMapping("api/auth/employee")
 @PermitAll
 public class EmployeeAuthController {
     @NotNull
@@ -29,7 +29,7 @@ public class EmployeeAuthController {
         this.employeeAuthService = employeeAuthService;
     }
 
-    @PostMapping("/login")
+    @PostMapping("login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody @Valid final LoginRequestDto requestDto) {
         final var result = this.employeeAuthService.login(requestDto);
 
@@ -46,7 +46,7 @@ public class EmployeeAuthController {
         };
     }
 
-    @PostMapping("/refresh-token")
+    @PostMapping("refresh-token")
     public ResponseEntity<TokenRefreshResponseDto> refreshToken(
             @RequestBody @Valid final TokenRefreshRequestDto requestDto) {
         final var result = this.employeeAuthService.refreshToken(requestDto);
@@ -59,7 +59,7 @@ public class EmployeeAuthController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    @PostMapping("/logout")
+    @PostMapping("logout")
     public ResponseEntity<Void> logout(@RequestBody @Valid final LogoutRequestDto requestDto) {
         this.employeeAuthService.logout(requestDto.refreshToken());
         return ResponseEntity.noContent().build();

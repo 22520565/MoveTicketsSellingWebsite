@@ -22,7 +22,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 @RestController
-@RequestMapping("/api/auth/customer")
+@RequestMapping("api/auth/customer")
 @PermitAll
 public class CustomerAuthController {
     @NotNull
@@ -32,7 +32,7 @@ public class CustomerAuthController {
         this.customerAuthService = customerAuthService;
     }
 
-    @PostMapping("/register")
+    @PostMapping("register")
     public ResponseEntity<CustomerResponseDto> register(@RequestBody @Valid final CustomerRequestDto requestDto) {
         final var result = this.customerAuthService.register(requestDto);
 
@@ -48,7 +48,7 @@ public class CustomerAuthController {
         };
     }
 
-    @PostMapping("/login")
+    @PostMapping("login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody @Valid final LoginRequestDto requestDto) {
         final var result = this.customerAuthService.login(requestDto);
 
@@ -65,7 +65,7 @@ public class CustomerAuthController {
         };
     }
 
-    @PostMapping("/refresh-token")
+    @PostMapping("refresh-token")
     public ResponseEntity<TokenRefreshResponseDto> refreshToken(
             @RequestBody @Valid final TokenRefreshRequestDto requestDto) {
         final var result = this.customerAuthService.refreshToken(requestDto);
@@ -78,7 +78,7 @@ public class CustomerAuthController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    @PostMapping("/logout")
+    @PostMapping("logout")
     public ResponseEntity<Void> logout(@RequestBody @Valid final LogoutRequestDto requestDto) {
         this.customerAuthService.logout(requestDto.refreshToken());
         return ResponseEntity.noContent().build();
