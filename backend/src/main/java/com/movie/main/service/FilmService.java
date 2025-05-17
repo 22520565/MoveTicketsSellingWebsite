@@ -69,7 +69,8 @@ public class FilmService {
     public Expected<Film, CreationError> create(@NotNull final FilmRequestDto requestDto) {
         final var newFilm = new Film(requestDto.name(), requestDto.thumbnailUrl(), requestDto.trailerUrl(),
                 requestDto.tags(), requestDto.duration(), requestDto.ageRestriction(), requestDto.voice(),
-                requestDto.originatedCountry(), requestDto.is3D(), requestDto.content(), requestDto.beginDate());
+                requestDto.originatedCountry(), requestDto.is3D(), requestDto.description(), requestDto.content(),
+                requestDto.beginDate());
 
         try {
             return Expected.success(this.repository.save(newFilm));
@@ -96,6 +97,7 @@ public class FilmService {
         film.setVoice(requestDto.voice());
         film.setOriginatedCountry(requestDto.originatedCountry());
         film.set3D(requestDto.is3D());
+        film.setDescription(requestDto.description());
         film.setContent(requestDto.content());
         film.setBeginDate(requestDto.beginDate());
 

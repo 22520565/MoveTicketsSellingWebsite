@@ -16,4 +16,5 @@ public record FilmRequestDto(@NotBlank @Size(min = Film.MinLengthName, max = Fil
         @Min(1) int duration, @NotBlank String ageRestriction, @NotBlank String voice,
         @NotBlank String originatedCountry, boolean is3D,
         @NotBlank @Size(min = Film.MinLengthDescription, max = Film.MaxLengthDescription) String description,
-        @NotBlank String content, @NotNull LocalDate beginDate) {}
+        @NotBlank @Size(min = Film.MinLengthContent, max = Film.MaxLengthContent) String content,
+        @NotNull LocalDate beginDate) {}

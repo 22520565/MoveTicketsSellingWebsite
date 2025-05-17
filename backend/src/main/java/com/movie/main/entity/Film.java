@@ -34,6 +34,8 @@ public class Film {
     public static final int MaxAmountTags = 5;
     public static final int MinLengthDescription = 1;
     public static final int MaxLengthDescription = 1000;
+    public static final int MinLengthContent = 1;
+    public static final int MaxLengthContent = 1000;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -85,8 +87,9 @@ public class Film {
     @Size(min = MinLengthDescription, max = MaxLengthDescription)
     private String description = "";
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = MaxLengthContent)
     @NotBlank
+    @Size(min = MinLengthContent, max = MaxLengthContent)
     private String content = "";
 
     @Column(nullable = false)
@@ -98,7 +101,7 @@ public class Film {
 
     public Film(final String name, final String thumbnailUrl, final String trailerUrl, final Set<Tag> tags,
             final int duration, final String ageRestriction, final String voice, final String originatedCountry,
-            final boolean is3D, final String content, final LocalDate beginDate) {
+            final boolean is3D, final String description, final String content, final LocalDate beginDate) {
         this.name = name;
         this.thumbnailUrl = thumbnailUrl;
         this.trailerUrl = trailerUrl;
@@ -108,6 +111,7 @@ public class Film {
         this.voice = voice;
         this.originatedCountry = originatedCountry;
         this.is3D = is3D;
+        this.description = description;
         this.content = content;
         this.beginDate = beginDate;
     }
