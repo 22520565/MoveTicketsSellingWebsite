@@ -34,7 +34,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @RestController
-@RequestMapping("/api/films")
+@RequestMapping("api/films")
 @RequirePermission(value = Permission.ADMIN)
 @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
 public class FilmController {
@@ -66,7 +66,7 @@ public class FilmController {
         return ResponseEntity.ok(assembler.toModel(result));
     }
 
-    @PostMapping("/search")
+    @PostMapping("search")
     @PermitAll
     public ResponseEntity<PagedModel<EntityModel<FilmResponseDto>>> searchAllFilmsWithTagsByDeletedFalse(
             @RequestParam @NotBlank final String keyword,

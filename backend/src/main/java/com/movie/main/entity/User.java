@@ -40,7 +40,6 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.PACKAGE)
-    @NotNull
     private int id = 0;
 
     @Column(length = MaxLengthName, nullable = false, unique = true)

@@ -11,14 +11,12 @@ import jakarta.validation.constraints.Size;
 
 import lombok.AccessLevel;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 
 @Entity
 @Data
-@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
 public class Theater {
@@ -31,7 +29,6 @@ public class Theater {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.PACKAGE)
-    @NotNull
     private int id = 0;
 
     @Column(length = MaxLengthName, nullable = false, unique = true)

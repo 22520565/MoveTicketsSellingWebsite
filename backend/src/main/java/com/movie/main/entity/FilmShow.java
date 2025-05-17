@@ -29,7 +29,6 @@ public class FilmShow {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.PACKAGE)
-    @NotNull
     private int id = 0;
 
     @ManyToOne(cascade = {

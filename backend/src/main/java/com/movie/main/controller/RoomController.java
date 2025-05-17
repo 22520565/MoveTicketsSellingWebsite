@@ -32,7 +32,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 @RestController
-@RequestMapping("/api/rooms")
+@RequestMapping("api/rooms")
 @RequirePermission(value = Permission.ADMIN)
 @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
 public class RoomController {

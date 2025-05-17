@@ -23,7 +23,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 @RestController
-@RequestMapping("/api/self/customer")
+@RequestMapping("api/self/customer")
 @PermitAll
 public class CustomerSelfController {
     @NotNull
@@ -68,7 +68,7 @@ public class CustomerSelfController {
         };
     }
 
-    @PatchMapping("/reset-password")
+    @PatchMapping("reset-password")
     public ResponseEntity<Void> resetSelfPassword(@RequestBody @Valid final ResetPasswordRequestDto requestDto,
             @AuthenticationPrincipal final User user) {
         if (user == null) {
@@ -85,7 +85,7 @@ public class CustomerSelfController {
         };
     }
 
-    @GetMapping("/validate-jwt")
+    @GetMapping("validate-jwt")
     public ResponseEntity<Void> validateJWT(@AuthenticationPrincipal final User user) {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

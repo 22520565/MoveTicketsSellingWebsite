@@ -1,8 +1,11 @@
 package com.movie.main.controller;
 
+import java.time.LocalDate;
+
 import org.hibernate.validator.constraints.Range;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.movie.main.auth.RequirePermission;
 import com.movie.main.config.OpenApiConfig;
 import com.movie.main.dto.request.FilmShowRequestDto;
+import com.movie.main.dto.response.FilmResponseDto;
 import com.movie.main.dto.response.FilmShowResponseDto;
 import com.movie.main.entity.Employee.Permission;
 import com.movie.main.entity.FilmShow;
@@ -32,7 +36,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 @RestController
-@RequestMapping("/api/film-shows")
+@RequestMapping("api/film-shows")
 @RequirePermission(value = Permission.ADMIN)
 @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
 public class FilmShowController {
@@ -51,6 +55,79 @@ public class FilmShowController {
             final PagedResourcesAssembler<FilmShowResponseDto> assembler) {
         final var result = this.service.findAllByDeletedFalse(PageRequest.of(page, size))
                 .map(FilmShowController::getResponseDtoFrom);
+        return ResponseEntity.ok(assembler.toModel(result));
+    }
+
+    @GetMapping("by-film/{date}")
+    @PermitAll
+    public ResponseEntity<PagedModel<EntityModel<FilmShowResponseDto>>> findAllByFilmIdOrderByDateTime(final int filmId,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
+            final PagedResourcesAssembler<FilmShowResponseDto> assembler) {
+        final var result = this.service.findAllByFilmIdOrderByDateTime(filmId, PageRequest.of(page, size))
+                .map(FilmShowController::getResponseDtoFrom);
+        return ResponseEntity.ok(assembler.toModel(result));
+    }
+
+    @GetMapping("by-date/{date}")
+    @PermitAll
+    public ResponseEntity<PagedModel<EntityModel<FilmShowResponseDto>>> findAllByShowDateAndDeletedFalse(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final LocalDate date,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
+            final PagedResourcesAssembler<FilmShowResponseDto> assembler) {
+        final var result = this.service.findAllByShowDateAndDeletedFalse(date, PageRequest.of(page, size))
+                .map(FilmShowController::getResponseDtoFrom);
+        return ResponseEntity.ok(assembler.toModel(result));
+    }
+
+    @GetMapping("by-film/{filmId}/by-date/{date}")
+    @PermitAll
+    public ResponseEntity<PagedModel<EntityModel<FilmShowResponseDto>>> findAllByFilmIdAndShowDateAndDeletedFalse(
+            @PathVariable final int filmId,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final LocalDate date,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
+            final PagedResourcesAssembler<FilmShowResponseDto> assembler) {
+        final var result = this.service
+                .findAllByFilmIdAndShowDateAndDeletedFalse(filmId, date, PageRequest.of(page, size))
+                .map(FilmShowController::getResponseDtoFrom);
+        return ResponseEntity.ok(assembler.toModel(result));
+    }
+
+    @GetMapping("available-film-by-date/{date}")
+    @PermitAll
+    public ResponseEntity<PagedModel<EntityModel<FilmResponseDto>>> findAllFilmsByShowDate(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final LocalDate date,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
+            final PagedResourcesAssembler<FilmResponseDto> assembler) {
+        final var result = this.service.findAllFilmsByShowDateAndDeletedFalse(date, PageRequest.of(page, size))
+                .map(FilmController::getResponseDtoFrom);
+        return ResponseEntity.ok(assembler.toModel(result));
+    }
+
+    @GetMapping("showing")
+    @PermitAll
+    public ResponseEntity<PagedModel<EntityModel<FilmResponseDto>>> findAllFilmsShowingFromNowToEndOfToday(
+            @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
+            final PagedResourcesAssembler<FilmResponseDto> assembler) {
+        final var result = this.service
+                .findAllFilmsShowingFromNowToEndOfTodayAndDeletedFalse(PageRequest.of(page, size))
+                .map(FilmController::getResponseDtoFrom);
+        return ResponseEntity.ok(assembler.toModel(result));
+    }
+
+    @GetMapping("upcoming")
+    @PermitAll
+    public ResponseEntity<PagedModel<EntityModel<FilmResponseDto>>> findAllFilmsShowingFromTomorrow(
+            @RequestParam(defaultValue = "7") @Min(value = 1) int days,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
+            final PagedResourcesAssembler<FilmResponseDto> assembler) {
+        final var result = this.service.findAllFilmsShowingFromTomorrowAndDeletedFalse(days, PageRequest.of(page, size))
+                .map(FilmController::getResponseDtoFrom);
         return ResponseEntity.ok(assembler.toModel(result));
     }
 

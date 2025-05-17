@@ -13,14 +13,12 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 
 @Entity
 @Data
-@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
 public class OrderDataItem {
@@ -28,7 +26,6 @@ public class OrderDataItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.PACKAGE)
-    @NotNull
     private int id = 0;
 
     @MapsId
