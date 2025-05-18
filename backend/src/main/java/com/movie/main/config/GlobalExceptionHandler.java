@@ -3,6 +3,7 @@ package com.movie.main.config;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -76,6 +77,13 @@ public final class GlobalExceptionHandler {
             final ResponseStatusException exception) {
         final var body = new ErrorResponseDto(exception.getReason());
         return ResponseEntity.status(exception.getStatusCode()).body(body);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public static ResponseEntity<ErrorResponseDto> handleHttpMessageNotReadableException(
+            final HttpMessageNotReadableException exception) {
+        final var errorResponseDto = new ErrorResponseDto(exception.getMessage());
+        return ResponseEntity.badRequest().body(errorResponseDto);
     }
 
     @ExceptionHandler(Throwable.class)

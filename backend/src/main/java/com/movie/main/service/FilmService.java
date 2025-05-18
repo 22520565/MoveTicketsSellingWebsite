@@ -2,12 +2,15 @@ package com.movie.main.service;
 
 import com.movie.main.dto.request.FilmRequestDto;
 import com.movie.main.entity.Film;
+import com.movie.main.entity.Tag;
 import com.movie.main.repository.FilmRepository;
 import com.movie.main.ulti.Expected;
 
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.HashSet;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,8 +34,12 @@ public class FilmService {
     @NotNull
     private final FilmRepository repository;
 
-    protected FilmService(@NotNull final FilmRepository repository) {
+    @NotNull
+    private final TagService tagService;
+
+    protected FilmService(@NotNull final FilmRepository repository, @NotNull final TagService tagService) {
         this.repository = repository;
+        this.tagService = tagService;
     }
 
     @NotNull
@@ -67,10 +74,21 @@ public class FilmService {
 
     @NotNull
     public Expected<Film, CreationError> create(@NotNull final FilmRequestDto requestDto) {
-        final var newFilm = new Film(requestDto.name(), requestDto.thumbnailUrl(), requestDto.trailerUrl(),
-                requestDto.tags(), requestDto.duration(), requestDto.ageRestriction(), requestDto.voice(),
-                requestDto.originatedCountry(), requestDto.is3D(), requestDto.description(), requestDto.content(),
-                requestDto.beginDate());
+        final var tagsId = requestDto.tagIds();
+        final HashSet<@NotNull Tag> tags = HashSet.newHashSet(tagsId.size());
+        for (final var tagId : requestDto.tagIds()) {
+            final var tag = this.tagService.findById(tagId);
+
+            if (tag == null) {
+                return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
+            }
+
+            tags.add(tag);
+        }
+
+        final var newFilm = new Film(requestDto.name(), requestDto.thumbnailUrl(), requestDto.trailerUrl(), tags,
+                requestDto.duration(), requestDto.ageRestriction(), requestDto.voice(), requestDto.originatedCountry(),
+                requestDto.is3D(), requestDto.description(), requestDto.content(), requestDto.beginDate());
 
         try {
             return Expected.success(this.repository.save(newFilm));
@@ -89,9 +107,22 @@ public class FilmService {
             return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
         }
 
+        final var tagsId = requestDto.tagIds();
+        final HashSet<@NotNull Tag> tags = HashSet.newHashSet(tagsId.size());
+        for (final var tagId : requestDto.tagIds()) {
+            final var tag = this.tagService.findById(tagId);
+
+            if (tag == null) {
+                return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
+            }
+
+            tags.add(tag);
+        }
+
         film.setName(requestDto.name());
         film.setThumbnailUrl(requestDto.thumbnailUrl());
         film.setTrailerUrl(requestDto.trailerUrl());
+        film.setTags(tags);
         film.setDuration(requestDto.duration());
         film.setAgeRestriction(requestDto.ageRestriction());
         film.setVoice(requestDto.voice());

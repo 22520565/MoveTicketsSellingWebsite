@@ -3,6 +3,7 @@ package com.movie.main.entity;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -53,7 +54,7 @@ public class Employee extends User {
     @Enumerated(value = EnumType.STRING)
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    private Set<Permission> permissions = Collections.emptySet();
+    private Set<Permission> permissions = EnumSet.noneOf(Employee.Permission.class);
 
     public Employee(final String name, final LocalDate birthDate, final String email, final String phoneNumber,
             final String username, final String hashedPassword, final String jobTitle, final int salary,
@@ -65,14 +66,14 @@ public class Employee extends User {
         this.shiftStart = shiftStart;
         this.shiftEnd = shiftEnd;
         this.beginWorkingDate = beginWorkingDate;
-        this.permissions = Collections.unmodifiableSet(permissions);
+        this.permissions = EnumSet.copyOf(permissions);
     }
 
     public void setPermissions(final Set<Permission> permissions) {
-        this.permissions = Collections.unmodifiableSet(permissions);
+        this.permissions = EnumSet.copyOf(permissions);
     }
 
     public Set<Permission> getPermissions() {
-        return new HashSet<>(this.permissions);
+        return EnumSet.copyOf(permissions);
     }
 }

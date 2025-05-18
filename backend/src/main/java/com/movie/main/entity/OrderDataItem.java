@@ -35,18 +35,8 @@ public class OrderDataItem {
     @NotNull
     private CustomerOrder customerOrder = null;
 
-    @Column(nullable = false)
-    @Min(0)
-    private int quantity = 0;
-
-    @Column(nullable = false)
-    @Min(0)
-    private int price = 0;
-
-    public OrderDataItem(final int quantity, final int price, final CustomerOrder customerOrder) {
+    public OrderDataItem(final CustomerOrder customerOrder) {
         this.id = this.customerOrder.getId();
         this.customerOrder = customerOrder;
-        this.quantity = quantity;
-        this.price = price;
     }
 }

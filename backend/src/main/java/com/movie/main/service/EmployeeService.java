@@ -120,7 +120,7 @@ public class EmployeeService {
         }
 
         final var newEmployee = new Employee(requestDto.name(), requestDto.birthDate(), requestDto.email(),
-                requestDto.phoneNumber(), requestDto.username(), this.passwordEncoder.encode(requestDto.password()),
+                requestDto.phoneNumber(), requestDto.username(), this.passwordEncoder.encode(requestDto.username()),
                 requestDto.jobTitle(), requestDto.salary(), requestDto.shiftStart(), requestDto.shiftEnd(),
                 requestDto.beginWorkingDate(), requestDto.permissions());
 
@@ -151,7 +151,6 @@ public class EmployeeService {
         employee.setEmail(requestDto.email());
         employee.setPhoneNumber(requestDto.phoneNumber());
         employee.setUsername(requestDto.username());
-        employee.setHashedPassword(this.passwordEncoder.encode(requestDto.password()));
         employee.setJobTitle(requestDto.jobTitle());
         employee.setSalary(requestDto.salary());
         employee.setShiftStart(requestDto.shiftStart());

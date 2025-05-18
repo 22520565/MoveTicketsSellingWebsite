@@ -60,7 +60,7 @@ public class Film {
     @Size(max = MaxAmountTags)
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    private Set<Tag> tags = Collections.emptySet();
+    private Set<@NotNull Tag> tags = new HashSet<>();
 
     @Column(nullable = false)
     @NotNull
@@ -99,13 +99,13 @@ public class Film {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public Film(final String name, final String thumbnailUrl, final String trailerUrl, final Set<Tag> tags,
+    public Film(final String name, final String thumbnailUrl, final String trailerUrl, final Set<@NotNull Tag> tags,
             final int duration, final String ageRestriction, final String voice, final String originatedCountry,
             final boolean is3D, final String description, final String content, final LocalDate beginDate) {
         this.name = name;
         this.thumbnailUrl = thumbnailUrl;
         this.trailerUrl = trailerUrl;
-        this.tags = Collections.unmodifiableSet(tags);
+        this.tags = new HashSet<>(tags);
         this.duration = duration;
         this.ageRestriction = ageRestriction;
         this.voice = voice;
@@ -116,11 +116,11 @@ public class Film {
         this.beginDate = beginDate;
     }
 
-    public void setTags(final Set<Tag> tags) {
-        this.tags = Collections.unmodifiableSet(tags);
+    public void setTags(final Set<@NotNull Tag> tags) {
+        this.tags = new HashSet<>(tags);
     }
 
-    public Set<Tag> getTags() {
+    public Set<@NotNull Tag> getTags() {
         return new HashSet<>(this.tags);
     }
 }

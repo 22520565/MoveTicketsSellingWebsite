@@ -1,5 +1,7 @@
 package com.movie.main.controller;
 
+import java.util.HashSet;
+
 import org.hibernate.validator.constraints.Range;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -161,9 +163,14 @@ public class FilmController {
 
     @NotNull
     public static FilmResponseDto getResponseDtoFrom(@NotNull final Film film) {
-        return new FilmResponseDto(film.getId(), film.getName(), film.getThumbnailUrl(), film.getTrailerUrl(),
-                film.getTags(), film.getDuration(), film.getAgeRestriction(), film.getVoice(),
-                film.getOriginatedCountry(), film.is3D(), film.getDescription(), film.getContent(),
-                film.getBeginDate());
+        final var tags = film.getTags();
+        final HashSet<@NotNull Integer> tagIds = HashSet.newHashSet(tags.size());
+        for (final var tag : tags) {
+            tagIds.add(tag.getId());
+        }
+
+        return new FilmResponseDto(film.getId(), film.getName(), film.getThumbnailUrl(), film.getTrailerUrl(), tagIds,
+                film.getDuration(), film.getAgeRestriction(), film.getVoice(), film.getOriginatedCountry(), film.is3D(),
+                film.getDescription(), film.getContent(), film.getBeginDate());
     }
 }

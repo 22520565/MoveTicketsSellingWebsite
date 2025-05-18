@@ -18,5 +18,5 @@ public record EmployeeRequestDto(@NotBlank @Size(min = User.MinLengthName, max =
         @NotNull LocalDate birthDate, @NotBlank @Email String email,
         @Size(min = User.MinLengthPhoneNumber, max = User.MaxLengthPhoneNumber) String phoneNumber,
         @NotBlank @Size(min = User.MinLengthUsername, max = User.MaxLengthUsername) String username,
-        @NotBlank String password, @NotNull String jobTitle, @Min(0) int salary, @NotNull LocalTime shiftStart,
-        @NotNull LocalTime shiftEnd, @NotNull LocalDate beginWorkingDate, @NotEmpty Set<Permission> permissions) {}
+        @NotNull String jobTitle, @Min(0) int salary, @NotNull LocalTime shiftStart, @NotNull LocalTime shiftEnd,
+        @NotNull LocalDate beginWorkingDate, @NotEmpty Set<Permission> permissions) {}

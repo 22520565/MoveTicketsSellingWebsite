@@ -6,12 +6,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.movie.main.auth.JwtTokenProvider;
-import com.movie.main.dto.request.EmployeeRequestDto;
 import com.movie.main.dto.request.LoginRequestDto;
 import com.movie.main.dto.request.TokenRefreshRequestDto;
 import com.movie.main.dto.response.LoginResponseDto;
 import com.movie.main.dto.response.TokenRefreshResponseDto;
-import com.movie.main.entity.Employee;
 import com.movie.main.entity.User.UserRole;
 import com.movie.main.ulti.Expected;
 
