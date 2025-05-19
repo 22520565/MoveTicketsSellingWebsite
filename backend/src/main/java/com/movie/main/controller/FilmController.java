@@ -68,14 +68,26 @@ public class FilmController {
         return ResponseEntity.ok(assembler.toModel(result));
     }
 
-    @PostMapping("search")
+    @GetMapping("search/{keyword}")
     @PermitAll
     public ResponseEntity<PagedModel<EntityModel<FilmResponseDto>>> searchAllFilmsWithTagsByDeletedFalse(
-            @RequestParam @NotBlank final String keyword,
+            @PathVariable @NotBlank final String keyword,
             @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
             @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
             final PagedResourcesAssembler<FilmResponseDto> assembler) {
         var result = service.searchAllFilmsWithTagsByDeletedFalse(keyword, PageRequest.of(page, size))
+                .map(FilmController::getResponseDtoFrom);
+        return ResponseEntity.ok(assembler.toModel(result));
+    }
+
+    @GetMapping("by-theater/{theaterId}")
+    @PermitAll
+    public ResponseEntity<PagedModel<EntityModel<FilmResponseDto>>> findAllByTheaterIdAndDeletedFalseOrderByShowDate(
+            @PathVariable final int theaterId,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
+            final PagedResourcesAssembler<FilmResponseDto> assembler) {
+        var result = service.findAllByTheaterIdAndDeletedFalseOrderByShowDate(theaterId, PageRequest.of(page, size))
                 .map(FilmController::getResponseDtoFrom);
         return ResponseEntity.ok(assembler.toModel(result));
     }

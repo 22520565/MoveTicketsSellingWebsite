@@ -52,9 +52,16 @@ public class FilmService {
         return this.repository.findAllByDeletedTrue(pageRequest);
     }
 
+    @NotNull
     public Page<@NotNull Film> searchAllFilmsWithTagsByDeletedFalse(String keyword,
             @NotNull final PageRequest pageRequest) {
         return this.repository.searchAllFilmsWithTagsByDeletedFalse(keyword, pageRequest);
+    }
+
+    @NotNull
+    public Page<@NotNull Film> findAllByTheaterIdAndDeletedFalseOrderByShowDate(final int theaterId,
+            @NotNull final PageRequest pageRequest) {
+        return this.repository.findAllByTheaterIdAndDeletedFalseOrderByShowDate(theaterId, pageRequest);
     }
 
     @Nullable
