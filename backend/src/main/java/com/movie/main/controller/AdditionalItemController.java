@@ -20,12 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.movie.main.auth.RequirePermission;
 import com.movie.main.config.OpenApiConfig;
 import com.movie.main.dto.request.AdditionalItemRequestDto;
-import com.movie.main.dto.request.RoomRequestDto;
 import com.movie.main.dto.response.AdditionalItemResponseDto;
-import com.movie.main.dto.response.RoomResponseDto;
 import com.movie.main.entity.Employee.Permission;
 import com.movie.main.entity.AdditionalItem;
-import com.movie.main.entity.Room;
 import com.movie.main.service.AdditionalItemService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -35,7 +32,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 @RestController
-@RequestMapping("api/auth/customer")
+@RequestMapping("api/additional-items")
 
 @RequirePermission(value = Permission.ADMIN)
 @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
