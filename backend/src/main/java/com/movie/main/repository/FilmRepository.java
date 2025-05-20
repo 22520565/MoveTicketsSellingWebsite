@@ -38,7 +38,7 @@ public interface FilmRepository extends JpaRepository<Film, Integer> {
 
     @Query("SELECT DISTINCT f.film FROM FilmShow f " + "WHERE (NOT f.deleted) AND (NOT f.film.deleted) "
             + "AND (f.room.theater.id = :theaterId) "
-            + "AND ((f.showDate > CURRENT_DATE) OR ((f.showDate = CURRENT_DATE) AND (f.showTime >= CURRENT_TIMESTAMP)))"
+            + "AND ((f.showDate > CURRENT_DATE) OR ((f.showDate = CURRENT_DATE) AND (f.showTime >= CURRENT_TIME)))"
             + "ORDER BY f.showDate ASC, f.showTime ASC")
     @NonNull
     Page<@NotNull Film> findAllByTheaterIdAndDeletedFalseOrderByShowDate(@Param("theaterId") final int theaterId,

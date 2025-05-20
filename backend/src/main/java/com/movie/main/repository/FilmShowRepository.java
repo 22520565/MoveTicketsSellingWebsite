@@ -49,7 +49,7 @@ public interface FilmShowRepository extends JpaRepository<FilmShow, Integer> {
     Page<@NotNull Film> findAllFilmsByShowDateAndDeletedFalse(@Param("date") @NotNull final LocalDate date,
             @NonNull final Pageable pageable);
 
-    @Query(value = "SELECT DISTINCT f.film FROM FilmShow f WHERE (f.showDate = CURRENT_DATE) AND (f.showTime >= CURRENT_TIMESTAMP) AND (f.deleted = false) ORDER BY f.showTime ASC")
+    @Query(value = "SELECT DISTINCT f.film FROM FilmShow f WHERE (f.showDate = CURRENT_DATE) AND (f.showTime >= CURRENT_TIME) AND (f.deleted = false) ORDER BY f.showTime ASC")
     @NonNull
     Page<@NotNull Film> findAllFilmsShowingFromNowToEndOfTodayAndDeletedFalse(@NonNull final Pageable pageable);
 
