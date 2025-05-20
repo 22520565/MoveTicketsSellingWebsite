@@ -10,7 +10,12 @@ import axios from "axios";
 import Dialog from "../../components/Dialog/ConfirmDialog";
 import SuccessDialog from "../../components/Dialog/SuccessDialog";
 import RefreshLoader from "../../components/Loading";
-import { getAllFilms } from "../../config/api";
+import {
+  getAllFilms,
+  deleteFilm,
+  getAllFilmsDeleted,
+  undeleteFilm,
+} from "../../config/api";
 
 const FilmManagementPage = () => {
   const [films, setFilms] = useState([]);
@@ -21,7 +26,7 @@ const FilmManagementPage = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedFilm, setSelectedFilm] = useState(null);
-  const [itemToDelete, setItemToDelete] = useState(null);
+
   const [ageTags, setAgeTags] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add");
@@ -32,6 +37,7 @@ const FilmManagementPage = () => {
   const [isSuccessDialogOpen, setIsSuccessDialogOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(() => () => {});
 
   const handleDeleteFilter = () => {
     setFilmNameQuery("");
@@ -42,11 +48,26 @@ const FilmManagementPage = () => {
   const fetchFilms = async () => {
     try {
       setLoading(true);
-      const response = await getAllFilms();
-      console.log(response);
+      const [activeRes, deletedRes] = await Promise.all([
+        getAllFilms(),
+        getAllFilmsDeleted(),
+      ]);
 
-      console.log("films: ", response.data._embedded.filmResponseDtoList);
-      setFilms(response.data._embedded.filmResponseDtoList); // Lưu dữ liệu vào state
+      const activeFilms =
+        activeRes.data?._embedded?.filmResponseDtoList?.map((film) => ({
+          ...film,
+          deleted: false,
+        })) || [];
+
+      const deletedFilms =
+        deletedRes.data?._embedded?.filmResponseDtoList?.map((film) => ({
+          ...film,
+          deleted: true,
+        })) || [];
+
+      const mergedFilms = [...activeFilms, ...deletedFilms];
+
+      setFilms(mergedFilms); // Gộp vào state
     } catch (error) {
       console.error("Error fetching films:", error);
     } finally {
@@ -54,21 +75,18 @@ const FilmManagementPage = () => {
     }
   };
 
-  // const fetchAgeRes = async () => {
-  //   try {
-  //     const response = await axios.get(
-  //       "http://localhost:8000/api/param/age-restriction-symbol"
-  //     );
-  //     setAgeTags(response.data.data);
-  //   } catch (err) {
-  //     setError(err.message);
-  //   }
-  // };
-
   // Gọi API khi component được render lần đầu
   useEffect(() => {
     fetchFilms();
-    // fetchAgeRes();
+    const mockData = [
+      { id: 1, symbol: "P", description: "Phổ biến cho mọi lứa tuổi" },
+      { id: 2, symbol: "K", description: "Dành cho trẻ em" },
+      { id: 3, symbol: "C", description: "Cấm trẻ em dưới 13 tuổi" },
+      { id: 4, symbol: "T13", description: "Trên 13 tuổi" },
+      { id: 5, symbol: "T16", description: "Trên 16 tuổi" },
+      { id: 6, symbol: "T18", description: "Trên 18 tuổi" },
+    ];
+    setAgeTags(mockData);
   }, []);
 
   const handleEditClick = (film) => {
@@ -84,7 +102,6 @@ const FilmManagementPage = () => {
   };
 
   const handleDeleteClick = (item) => {
-    setItemToDelete(item);
     setIsConfirmDialogOpen(true);
     setDialogData({
       title: "Xác nhận xóa",
@@ -96,14 +113,13 @@ const FilmManagementPage = () => {
         </>
       ),
     });
+    setConfirmAction(() => () => handleDeleteConfirm(item));
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (item) => {
     setIsConfirmDialogOpen(false);
     try {
-      const response = await axios.post(
-        `http://localhost:8000/api/films/mark-deleted/${itemToDelete._id}`
-      );
+      await deleteFilm(item.id);
       await fetchFilms();
       setIsSuccessDialogOpen(true);
       setDialogData({
@@ -111,7 +127,7 @@ const FilmManagementPage = () => {
         message: "Xóa phim thành công",
       });
     } catch (error) {
-      alert("Thao tác thất bại, lỗi: " + error.response.data.msg);
+      alert("Thao tác thất bại, lỗi: " + error);
     }
   };
 
@@ -121,24 +137,30 @@ const FilmManagementPage = () => {
     setSelectedFilm(null);
   };
 
-  const handleSaveChanges = (formData) => {
-    if (modalMode === "edit") {
-      setIsConfirmDialogOpen(true);
+  const handleRestoreClick = async (item) => {
+    setIsConfirmDialogOpen(true);
+    setDialogData({
+      title: "Xác nhận khôi phục",
+      message: <>Bạn có chắc chắn muốn khôi phục phim này không?</>,
+    });
+    setConfirmAction(() => () => handleRestoreConfirm(item));
+  };
+
+  const handleRestoreConfirm = async (item) => {
+    setIsConfirmDialogOpen(false);
+    try {
+      await undeleteFilm(item.id);
+      await fetchFilms();
+      setIsSuccessDialogOpen(true);
       setDialogData({
-        title: "Confirm update",
-        message: "Do you want to update this film ?",
+        title: "Thành công",
+        message: "Khôi phục phim thành công",
       });
-      setFormData(formData);
-      console.log("Saving changes", formData);
-    } else {
-      console.log("Adding new film", formData);
+    } catch (error) {
+      alert("Thao tác thất bại, lỗi: " + error);
     }
-    handleCloseModal();
   };
-  const handleRestoreClick = async (row) => {
-    await axios.post(`http://localhost:8000/api/films/restore/${row._id}`);
-    await fetchFilms();
-  };
+
   const columns = [
     { header: "Tên phim", key: "name" },
     { header: "Thời lượng", key: "duration" },
@@ -269,9 +291,9 @@ const FilmManagementPage = () => {
                   <span className="text-gray-400">Độ tuổi</span>
                 </option>
                 <option value="all">Tất cả</option>
-                {ageTags.map((ageRes, index) => (
-                  <option key={index} value={ageRes}>
-                    {`${ageRes}`}
+                {ageTags.map((ageRes) => (
+                  <option key={ageRes.id} value={ageRes.symbol}>
+                    {`${ageRes.symbol}`}
                   </option>
                 ))}
               </select>
@@ -322,14 +344,13 @@ const FilmManagementPage = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         film={selectedFilm}
-        onSave={handleSaveChanges}
         mode={modalMode}
       />
 
       <Dialog
         isOpen={isConfirmDialogOpen}
         onClose={() => setIsConfirmDialogOpen(false)}
-        onConfirm={handleDeleteConfirm}
+        onConfirm={confirmAction}
         title={dialogData.title}
         message={dialogData.message}
       />
