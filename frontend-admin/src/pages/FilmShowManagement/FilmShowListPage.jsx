@@ -54,18 +54,24 @@ const FilmShowListPage = () => {
   const fetchFilmShows = async () => {
     try {
       setLoading(true);
-      const response = await getAllFilmShows();
-      const data = response.data._embedded.filmShowResponseDtoList;
+      const [activeRes, deletedRes] = await Promise.all([
+        getAllFilmShows(),
+        getAllFilmShowsDeleted(),
+      ]);
 
-      const huy = await getAllFilmShowsDeleted();
+      const activeList =
+        activeRes.data?._embedded?.filmShowResponseDtoList?.map((item) => ({
+          ...item,
+          isDeleted: false,
+        })) || [];
 
-      const rawFilmShows = [
-        ...data.map((item) => ({ ...item, isDeleted: false })),
-        ...huy.data._embedded.filmShowResponseDtoList.map((item) => ({
+      const deletedList =
+        deletedRes.data?._embedded?.filmShowResponseDtoList?.map((item) => ({
           ...item,
           isDeleted: true,
-        })),
-      ];
+        })) || [];
+
+      const rawFilmShows = [...activeList, ...deletedList];
 
       const now = new Date();
       const processedData = await Promise.all(
@@ -85,7 +91,10 @@ const FilmShowListPage = () => {
 
           const duration = filmRes.data.duration;
           // Lấy tên phòng
+
           const roomRes = await getRoomById(show.roomId);
+          console.log("hhi: ", roomRes);
+
           const roomName = roomRes.data.name;
 
           const theaterRes = await getTheaterById(roomRes.data.theaterId);
@@ -142,6 +151,8 @@ const FilmShowListPage = () => {
   const fetchRooms = async () => {
     try {
       const response = await getAllRooms();
+      console.log(response);
+
       const data = response.data._embedded.roomResponseDtoList;
 
       setRooms(data);
