@@ -1,4 +1,5 @@
-import axios from "./axios_custom";
+import api from "./axios_custom";
+import axios from "./axios_private";
 
 export const callLogin = async (data) => {
   return axios.post("/auth/user/sign-in", { ...data });
@@ -22,14 +23,6 @@ export const updateUser = async (id, updateData) => {
 
 export const changePasword = async (id, updateData) => {
   return axios.post(`/user/user/change-password/${id}`, { ...updateData });
-};
-
-export const getShowingFilms = async () => {
-  return await axios.get(`film-show/showing`);
-};
-
-export const getUpcommingFilms = async () => {
-  return await axios.get(`film-show/upcoming`);
 };
 
 export const searchFilm = async ({ keyword, page = 1, limit = 2 }) => {
@@ -135,4 +128,16 @@ export const getParam = async () => {
 
 export const getCinemas = async () => {
   return await axios.get(`/theaters`);
+};
+
+export const getShowingFilms = async () => {
+  return await api.get(`film-shows/showing`);
+};
+
+export const getUpcommingFilms = async () => {
+  return await api.get(`film-shows/upcoming`);
+};
+
+export const getAllTags = async () => {
+  return await api.get(`/tags`);
 };
