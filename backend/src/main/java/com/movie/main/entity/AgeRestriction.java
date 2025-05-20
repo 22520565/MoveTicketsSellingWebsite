@@ -18,7 +18,8 @@ import lombok.experimental.FieldNameConstants;
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
 public class AgeRestriction {
-    private static final int MaxLengthName = 5;
+    public static final int MinLengthName = 1;
+    public static final int MaxLengthName = 5;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,6 +29,10 @@ public class AgeRestriction {
 
     @Column(nullable = false, length = MaxLengthName)
     @NotBlank
-    @Size(max = MaxLengthName)
+    @Size(min = MinLengthName, max = MaxLengthName)
     private String name = "";
+
+    public AgeRestriction(final String name) {
+        this.name = name;
+    }
 }
