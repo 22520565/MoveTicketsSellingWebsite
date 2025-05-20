@@ -1,5 +1,6 @@
 package com.movie.main.service;
 
+import com.movie.main.dto.internal.CloudinaryImage;
 import com.movie.main.dto.request.FilmRequestDto;
 import com.movie.main.entity.Film;
 import com.movie.main.entity.Tag;
@@ -15,6 +16,7 @@ import java.util.HashSet;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Slf4j
@@ -27,6 +29,10 @@ public class FilmService {
         ENTITY_NOT_EXISTS, UNSPECIFIED,
     }
 
+    public enum UploadThumbnailError {
+        ENTITY_NOT_EXISTS, CANNOT_DELETE_OLD, CANNOT_UPLOAD_NEW, UNSPECIFIED,
+    }
+
     public enum MarkDeletedStatusResult {
         SUCCESS, ENTITY_NOT_EXISTS_ERROR, UNSPECIFIED_ERROR,
     }
@@ -37,9 +43,14 @@ public class FilmService {
     @NotNull
     private final TagService tagService;
 
-    protected FilmService(@NotNull final FilmRepository repository, @NotNull final TagService tagService) {
+    @NotNull
+    private final CloudinaryService cloudinaryService;
+
+    protected FilmService(@NotNull final FilmRepository repository, @NotNull final TagService tagService,
+            @NotNull final CloudinaryService cloudinaryService) {
         this.repository = repository;
         this.tagService = tagService;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @NotNull
@@ -93,9 +104,9 @@ public class FilmService {
             tags.add(tag);
         }
 
-        final var newFilm = new Film(requestDto.name(), requestDto.thumbnailUrl(), requestDto.trailerUrl(), tags,
-                requestDto.duration(), requestDto.ageRestriction(), requestDto.voice(), requestDto.originatedCountry(),
-                requestDto.is3D(), requestDto.description(), requestDto.content(), requestDto.beginDate());
+        final var newFilm = new Film(requestDto.name(), requestDto.trailerUrl(), tags, requestDto.duration(),
+                requestDto.ageRestriction(), requestDto.voice(), requestDto.originatedCountry(), requestDto.is3D(),
+                requestDto.description(), requestDto.content(), requestDto.beginDate());
 
         try {
             return Expected.success(this.repository.save(newFilm));
@@ -127,7 +138,6 @@ public class FilmService {
         }
 
         film.setName(requestDto.name());
-        film.setThumbnailUrl(requestDto.thumbnailUrl());
         film.setTrailerUrl(requestDto.trailerUrl());
         film.setTags(tags);
         film.setDuration(requestDto.duration());
@@ -146,6 +156,38 @@ public class FilmService {
             log.error(exception.getMessage());
             return Expected.failure(UpdateError.UNSPECIFIED);
         }
+    }
+
+    @Nullable
+    public Expected<CloudinaryImage, UploadThumbnailError> uploadThumbnail(final int id, @NotNull MultipartFile file) {
+        final var film = this.findByIdAndDeletedFalse(id);
+        if (film == null) {
+            return Expected.failure(UploadThumbnailError.ENTITY_NOT_EXISTS);
+        }
+
+        final var oldThumbnailPublicId = film.getThumbnailPublicId();
+        if ((oldThumbnailPublicId != null) && (!this.cloudinaryService.deleteImage(oldThumbnailPublicId))) {
+            return Expected.failure(UploadThumbnailError.CANNOT_DELETE_OLD);
+        }
+
+        final var img = this.cloudinaryService.uploadImage(file);
+        if (img == null) {
+            return Expected.failure(UploadThumbnailError.CANNOT_UPLOAD_NEW);
+        }
+
+        film.setThumbnailUrl(img.url());
+        film.setThumbnailPublicId(img.publicId());
+
+        try {
+            this.repository.save(film);
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            this.cloudinaryService.deleteImage(img.publicId());
+            return Expected.failure(UploadThumbnailError.UNSPECIFIED);
+        }
+
+        return Expected.success(img);
     }
 
     @NotNull

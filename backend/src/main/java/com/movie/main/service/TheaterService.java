@@ -36,6 +36,12 @@ public class TheaterService {
         return this.repository.findAll(pageRequest);
     }
 
+    @NotNull
+    public Page<@NotNull Theater> findAllByFilmIdAndDeletedFalseOrderByShowDateTimeFromNow(final int filmId,
+            @NotNull final PageRequest pageRequest) {
+        return this.repository.findAllByFilmIdAndDeletedFalseOrderByShowDateTimeFromNow(filmId, pageRequest);
+    }
+
     @Nullable
     public Theater findById(final int id) {
         return this.repository.findById(id).orElse(null);

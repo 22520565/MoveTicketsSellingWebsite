@@ -9,6 +9,7 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -19,11 +20,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.movie.main.auth.RequirePermission;
 import com.movie.main.config.OpenApiConfig;
+import com.movie.main.dto.internal.CloudinaryImage;
 import com.movie.main.dto.request.FilmRequestDto;
 import com.movie.main.dto.response.FilmResponseDto;
+import com.movie.main.dto.response.FilmThumbnailUrlResponseDto;
 import com.movie.main.entity.Employee.Permission;
 import com.movie.main.entity.Film;
 import com.movie.main.service.FilmService;
@@ -149,6 +153,23 @@ public class FilmController {
         return switch (result.getError()) {
         case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
         case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+        default -> ResponseEntity.internalServerError().build();
+        };
+    }
+
+    @PatchMapping(value = "{id}/thumbnail", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<FilmThumbnailUrlResponseDto> uploadThumbnail(@PathVariable final int id,
+            @RequestParam MultipartFile file) {
+        final var result = this.service.uploadThumbnail(id, file);
+        final var img = result.getValue();
+
+        if (img != null) {
+            return ResponseEntity.ok(new FilmThumbnailUrlResponseDto(img.url()));
+        }
+
+        return switch (result.getError()) {
+        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+        case CANNOT_DELETE_OLD, CANNOT_UPLOAD_NEW, UNSPECIFIED -> ResponseEntity.internalServerError().build();
         default -> ResponseEntity.internalServerError().build();
         };
     }

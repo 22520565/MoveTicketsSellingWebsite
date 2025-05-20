@@ -53,6 +53,19 @@ public class TheaterController {
         return ResponseEntity.ok(assembler.toModel(result));
     }
 
+    @GetMapping("by-film/{theaterId}")
+    @PermitAll
+    public ResponseEntity<PagedModel<EntityModel<TheaterResponseDto>>> findAllByFilmIdAndDeletedFalseOrderByShowDateTimeFromNow(
+            @PathVariable final int theaterId,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
+            final PagedResourcesAssembler<TheaterResponseDto> assembler) {
+        final var result = this.service
+                .findAllByFilmIdAndDeletedFalseOrderByShowDateTimeFromNow(theaterId, PageRequest.of(page, size))
+                .map(TheaterController::getResponseDtoFrom);
+        return ResponseEntity.ok(assembler.toModel(result));
+    }
+
     @GetMapping("{id}")
     @PermitAll
     public ResponseEntity<TheaterResponseDto> findById(@PathVariable final int id) {

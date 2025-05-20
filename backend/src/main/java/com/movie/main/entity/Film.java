@@ -32,6 +32,8 @@ public class Film {
     public static final int MinLengthName = 1;
     public static final int MaxLengthName = 100;
     public static final int MaxAmountTags = 5;
+    public static final int MaxLengthThumbnailUrl = 512;
+    public static final int MaxLengthThumbnailPublicId = 256;
     public static final int MinLengthDescription = 1;
     public static final int MaxLengthDescription = 1000;
     public static final int MinLengthContent = 1;
@@ -48,9 +50,11 @@ public class Film {
     @Size(min = MinLengthName, max = MaxLengthName)
     private String name = "";
 
-    @Column(nullable = false, unique = true)
-    @NotBlank
-    private String thumbnailUrl = "";
+    @Column(length = MaxLengthThumbnailUrl)
+    private String thumbnailUrl = null;
+
+    @Column(length = MaxLengthThumbnailPublicId)
+    private String thumbnailPublicId = null;
 
     @Column(nullable = false, unique = true)
     @NotBlank
@@ -99,11 +103,10 @@ public class Film {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public Film(final String name, final String thumbnailUrl, final String trailerUrl, final Set<@NotNull Tag> tags,
-            final int duration, final String ageRestriction, final String voice, final String originatedCountry,
-            final boolean is3D, final String description, final String content, final LocalDate beginDate) {
+    public Film(final String name, final String trailerUrl, final Set<@NotNull Tag> tags, final int duration,
+            final String ageRestriction, final String voice, final String originatedCountry, final boolean is3D,
+            final String description, final String content, final LocalDate beginDate) {
         this.name = name;
-        this.thumbnailUrl = thumbnailUrl;
         this.trailerUrl = trailerUrl;
         this.tags = new HashSet<>(tags);
         this.duration = duration;
