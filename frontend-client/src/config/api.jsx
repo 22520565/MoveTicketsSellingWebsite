@@ -131,13 +131,29 @@ export const getCinemas = async () => {
 };
 
 export const getShowingFilms = async () => {
-  return await api.get(`film-shows/showing`);
+  return await axios.get(`film-shows/showing`);
 };
 
 export const getUpcommingFilms = async () => {
-  return await api.get(`film-shows/upcoming`);
+  return await axios.get(`film-shows/upcoming`);
 };
 
 export const getAllTags = async () => {
-  return await api.get(`/tags`);
+  return await axios.get(`/tags`);
+};
+
+export const getFilmByTheaterId = async (id) => {
+  return await axios.get(`/films/by-theater/${id}`);
+};
+
+export const getFilmById = async (id) => {
+  return await axios.get(`/films/${id}`);
+};
+
+export const getFilmShowByFilmId = async (id) => {
+  return await axios.get(`/film-shows/by-film/{date}?filmId=${id}`);
+};
+
+export const getAdditionalItem = async () => {
+  return await axios.get(`/additional-items`);
 };

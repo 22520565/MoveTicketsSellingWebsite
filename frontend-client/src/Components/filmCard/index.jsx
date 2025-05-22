@@ -49,7 +49,7 @@ const FilmCard = ({
     const fetchTags = async () => {
       try {
         const response = await getAllTags();
-        console.log(response._embedded.tagResponseDtoList);
+
         setAllTags(response._embedded.tagResponseDtoList);
       } catch {
         throw new Error("There is an error while getting tag");

@@ -42,20 +42,20 @@ const FilmListSection = ({
         >
           {filmList.map((film) => (
             <div
-              key={film._id}
+              key={film.id}
               className="flex-none w-full sm:w-1/2 lg:w-1/4 px-3"
             >
               <FilmCard
-                filmId={film._id}
-                imageUrl={film.thumbnailURL || ""}
+                filmId={film.id}
+                imageUrl={film.thumbnailUrl || ""}
                 name={film.name || "Không có tên"}
                 country={film.originatedCountry || "Không rõ"}
-                type={film.type || "Chưa xác định"}
-                duration={film.filmDuration || 0}
+                type={film.tagIds || "Chưa xác định"}
+                duration={film.duration || 0}
                 ageLimit={film.ageRestriction || "Không rõ"}
                 voice={film.voice || "Không rõ"}
-                trailerURL={film.trailerURL}
-                twoDthreeD={film.twoDthreeD || []}
+                trailerURL={film.trailerUrl}
+                twoDthreeD={film.is3D ? ["2D", "3D"] : ["2D"]}
                 isShowing={true}
               />
             </div>

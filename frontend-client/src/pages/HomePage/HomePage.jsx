@@ -5,8 +5,7 @@ import FilmListSection from "../../Components/homePage/FilmListSection";
 import { getShowingFilms, getUpcommingFilms } from "../../config/api";
 import eventBus from "../../utils/eventBus"; // Import event bus
 import { LogIn } from "lucide-react";
-import CinemaScheduleList from "../../../../frontend-admin/src/components/CinemaList";
-
+import CinemaScheduleList from "../../Components/CinemaList";
 const HomePage = () => {
   const [filmShowing, setFilmShowing] = useState([]);
   const [upcomingFilm, setUpcomingFilm] = useState([]);
@@ -19,8 +18,8 @@ const HomePage = () => {
       try {
         const response = await getShowingFilms();
 
-        if (response && response.data) {
-          setFilmShowing(response.data._embedded.filmResponseDtoList);
+        if (response) {
+          setFilmShowing(response._embedded.filmResponseDtoList);
         }
       } catch {
         throw new Error("Có lỗi xảy ra khi lấy danh sách phim đang chiếu");
@@ -30,8 +29,8 @@ const HomePage = () => {
     const fetchFilmUpcoming = async () => {
       try {
         const response = await getUpcommingFilms();
-        if (response && response.data) {
-          setUpcomingFilm(response.data._embedded.filmResponseDtoList);
+        if (response) {
+          setUpcomingFilm(response._embedded.filmResponseDtoList);
         }
       } catch {
         throw new Error("Có lỗi xảy ra khi lấy danh sách phim sắp chiếu");

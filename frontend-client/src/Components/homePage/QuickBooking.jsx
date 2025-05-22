@@ -4,12 +4,14 @@ import {
   getShowingFilms,
   getShowTimeOfDateByFilmId,
   getCinemas,
+  getFilmByTheaterId,
 } from "../../config/api";
 import { useNavigate } from "react-router-dom";
 import {
   getDayAndMonthFromISOString,
   getDayOfWeekFromISOString,
 } from "../../utils/utils";
+import Spinner from "./Spinner";
 
 const QuickBooking = () => {
   const navigate = useNavigate();
@@ -28,6 +30,17 @@ const QuickBooking = () => {
   const [availableMovies, setAvailableMovies] = useState([]);
   const [availableDates, setAvailableDates] = useState([]);
   const [availableShowtimes, setAvailableShowtimes] = useState([]);
+
+  const [isLoadingMovies, setIsLoadingMovies] = useState(false);
+  const [isLoadingDates, setIsLoadingDates] = useState(false);
+  const [isLoadingShowtimes, setIsLoadingShowtimes] = useState(false);
+
+  const closeAllDropdowns = () => {
+    setIsCinemaDropdownOpen(false);
+    setIsMovieDropdownOpen(false);
+    setIsDateDropdownOpen(false);
+    setIsShowtimeDropdownOpen(false);
+  };
 
   const dropdownRefs = {
     cinema: useRef(null),
@@ -69,11 +82,8 @@ const QuickBooking = () => {
     const fetchCinemas = async () => {
       try {
         const response = await getCinemas();
-        console.log(response._embedded.theaterResponseDtoList);
 
         if (response && response._embedded.theaterResponseDtoList) {
-          console.log(1);
-
           const cinemaMap = response._embedded.theaterResponseDtoList.map(
             (cinema) => ({
               id: cinema.id,
@@ -90,8 +100,31 @@ const QuickBooking = () => {
   }, []);
 
   useEffect(() => {
-    console.log(cinemas);
-  }, [cinemas]);
+    const fetchMovie = async () => {
+      try {
+        setIsLoadingMovies(true);
+        const response = await getFilmByTheaterId(selectedCinema.id);
+        console.log(response);
+
+        const films = response?._embedded?.filmResponseDtoList;
+
+        if (Array.isArray(films) && films.length > 0) {
+          const filmMap = films.map((film) => ({
+            id: film.id,
+            name: film.name,
+          }));
+          setAvailableMovies(filmMap);
+        } else {
+          setAvailableMovies([]);
+        }
+      } catch {
+        throw new Error("There is an error while getting film detail");
+      }
+    };
+    if (selectedCinema?.id) {
+      fetchMovie();
+    }
+  }, [selectedCinema]);
 
   // useEffect(() => {
   //   const fetchFilmShowing = async () => {
@@ -129,39 +162,44 @@ const QuickBooking = () => {
   // }, [selectedDate]);
 
   const handleScroll = (dropdownName) => {
-    if (
-      dropdownRefs[dropdownName].current &&
-      buttonRefs[dropdownName].current
-    ) {
-      const buttonRect =
-        buttonRefs[dropdownName].current.getBoundingClientRect();
-      const dropdownRect =
-        dropdownRefs[dropdownName].current.getBoundingClientRect();
+    const dropdown = dropdownRefs[dropdownName].current;
+    const button = buttonRefs[dropdownName].current;
 
-      // Kiểm tra nếu không còn đủ không gian dưới và tự động chuyển dropdown lên trên
-      if (window.innerHeight - buttonRect.bottom < dropdownRect.height) {
-        dropdownRefs[dropdownName].current.style.top = "auto";
-        dropdownRefs[dropdownName].current.style.bottom = "100%"; // Đưa lên trên khi không đủ không gian dưới
+    if (dropdown && button) {
+      const buttonRect = button.getBoundingClientRect();
+      const dropdownHeight = dropdown.offsetHeight;
+
+      dropdown.style.position = "absolute"; // đảm bảo position tồn tại
+
+      if (window.innerHeight - buttonRect.bottom < dropdownHeight + 20) {
+        dropdown.style.top = "auto";
+        dropdown.style.bottom = "100%";
       } else {
-        dropdownRefs[dropdownName].current.style.top = "100%"; // Đưa xuống dưới nếu đủ không gian
-        dropdownRefs[dropdownName].current.style.bottom = "auto";
+        dropdown.style.top = "100%";
+        dropdown.style.bottom = "auto";
       }
     }
   };
 
   useEffect(() => {
-    if (isCinemaDropdownOpen) {
-      handleScroll("cinema"); // Kiểm tra vị trí dropdown khi nó mở
-    }
-    if (isMovieDropdownOpen) {
-      handleScroll("movie");
-    }
-    if (isDateDropdownOpen) {
-      handleScroll("date");
-    }
-    if (isShowtimeDropdownOpen) {
-      handleScroll("showtime");
-    }
+    const handleWindowScroll = () => {
+      if (isCinemaDropdownOpen) handleScroll("cinema");
+      if (isMovieDropdownOpen) handleScroll("movie");
+      if (isDateDropdownOpen) handleScroll("date");
+      if (isShowtimeDropdownOpen) handleScroll("showtime");
+    };
+
+    // ✅ Gọi lại vị trí dropdown ngay khi mở
+    requestAnimationFrame(handleWindowScroll);
+
+    // ✅ Lắng nghe scroll/resize để reposition
+    window.addEventListener("scroll", handleWindowScroll);
+    window.addEventListener("resize", handleWindowScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleWindowScroll);
+      window.removeEventListener("resize", handleWindowScroll);
+    };
   }, [
     isCinemaDropdownOpen,
     isMovieDropdownOpen,
@@ -169,16 +207,30 @@ const QuickBooking = () => {
     isShowtimeDropdownOpen,
   ]);
 
+  //phim
   const handleMovieClick = () => {
     if (!selectedCinema) return;
     setIsMovieDropdownOpen(!isMovieDropdownOpen);
   };
+  useEffect(() => {
+    if (selectedCinema) {
+      setIsMovieDropdownOpen(!isMovieDropdownOpen);
+    }
+  }, [selectedCinema]);
 
+  //date
   const handleDateClick = () => {
     if (!selectedMovie) return;
     setIsDateDropdownOpen(!isDateDropdownOpen);
   };
 
+  useEffect(() => {
+    if (selectedMovie) {
+      setIsDateDropdownOpen(!isDateDropdownOpen);
+    }
+  }, [selectedMovie]);
+
+  //gio
   const handleShowtimeClick = () => {
     if (!selectedDate) return;
     setIsShowtimeDropdownOpen(!isShowtimeDropdownOpen);
@@ -193,54 +245,77 @@ const QuickBooking = () => {
     });
   };
 
+  console.log(selectedCinema);
+  console.log(availableMovies);
+
   return (
     <div className="bg-white rounded-lg shadow-lg p-4 flex items-center gap-3">
       <div className="font-bold text-2xl text-gray-800 whitespace-nowrap">
         ĐẶT VÉ NHANH
       </div>
 
+      {/* Dropdown Cinema */}
       <div className="relative flex-1">
         <button
           ref={buttonRefs.cinema}
-          className={`w-full px-4 py-3 rounded-lg text-left flex items-center justify-between bg-white border-2 border-purple-600 hover:bg-gray-50`}
-          onClick={() => setIsCinemaDropdownOpen(!isCinemaDropdownOpen)}
+          className="w-full px-4 py-3 rounded-lg text-left flex items-center justify-between bg-white border-2 border-purple-600 hover:bg-gray-50"
+          onClick={() => {
+            closeAllDropdowns();
+            setIsCinemaDropdownOpen(!isCinemaDropdownOpen);
+          }}
         >
-          <span className={"text-purple-600 text-xl"}>
+          <span className="text-purple-600 text-xl">
             {selectedCinema?.name || "1. Chọn Rạp"}
           </span>
-          <ChevronDown className={`w-5 h-5 text-purple-600`} />
+          <ChevronDown className="w-5 h-5 text-purple-600" />
         </button>
-        {isCinemaDropdownOpen && (
-          <div
-            ref={dropdownRefs.cinema}
-            className="absolute w-full max-h-[320px] mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 text-xl overflow-y-auto"
-          >
-            {cinemas.map((cinema) => (
-              <div
-                key={cinema.id}
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-black"
-                onClick={() => {
-                  setSelectedCinema(cinema);
-                  setIsCinemaDropdownOpen(false);
-                }}
-              >
-                {cinema.name}
-              </div>
-            ))}
-          </div>
-        )}
+        <div
+          ref={dropdownRefs.cinema}
+          style={{ top: "auto", bottom: "auto" }}
+          className={`absolute w-full max-h-[320px] overflow-hidden transition-all duration-300 ease-out bg-white border border-gray-200 rounded-lg shadow-lg z-10 text-xl overflow-y-auto
+            ${
+              isCinemaDropdownOpen
+                ? "max-h-[320px] opacity-100 translate-y-0"
+                : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
+            }`}
+        >
+          {cinemas.map((cinema) => (
+            <div
+              key={cinema.id}
+              className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-black"
+              onClick={() => {
+                const isSame = selectedCinema?.id === cinema.id;
+                setIsCinemaDropdownOpen(!isCinemaDropdownOpen);
+
+                if (isSame) return;
+
+                setSelectedCinema(cinema);
+                setSelectedMovie(null);
+                setSelectedDate("");
+                setSelectedShowtime("");
+                setIsCinemaDropdownOpen(false);
+              }}
+            >
+              {cinema.name}
+            </div>
+          ))}
+        </div>
       </div>
 
+      {/* Dropdown Movie */}
       <div className="relative flex-1">
         <button
           ref={buttonRefs.movie}
           className={`w-full px-4 py-3 rounded-lg text-left flex items-center justify-between ${
-            selectedMovie
+            selectedCinema
               ? "bg-white border-2 border-purple-600 hover:bg-gray-50"
               : "bg-gray-100 border-2 border-gray-300 cursor-not-allowed"
           }`}
           disabled={!selectedCinema}
-          onClick={handleMovieClick}
+          onClick={() => {
+            closeAllDropdowns();
+            handleMovieClick();
+          }}
         >
           <span
             className={
@@ -249,7 +324,15 @@ const QuickBooking = () => {
                 : "text-gray-500 text-xl"
             }
           >
-            {selectedMovie?.name || "2. Chọn Phim"}
+            {isLoadingDates ? (
+              <div className="flex items-center gap-2">
+                <Spinner size={18} /> Đang tải...
+              </div>
+            ) : selectedMovie ? (
+              selectedMovie.name
+            ) : (
+              "2. Chọn Phim"
+            )}
           </span>
           <ChevronDown
             className={`w-5 h-5 ${
@@ -257,27 +340,42 @@ const QuickBooking = () => {
             }`}
           />
         </button>
-        {isMovieDropdownOpen && (
-          <div
-            ref={dropdownRefs.movie}
-            className="absolute w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 text-xl"
-          >
-            {availableMovies.map((movie) => (
-              <div
-                key={movie.id}
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-black"
-                onClick={() => {
-                  setSelectedMovie(movie);
-                  setIsMovieDropdownOpen(false);
-                }}
-              >
-                {movie.name}
-              </div>
-            ))}
-          </div>
-        )}
+        <div
+          ref={dropdownRefs.movie}
+          style={{ top: "auto", bottom: "auto" }}
+          className={`absolute w-full transition-all duration-300 ease-out bg-white border border-gray-200 rounded-lg shadow-lg z-10 text-xl overflow-hidden max-h-[400px] overflow-y-auto
+            ${
+              isMovieDropdownOpen
+                ? "max-h-[400px] opacity-100 translate-y-0"
+                : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
+            }`}
+        >
+          {availableMovies.length === 0 && (
+            <div className="p-4 text-gray-500">Không có phim nào khả dụng</div>
+          )}
+          {availableMovies.map((movie) => (
+            <div
+              key={movie.id}
+              className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-black"
+              onClick={() => {
+                const isSame = selectedMovie?.id === movie.id;
+                setIsMovieDropdownOpen(!isMovieDropdownOpen);
+
+                if (isSame) return;
+
+                setSelectedMovie(movie);
+                setSelectedDate("");
+                setSelectedShowtime("");
+                setIsMovieDropdownOpen(!isMovieDropdownOpen);
+              }}
+            >
+              {movie.name}
+            </div>
+          ))}
+        </div>
       </div>
 
+      {/* Dropdown Date */}
       <div className="relative flex-1">
         <button
           ref={buttonRefs.date}
@@ -286,7 +384,10 @@ const QuickBooking = () => {
               ? "bg-white border-2 border-purple-600 hover:bg-gray-50"
               : "bg-gray-100 border-2 border-gray-300 cursor-not-allowed"
           }`}
-          onClick={handleDateClick}
+          onClick={() => {
+            closeAllDropdowns();
+            handleDateClick();
+          }}
           disabled={!selectedMovie}
         >
           <span
@@ -308,29 +409,40 @@ const QuickBooking = () => {
             }`}
           />
         </button>
-        {isDateDropdownOpen && (
-          <div
-            ref={dropdownRefs.date}
-            className="absolute w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10"
-          >
-            {availableDates.map((dateItem, index) => (
-              <div
-                key={index}
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-black text-xl"
-                onClick={() => {
-                  setSelectedDate(dateItem.date);
-                  setIsDateDropdownOpen(false);
-                }}
-              >
-                {getDayOfWeekFromISOString(dateItem.date) +
-                  "," +
-                  getDayAndMonthFromISOString(dateItem.date)}
-              </div>
-            ))}
-          </div>
-        )}
+        <div
+          ref={dropdownRefs.date}
+          style={{ top: "auto", bottom: "auto" }}
+          className={`absolute w-full transition-all duration-300 ease-out bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden max-h-[400px] overflow-y-auto
+            ${
+              isDateDropdownOpen
+                ? "max-h-[400px] opacity-100 translate-y-0"
+                : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
+            }`}
+        >
+          {availableDates.length === 0 && (
+            <div className="p-4 text-gray-500 text-xl">
+              Không có ngày chiếu khả dụng
+            </div>
+          )}
+          {availableDates.map((dateItem, index) => (
+            <div
+              key={index}
+              className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-black text-xl"
+              onClick={() => {
+                setSelectedDate(dateItem.date);
+                setSelectedShowtime("");
+                setIsDateDropdownOpen(false);
+              }}
+            >
+              {getDayOfWeekFromISOString(dateItem.date) +
+                "," +
+                getDayAndMonthFromISOString(dateItem.date)}
+            </div>
+          ))}
+        </div>
       </div>
 
+      {/* Dropdown Showtime */}
       <div className="relative flex-1">
         <button
           ref={buttonRefs.showtime}
@@ -339,7 +451,10 @@ const QuickBooking = () => {
               ? "bg-white border-2 border-purple-600 hover:bg-gray-50"
               : "bg-gray-100 border-2 border-gray-300 cursor-not-allowed"
           }`}
-          onClick={handleShowtimeClick}
+          onClick={() => {
+            closeAllDropdowns();
+            handleShowtimeClick();
+          }}
           disabled={!selectedDate}
         >
           <span
@@ -355,36 +470,44 @@ const QuickBooking = () => {
             }`}
           />
         </button>
-        {isShowtimeDropdownOpen && (
-          <div
-            ref={dropdownRefs.showtime}
-            className="absolute w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10"
-          >
-            {availableShowtimes.map((timeItem) => (
-              <div
-                key={timeItem.id}
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-black text-xl"
-                onClick={() => {
-                  setSelectedShowtime(timeItem.time);
-                  setIsShowtimeDropdownOpen(false);
-                }}
-              >
-                {timeItem.time}
-              </div>
-            ))}
-          </div>
-        )}
+        <div
+          ref={dropdownRefs.showtime}
+          style={{ top: "auto", bottom: "auto" }}
+          className={`absolute w-full transition-all duration-300 ease-out bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden max-h-[400px] overflow-y-auto
+            ${
+              isShowtimeDropdownOpen
+                ? "max-h-[400px] opacity-100 translate-y-0"
+                : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
+            }`}
+        >
+          {availableShowtimes.length === 0 && (
+            <div className="p-4 text-gray-500">
+              Không có suất chiếu khả dụng
+            </div>
+          )}
+          {availableShowtimes.map((timeItem) => (
+            <div
+              key={timeItem.id}
+              className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-black text-xl"
+              onClick={() => {
+                setSelectedShowtime(timeItem.time);
+                setIsShowtimeDropdownOpen(false);
+              }}
+            >
+              {timeItem.time}
+            </div>
+          ))}
+        </div>
       </div>
 
+      {/* Book Now Button */}
       <button
         className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition-colors text-xl ${
           selectedShowtime
             ? "bg-purple-700 hover:bg-purple-800 text-white"
             : "bg-gray-300 text-gray-500 cursor-not-allowed"
         }`}
-        onClick={() => {
-          handleNavigate();
-        }}
+        onClick={handleNavigate}
         disabled={!selectedShowtime}
       >
         ĐẶT NGAY

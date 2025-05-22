@@ -35,6 +35,13 @@ import { createPayment } from "../../config/api"; // Đảm bảo createPayment 
 import PromotionList from "../../Components/PromotionList"; // Import PromotionList
 import { FaArrowLeft } from "react-icons/fa"; // Import biểu tượng mũi tên
 import { ModalWhenBuyTicket } from "../../Components/Modal/ModalWhenBuyTicket";
+import {
+  getFilmById,
+  getFilmShowByFilmId,
+  getAdditionalItem,
+  getAllTags,
+} from "../../config/api";
+import { FileImage } from "lucide-react";
 
 const seatWidth = 50;
 const seatHeight = 40;
@@ -53,6 +60,8 @@ const FilmDetailPage = () => {
   const [selectedPromotions, setSelectedPromotions] = useState([]);
   const [totalDiscount, setTotalDiscount] = useState(0);
 
+  const [allTags, setAllTags] = useState([]);
+
   useEffect(() => {
     setSelectedFilmShowID(null);
   }, [selectedDate]);
@@ -65,10 +74,10 @@ const FilmDetailPage = () => {
 
   const handleGetDateAndShowTime = async (filmID) => {
     try {
-      const response = await getShowTimeOfDateByFilmId(filmID);
+      const response = await getFilmShowByFilmId(filmID);
       console.log("🚀 ~ handleGetDateAndShowTime ~ response:", response);
-      if (response?.success && response.data) {
-        setAvailableDates(response.data);
+      if (response) {
+        setAvailableDates(response._embedded.filmShowResponseDtoList);
         setAvailableShowtimesWithFilmType([]);
       }
     } catch (error) {
@@ -111,11 +120,9 @@ const FilmDetailPage = () => {
   useEffect(() => {
     const fetchFilmDetail = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:8000/api/films/${filmID}/getFilmDetail`
-        );
-        if (response && response.data) {
-          setFilmDetail(response.data.data);
+        const response = await getFilmById(filmID);
+        if (response) {
+          setFilmDetail(response);
           setIsPopupOpen(true);
         }
       } catch (error) {
@@ -134,6 +141,20 @@ const FilmDetailPage = () => {
   useEffect(() => {
     document.title = filmDetail?.name || "Loading...";
   }, [filmDetail]);
+
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const response = await getAllTags();
+        if (response) {
+          setAllTags(response._embedded.tagResponseDtoList);
+        }
+      } catch (error) {
+        console.error("Error fetching tags: ", error);
+      }
+    };
+    fetchTags();
+  }, []);
 
   // Mapping ageLimit to appropriate category
   const getAgeCategory = (ageLimit) => {
@@ -184,18 +205,18 @@ const FilmDetailPage = () => {
   //FETCH
   useEffect(() => {
     try {
-      const fetchTicketType = async () => {
-        const response = await axios.get(
-          "http://localhost:8000/api/param/ticket-type"
-        );
-        setTicketSelection(
-          response.data.data.map((ticketType) => ({
-            ...ticketType,
-            quantity: 0,
-          }))
-        );
-      };
-      fetchTicketType();
+      // const fetchTicketType = async () => {
+      //   const response = await axios.get(
+      //     "http://localhost:8000/api/param/ticket-type"
+      //   );
+      //   setTicketSelection(
+      //     response.data.data.map((ticketType) => ({
+      //       ...ticketType,
+      //       quantity: 0,
+      //     }))
+      //   );
+      // };
+      // fetchTicketType();
     } catch (error) {
       if (error.response) {
         alert(
@@ -210,18 +231,18 @@ const FilmDetailPage = () => {
   }, []);
   useEffect(() => {
     try {
-      const fetchAdditionalItem = async () => {
-        const response = await axios.get(
-          "http://localhost:8000/api/additional-items"
-        );
-        setAdditionalItemSelections(
-          response.data.data.map((additional) => ({
-            ...additional,
-            quantity: 0,
-          }))
-        );
-      };
-      fetchAdditionalItem();
+      // const fetchAdditionalItem = async () => {
+      //   const response = await getAdditionalItem();
+      //   setAdditionalItemSelections(
+      //     response._embedded.additionalItemResponseDtoList.map(
+      //       (additional) => ({
+      //         ...additional,
+      //         quantity: 0,
+      //       })
+      //     )
+      //   );
+      // };
+      // fetchAdditionalItem();
     } catch (error) {
       if (error.response) {
         alert(
@@ -433,6 +454,14 @@ const FilmDetailPage = () => {
   if (!filmDetail) {
     return <div>Loading...</div>;
   }
+
+  const getTagById = (id, allTags) => {
+    const tag = allTags.find((tag) => tag.id === id);
+    return tag ? tag.name : "Không rõ";
+  };
+
+  console.log(filmDetail);
+
   return (
     <div className="p-6 space-y-12 md:space-y-40">
       {isPopupOpen && (
@@ -444,7 +473,7 @@ const FilmDetailPage = () => {
           <div className="relative border border-gray-300 rounded-lg ">
             {/* Hình ảnh phim */}
             <img
-              src={filmDetail.thumbnailURL}
+              src={filmDetail.thumbnailUrl}
               alt="Film Thumbnail"
               className="w-full h-full object-cover rounded-lg "
             />
@@ -453,16 +482,14 @@ const FilmDetailPage = () => {
               <div className="absolute top-0 left-0 flex items-center">
                 <div className="flex items-center">
                   {/* Nhãn 2D */}
-                  {filmDetail.twoDthreeD.includes("2D") && (
-                    <div className="flex bg-[#FF9933] w-[33px] h-[35px] lg:w-[71px] lg:h-[78px] justify-center items-center shadow-md">
-                      <span className="border-2 border-black p-0.5 text-xs rounded-md font-interBold text-black">
-                        2D
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex bg-[#FF9933] w-[33px] h-[35px] lg:w-[71px] lg:h-[78px] justify-center items-center shadow-md">
+                    <span className="border-2 border-black p-0.5 text-xs rounded-md font-interBold text-black">
+                      2D
+                    </span>
+                  </div>
 
-                  {/* Conditionally render 3D */}
-                  {filmDetail.twoDthreeD.includes("3D") && (
+                  {/* Chỉ hiển thị 3D nếu is3D === true */}
+                  {filmDetail.is3D && (
                     <div className="flex bg-[#663399] w-[33px] h-[35px] lg:w-[71px] lg:h-[78px] justify-center items-center shadow-md">
                       <span className="border-2 border-white p-0.5 text-xs rounded-md font-interBold text-white">
                         3D
@@ -492,11 +519,14 @@ const FilmDetailPage = () => {
           <div className="flex flex-col items-start justify-start space-y-4 text-left w-full mt-4 film-info">
             <p className="flex items-center mt-2">
               <FaTag className="icon-style" />
-              Thể loại: {filmDetail.tagsRef.map((tag) => tag.name).join(", ")}
+              Thể loại:{" "}
+              {filmDetail.tagIds
+                .map((id) => getTagById(id, allTags))
+                .join(", ")}
             </p>
             <p className="flex items-center mt-2">
               <FaRegClock className="icon-style" />
-              {`${filmDetail.filmDuration} phút`}
+              {`${filmDetail.duration} phút`}
             </p>
             <p className="flex items-center mt-2">
               <FaGlobeAmericas className="icon-style" />
@@ -508,7 +538,7 @@ const FilmDetailPage = () => {
             </p>
             <p className="flex items-center mt-2">
               <LuUserRoundCheck className="icon-style" />{" "}
-              <span className="bg-mainColor text-black">
+              <span className="bg-mainColor text-white">
                 {filmDetail.ageRestriction}:{" "}
                 {getAgeDescription(filmDetail.ageRestriction)}
               </span>
@@ -517,8 +547,8 @@ const FilmDetailPage = () => {
           <div>
             <FilmInfoSection
               className="hidden md:block"
-              filmContent={filmDetail.filmContent}
-              filmDescription={filmDetail.filmDescription}
+              filmContent={filmDetail.content}
+              filmDescription={filmDetail.description}
             />
           </div>
           <button
@@ -535,14 +565,14 @@ const FilmDetailPage = () => {
         <TrailerModal
           videoOpen={videoOpen}
           setVideoOpen={setVideoOpen}
-          videoUrl={filmDetail.trailerURL}
+          videoUrl={filmDetail.trailerUrl}
         />
       </div>
 
       <FilmInfoSection
         className="block md:hidden mt-6"
-        filmContent={filmDetail.filmContent}
-        filmDescription={filmDetail.filmDescription}
+        filmContent={filmDetail.content}
+        filmDescription={filmDetail.description}
       />
       <div>
         <div className="flex flex-col justify-center items-center space-y-12">
