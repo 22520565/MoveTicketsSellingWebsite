@@ -2,7 +2,7 @@ import React from "react";
 import { FiX } from "react-icons/fi";
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
-import { addNewFilm } from "../../config/api";
+import { addNewFilm, updateFilm } from "../../config/api";
 import { getAllTags } from "../../config/api";
 import { debounce } from "lodash";
 import { Combobox, ComboboxOption } from "@headlessui/react";
@@ -13,7 +13,7 @@ import slugify from "slugify";
 import slugifyOption from "../../ulitilities/slugifyOption";
 import RefreshLoader from "../Loading";
 
-const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
+const FilmModal = ({ isOpen, onClose, film, mode }) => {
   if (!isOpen) return null;
   const isEditMode = mode === "edit";
   const title = isEditMode ? "Cập nhật nội dung phim" : "Thêm mới phim";
@@ -86,10 +86,10 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
 
   useEffect(() => {
     //console.log("SelectedTag" + selectedTags);
-    // const tagIds = selectedTags.map((tag) => tag.id);
+    const tagIds = selectedTags.map((tag) => tag.id);
     setFormData((prevData) => ({
       ...prevData,
-      tags: selectedTags,
+      tags: tagIds,
     }));
   }, [selectedTags]);
 
@@ -97,7 +97,7 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
     const tagsToSet = [];
 
     tagIDs.forEach((tagID) => {
-      const tagExists = filmTags.find((filmTag) => filmTag.id === tagID.id);
+      const tagExists = filmTags.find((filmTag) => filmTag.id === tagID); //  so sánh trực tiếp với số
 
       if (tagExists && !tagsToSet.some((tag) => tag.id === tagExists.id)) {
         tagsToSet.push(tagExists);
@@ -105,10 +105,6 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
     });
 
     setSelectedTags(tagsToSet);
-
-    // console.log("TAGGGG");
-    // console.log(tagIDs);
-    // console.log(tagsToSet); // ✅ sẽ thấy mảng đúng ở đây
   };
 
   const initAgeChoice = (ageSymbol) => {
@@ -132,7 +128,7 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
     thumbnailURL: film?.thumbnailUrl,
     thumbnailFile: null,
 
-    tags: film?.tags || [],
+    tags: film?.tagIds || [],
     filmDuration: film?.duration || "",
     ageRestriction: film?.ageRestriction || "",
     voice: film?.voice || "",
@@ -145,12 +141,14 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
   });
 
   useEffect(() => {
-    if (!isEditMode || !filmTags.length || !film?.tags?.length) return;
-    console.log("film.tags:", film.tags);
-    console.log("filmTags:", filmTags);
+    if (!isEditMode) return;
     initAgeChoice(film.ageRestriction);
-    initTagChoices(film.tags);
-  }, [film, filmTags, ageResData]);
+  }, [film, ageResData]);
+
+  useEffect(() => {
+    if (!isEditMode || !filmTags.length || !film?.tagIds?.length) return;
+    initTagChoices(film.tagIds);
+  }, [filmTags]);
 
   const isFormValid = useMemo(() => {
     const requiredFields = [
@@ -192,14 +190,12 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
     setIsLoading(true);
     try {
       //console.log(`data nè heheh:${data.otherDescription} `);
-      const trimmedDescription = formData.filmDescription?.trim() || "";
-      console.log("Độ dài description:", trimmedDescription.length);
 
       const payload = {
         name: formData.name,
         trailerUrl: formData.trailerURL,
         thumbnailUrl: formData.thumbnailURL || "",
-        tags: formData.tags, // [{ id, name }]
+        tagIds: formData.tags, // [{ id, name }]
         duration: Number(formData.filmDuration),
         ageRestriction: formData.ageRestriction,
         voice: formData.voice,
@@ -213,10 +209,8 @@ const FilmModal = ({ isOpen, onClose, film, onSave, mode }) => {
 
       if (mode === "edit") {
         setIsLoading(true);
-        response = await axios.put(
-          `http://localhost:8000/api/films/${film._id}`,
-          data
-        );
+
+        response = await updateFilm(film.id, payload);
         setDialogData({
           title: "Thành công",
           message: "Cập nhật phim thành công",
