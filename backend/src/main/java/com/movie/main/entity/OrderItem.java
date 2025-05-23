@@ -1,7 +1,5 @@
 package com.movie.main.entity;
 
-import com.jayway.jsonpath.internal.function.numeric.Max;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -29,7 +27,7 @@ public class OrderItem {
     @Setter(value = AccessLevel.PACKAGE)
     private int id = 0;
 
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = MaxLengthName)
     @NotBlank
     @Size(max = MaxLengthName)
     private String name = "";
@@ -41,4 +39,10 @@ public class OrderItem {
     @Column(nullable = false)
     @Min(0)
     private int price = 0;
+
+    public OrderItem(final String name, final int quantity, final int price) {
+        this.name = name;
+        this.quantity = quantity;
+        this.price = price;
+    }
 }

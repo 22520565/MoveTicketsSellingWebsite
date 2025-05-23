@@ -1,18 +1,20 @@
 package com.movie.main.entity;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
@@ -23,7 +25,6 @@ import lombok.experimental.FieldNameConstants;
 @FieldNameConstants
 public class OrderDataItem {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.PACKAGE)
     private int id = 0;
@@ -32,11 +33,32 @@ public class OrderDataItem {
     @ManyToOne(cascade = {
             CascadeType.PERSIST, CascadeType.MERGE
     }, fetch = FetchType.LAZY, optional = false)
+    @Setter(value = AccessLevel.NONE)
     @NotNull
     private CustomerOrder customerOrder = null;
 
-    public OrderDataItem(final CustomerOrder customerOrder) {
+    @ManyToMany(fetch = FetchType.EAGER)
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
+    @NotNull
+    private Set<@NotNull OrderItem> items = new HashSet<>();
+
+    public OrderDataItem(final CustomerOrder customerOrder, final Set<@NotNull OrderItem> items) {
         this.id = this.customerOrder.getId();
         this.customerOrder = customerOrder;
+        this.items = new HashSet<>(items);
+    }
+
+    public void setCustomerOrder(@NotNull final CustomerOrder customerOrder) {
+        this.id = customerOrder.getId();
+        this.customerOrder = customerOrder;
+    }
+
+    public Set<OrderItem> getItems() {
+        return new HashSet<>(items);
+    }
+
+    public void setItems(final Set<OrderItem> items) {
+        this.items = new HashSet<>(items);
     }
 }

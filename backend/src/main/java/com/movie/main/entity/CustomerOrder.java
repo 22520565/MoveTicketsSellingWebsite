@@ -12,7 +12,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,6 +26,8 @@ import lombok.experimental.FieldNameConstants;
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
 public class CustomerOrder {
+    public static final int VerifyCodeLength = 8;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
@@ -33,7 +37,9 @@ public class CustomerOrder {
     @Column(nullable = false)
     private LocalDate date = LocalDate.now();
 
-    @Column(nullable = true)
+    @Column(nullable = false, length = VerifyCodeLength)
+    @Size(min = VerifyCodeLength, max = VerifyCodeLength)
+    @NotBlank
     private String verifyCode = "";
 
     @Column(nullable = false)

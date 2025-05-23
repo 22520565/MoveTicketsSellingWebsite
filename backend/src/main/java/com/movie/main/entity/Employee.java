@@ -2,9 +2,7 @@ package com.movie.main.entity;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.Set;
 
 import jakarta.persistence.Column;

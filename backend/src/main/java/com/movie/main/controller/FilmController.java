@@ -3,7 +3,6 @@ package com.movie.main.controller;
 import java.util.HashSet;
 
 import org.hibernate.validator.constraints.Range;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
@@ -24,7 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.movie.main.auth.RequirePermission;
 import com.movie.main.config.OpenApiConfig;
-import com.movie.main.dto.internal.CloudinaryImage;
 import com.movie.main.dto.request.FilmRequestDto;
 import com.movie.main.dto.response.FilmResponseDto;
 import com.movie.main.dto.response.FilmThumbnailUrlResponseDto;
@@ -152,7 +150,7 @@ public class FilmController {
 
         return switch (result.getError()) {
         case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+        case CANNOT_DELETE_OLD_THUMBNAIL, UNSPECIFIED -> ResponseEntity.internalServerError().build();
         default -> ResponseEntity.internalServerError().build();
         };
     }

@@ -26,7 +26,7 @@ public class FilmService {
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS, CANNOT_DELETE_OLD_THUMBNAIL, UNSPECIFIED,
     }
 
     public enum UploadThumbnailError {
@@ -104,9 +104,9 @@ public class FilmService {
             tags.add(tag);
         }
 
-        final var newFilm = new Film(requestDto.name(), requestDto.trailerUrl(), tags, requestDto.duration(),
-                requestDto.ageRestriction(), requestDto.voice(), requestDto.originatedCountry(), requestDto.is3D(),
-                requestDto.description(), requestDto.content(), requestDto.beginDate());
+        final var newFilm = new Film(requestDto.name(), requestDto.thumbnailUrl(), requestDto.trailerUrl(), tags,
+                requestDto.duration(), requestDto.ageRestriction(), requestDto.voice(), requestDto.originatedCountry(),
+                requestDto.is3D(), requestDto.description(), requestDto.content(), requestDto.beginDate());
 
         try {
             return Expected.success(this.repository.save(newFilm));
@@ -137,6 +137,19 @@ public class FilmService {
             tags.add(tag);
         }
 
+        final var oldThumbnailUrl = film.getThumbnailUrl();
+        final var newThumbnailUrl = requestDto.thumbnailUrl();
+        if ((oldThumbnailUrl != null) && (oldThumbnailUrl.equals(newThumbnailUrl))) {
+            final var oldThumbnailPublicId = film.getThumbnailPublicId();
+
+            if ((oldThumbnailPublicId != null) && (!this.cloudinaryService.deleteImage(oldThumbnailPublicId))) {
+                return Expected.failure(UpdateError.CANNOT_DELETE_OLD_THUMBNAIL);
+            }
+
+            film.setThumbnailUrl(newThumbnailUrl);
+            film.setThumbnailPublicId(null);
+        }
+
         film.setName(requestDto.name());
         film.setTrailerUrl(requestDto.trailerUrl());
         film.setTags(tags);
@@ -158,7 +171,7 @@ public class FilmService {
         }
     }
 
-    @Nullable
+    @NotNull
     public Expected<CloudinaryImage, UploadThumbnailError> uploadThumbnail(final int id, @NotNull MultipartFile file) {
         final var film = this.findByIdAndDeletedFalse(id);
         if (film == null) {

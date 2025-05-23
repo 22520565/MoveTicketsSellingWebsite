@@ -5,24 +5,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.movie.main.auth.JwtTokenProvider;
-import com.movie.main.config.JwtAuthenticationFilter;
 import com.movie.main.dto.request.EmployeeSelfRequestDto;
 import com.movie.main.dto.request.ResetPasswordRequestDto;
 import com.movie.main.dto.response.EmployeeResponseDto;
 import com.movie.main.entity.User;
-import com.movie.main.entity.User.UserRole;
 import com.movie.main.exception.ConflictException;
 import com.movie.main.service.EmployeeService;
 
 import jakarta.annotation.security.PermitAll;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 

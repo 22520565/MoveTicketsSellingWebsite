@@ -33,7 +33,6 @@ import jakarta.validation.constraints.NotNull;
 
 @RestController
 @RequestMapping("api/additional-items")
-
 @RequirePermission(value = Permission.ADMIN)
 @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
 public class AdditionalItemController {

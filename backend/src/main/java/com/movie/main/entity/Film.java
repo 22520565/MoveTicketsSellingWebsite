@@ -1,12 +1,10 @@
 package com.movie.main.entity;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -56,11 +54,9 @@ public class Film {
     @Column(length = MaxLengthThumbnailPublicId)
     private String thumbnailPublicId = null;
 
-    @Column(nullable = false, unique = true)
-    @NotBlank
     private String trailerUrl = "";
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @Size(max = MaxAmountTags)
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
@@ -103,10 +99,11 @@ public class Film {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public Film(final String name, final String trailerUrl, final Set<@NotNull Tag> tags, final int duration,
-            final String ageRestriction, final String voice, final String originatedCountry, final boolean is3D,
-            final String description, final String content, final LocalDate beginDate) {
+    public Film(final String name, final String thumbnailUrl, final String trailerUrl, final Set<@NotNull Tag> tags,
+            final int duration, final String ageRestriction, final String voice, final String originatedCountry,
+            final boolean is3D, final String description, final String content, final LocalDate beginDate) {
         this.name = name;
+        this.thumbnailUrl = thumbnailUrl;
         this.trailerUrl = trailerUrl;
         this.tags = new HashSet<>(tags);
         this.duration = duration;
