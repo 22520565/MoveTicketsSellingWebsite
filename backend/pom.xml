@@ -134,6 +134,12 @@
     		<version>2.2.0</version>
 		</dependency>
 
+		<dependency>
+  			<groupId>com.stripe</groupId>
+  			<artifactId>stripe-java</artifactId>
+  			<version>29.1.0</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -156,6 +162,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<jvmArguments>--enable-preview</jvmArguments>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
@@ -164,14 +171,6 @@
 					</excludes>
 				</configuration>
 			</plugin>
-
-        	<plugin>
-            	<groupId>org.springframework.boot</groupId>
-            	<artifactId>spring-boot-maven-plugin</artifactId>
-            	<configuration>
-                	<jvmArguments>--enable-preview</jvmArguments>
-            	</configuration>
-        	</plugin>
 
 		</plugins>
 	</build>

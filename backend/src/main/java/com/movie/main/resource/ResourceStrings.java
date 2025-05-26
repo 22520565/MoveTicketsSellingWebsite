@@ -17,10 +17,22 @@ public final class ResourceStrings {
     @Include
     public static final String CLOUDINARY_API_SECRET;
 
+    @Include
+    public static final String STRIPE_SECRET_KEY;
+
+    @Include
+    public static final String STRIPE_WEBHOOK_SECRET;
+
+    @Include
+    public static final String STRIPE_CURRENCY;
+
     static {
         CLOUDINARY_CLOUD_NAME = dotenv.get(ResourceStrings.Fields.CLOUDINARY_CLOUD_NAME);
         CLOUDINARY_API_KEY = dotenv.get(ResourceStrings.Fields.CLOUDINARY_API_KEY);
         CLOUDINARY_API_SECRET = dotenv.get(ResourceStrings.Fields.CLOUDINARY_API_SECRET);
+        STRIPE_SECRET_KEY = dotenv.get(ResourceStrings.Fields.STRIPE_SECRET_KEY);
+        STRIPE_WEBHOOK_SECRET = dotenv.get(ResourceStrings.Fields.STRIPE_WEBHOOK_SECRET);
+        STRIPE_CURRENCY = dotenv.get(ResourceStrings.Fields.STRIPE_CURRENCY);
     }
 
     private ResourceStrings() {}
