@@ -69,6 +69,7 @@ public class OrderItemService {
             return Expected.success(this.repository.save(orderItem));
         }
         catch (final Exception exception) {
+            log.error(exception.getMessage());
             return Expected.failure(UpdateError.UNSPECIFIED);
         }
     }

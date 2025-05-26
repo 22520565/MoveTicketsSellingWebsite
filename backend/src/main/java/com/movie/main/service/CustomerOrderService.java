@@ -88,6 +88,7 @@ public class CustomerOrderService {
             return Expected.success(this.repository.save(customerOrder));
         }
         catch (final Exception exception) {
+            log.error(exception.getMessage());
             return Expected.failure(UpdateError.UNSPECIFIED);
         }
     }

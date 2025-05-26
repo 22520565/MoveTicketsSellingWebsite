@@ -98,6 +98,7 @@ public class OrderDataFilmService {
             return Expected.success(this.repository.save(orderDataFilm));
         }
         catch (final Exception exception) {
+            log.error(exception.getMessage());
             return Expected.failure(UpdateError.UNSPECIFIED);
         }
     }

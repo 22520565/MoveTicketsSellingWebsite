@@ -68,6 +68,7 @@ public class AgeRestrictionService {
             return Expected.success(this.repository.save(ageRestriction));
         }
         catch (final Exception exception) {
+            log.error(exception.getMessage());
             return Expected.failure(UpdateError.UNSPECIFIED);
         }
     }
