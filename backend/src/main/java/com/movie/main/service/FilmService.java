@@ -143,6 +143,7 @@ public class FilmService {
             final var oldThumbnailPublicId = film.getThumbnailPublicId();
 
             if ((oldThumbnailPublicId != null) && (!this.cloudinaryService.deleteImage(oldThumbnailPublicId))) {
+                log.error(UpdateError.CANNOT_DELETE_OLD_THUMBNAIL.name());
                 return Expected.failure(UpdateError.CANNOT_DELETE_OLD_THUMBNAIL);
             }
 

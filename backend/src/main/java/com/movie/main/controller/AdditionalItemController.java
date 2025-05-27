@@ -6,6 +6,7 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -16,11 +17,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.movie.main.auth.RequirePermission;
 import com.movie.main.config.OpenApiConfig;
 import com.movie.main.dto.request.AdditionalItemRequestDto;
 import com.movie.main.dto.response.AdditionalItemResponseDto;
+import com.movie.main.dto.response.ThumbnailUrlResponseDto;
 import com.movie.main.entity.Employee.Permission;
 import com.movie.main.entity.AdditionalItem;
 import com.movie.main.service.AdditionalItemService;
@@ -126,6 +129,23 @@ public class AdditionalItemController {
         };
     }
 
+    @PatchMapping(value = "{id}/thumbnail", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ThumbnailUrlResponseDto> uploadThumbnail(@PathVariable final int id,
+            @RequestParam MultipartFile file) {
+        final var result = this.service.uploadThumbnail(id, file);
+        final var img = result.getValue();
+
+        if (img != null) {
+            return ResponseEntity.ok(new ThumbnailUrlResponseDto(img.url()));
+        }
+
+        return switch (result.getError()) {
+        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+        case CANNOT_DELETE_OLD, CANNOT_UPLOAD_NEW, UNSPECIFIED -> ResponseEntity.internalServerError().build();
+        default -> ResponseEntity.internalServerError().build();
+        };
+    }
+
     @PatchMapping("delete/{id}")
     public ResponseEntity<Void> markAsDeletedById(@PathVariable final int id) {
         return switch (this.service.markAsDeletedById(id)) {
@@ -148,7 +168,7 @@ public class AdditionalItemController {
 
     @NotNull
     public static AdditionalItemResponseDto getResponseDtoFrom(@NotNull final AdditionalItem additionalItem) {
-        return new AdditionalItemResponseDto(additionalItem.getId(), additionalItem.getPrice(),
-                additionalItem.getThumbnailUrl(), additionalItem.getPublicId());
+        return new AdditionalItemResponseDto(additionalItem.getId(), additionalItem.getName(),
+                additionalItem.getPrice(), additionalItem.getThumbnailUrl());
     }
 }

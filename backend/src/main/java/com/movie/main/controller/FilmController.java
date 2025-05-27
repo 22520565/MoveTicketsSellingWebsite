@@ -25,7 +25,7 @@ import com.movie.main.auth.RequirePermission;
 import com.movie.main.config.OpenApiConfig;
 import com.movie.main.dto.request.FilmRequestDto;
 import com.movie.main.dto.response.FilmResponseDto;
-import com.movie.main.dto.response.FilmThumbnailUrlResponseDto;
+import com.movie.main.dto.response.ThumbnailUrlResponseDto;
 import com.movie.main.entity.Employee.Permission;
 import com.movie.main.entity.Film;
 import com.movie.main.service.FilmService;
@@ -156,13 +156,13 @@ public class FilmController {
     }
 
     @PatchMapping(value = "{id}/thumbnail", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<FilmThumbnailUrlResponseDto> uploadThumbnail(@PathVariable final int id,
+    public ResponseEntity<ThumbnailUrlResponseDto> uploadThumbnail(@PathVariable final int id,
             @RequestParam MultipartFile file) {
         final var result = this.service.uploadThumbnail(id, file);
         final var img = result.getValue();
 
         if (img != null) {
-            return ResponseEntity.ok(new FilmThumbnailUrlResponseDto(img.url()));
+            return ResponseEntity.ok(new ThumbnailUrlResponseDto(img.url()));
         }
 
         return switch (result.getError()) {

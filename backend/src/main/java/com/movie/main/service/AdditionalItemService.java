@@ -3,7 +3,9 @@ package com.movie.main.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.movie.main.dto.internal.CloudinaryImage;
 import com.movie.main.dto.request.AdditionalItemRequestDto;
 import com.movie.main.entity.AdditionalItem;
 import com.movie.main.repository.AdditionalItemRepository;
@@ -21,7 +23,11 @@ public class AdditionalItemService {
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS, CANNOT_DELETE_OLD_THUMBNAIL, UNSPECIFIED,
+    }
+
+    public enum UploadThumbnailError {
+        ENTITY_NOT_EXISTS, CANNOT_DELETE_OLD, CANNOT_UPLOAD_NEW, UNSPECIFIED,
     }
 
     public enum MarkDeletedStatusResult {
@@ -31,8 +37,13 @@ public class AdditionalItemService {
     @NotNull
     private final AdditionalItemRepository repository;
 
-    public AdditionalItemService(@NotNull final AdditionalItemRepository repository) {
+    @NotNull
+    private final CloudinaryService cloudinaryService;
+
+    public AdditionalItemService(@NotNull final AdditionalItemRepository repository,
+            @NotNull final CloudinaryService cloudinaryService) {
         this.repository = repository;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @NotNull
@@ -62,8 +73,8 @@ public class AdditionalItemService {
 
     @NotNull
     public Expected<AdditionalItem, CreationError> create(@NotNull final AdditionalItemRequestDto requestDto) {
-        final var newAdditionalItem = new AdditionalItem(requestDto.price(), requestDto.thumbnailUrl(),
-                requestDto.publicId());
+        final var newAdditionalItem = new AdditionalItem(requestDto.name(), requestDto.price(),
+                requestDto.thumbnailUrl());
 
         try {
             return Expected.success(this.repository.save(newAdditionalItem));
@@ -82,9 +93,22 @@ public class AdditionalItemService {
             return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
         }
 
+        final var oldThumbnailUrl = additionalItem.getThumbnailUrl();
+        final var newThumbnailUrl = requestDto.thumbnailUrl();
+        if ((oldThumbnailUrl != null) && (oldThumbnailUrl.equals(newThumbnailUrl))) {
+            final var oldThumbnailPublicId = additionalItem.getThumbnailPublicId();
+
+            if ((oldThumbnailPublicId != null) && (!this.cloudinaryService.deleteImage(oldThumbnailPublicId))) {
+                log.error(UpdateError.CANNOT_DELETE_OLD_THUMBNAIL.name());
+                return Expected.failure(UpdateError.CANNOT_DELETE_OLD_THUMBNAIL);
+            }
+
+            additionalItem.setThumbnailUrl(newThumbnailUrl);
+            additionalItem.setThumbnailPublicId(null);
+        }
+
+        additionalItem.setName(requestDto.name());
         additionalItem.setPrice(requestDto.price());
-        additionalItem.setThumbnailUrl(requestDto.thumbnailUrl());
-        additionalItem.setPublicId(requestDto.publicId());
 
         try {
             return Expected.success(this.repository.save(additionalItem));
@@ -93,6 +117,38 @@ public class AdditionalItemService {
             log.error(exception.getMessage());
             return Expected.failure(UpdateError.UNSPECIFIED);
         }
+    }
+
+    @NotNull
+    public Expected<CloudinaryImage, UploadThumbnailError> uploadThumbnail(final int id, @NotNull MultipartFile file) {
+        final var additionalItem = this.findByIdAndDeletedFalse(id);
+        if (additionalItem == null) {
+            return Expected.failure(UploadThumbnailError.ENTITY_NOT_EXISTS);
+        }
+
+        final var oldThumbnailPublicId = additionalItem.getThumbnailPublicId();
+        if ((oldThumbnailPublicId != null) && (!this.cloudinaryService.deleteImage(oldThumbnailPublicId))) {
+            return Expected.failure(UploadThumbnailError.CANNOT_DELETE_OLD);
+        }
+
+        final var img = this.cloudinaryService.uploadImage(file);
+        if (img == null) {
+            return Expected.failure(UploadThumbnailError.CANNOT_UPLOAD_NEW);
+        }
+
+        additionalItem.setThumbnailUrl(img.url());
+        additionalItem.setThumbnailPublicId(img.publicId());
+
+        try {
+            this.repository.save(additionalItem);
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            this.cloudinaryService.deleteImage(img.publicId());
+            return Expected.failure(UploadThumbnailError.UNSPECIFIED);
+        }
+
+        return Expected.success(img);
     }
 
     @NotNull

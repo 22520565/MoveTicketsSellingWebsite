@@ -7,4 +7,5 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record OrderTicketRequestDto(@NotBlank @Size(max = OrderTicket.MaxLengthName) String name, @Min(0) int quantity,
-        @Min(0) int price) {}
+        @Min(0) int price) {
+}

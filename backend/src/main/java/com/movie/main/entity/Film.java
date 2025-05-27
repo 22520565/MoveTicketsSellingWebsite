@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -49,9 +50,11 @@ public class Film {
     private String name = "";
 
     @Column(length = MaxLengthThumbnailUrl)
+    @Nullable
     private String thumbnailUrl = null;
 
     @Column(length = MaxLengthThumbnailPublicId)
+    @Nullable
     private String thumbnailPublicId = null;
 
     private String trailerUrl = "";
