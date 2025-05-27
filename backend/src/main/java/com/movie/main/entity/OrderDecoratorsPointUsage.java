@@ -38,7 +38,9 @@ public class OrderDecoratorsPointUsage {
     @Column(nullable = false)
     private int pointToMoneyRatio = 0;
 
-    public OrderDecoratorsPointUsage(final CustomerOrder customerOrder, final int pointUsed,
+    public OrderDecoratorsPointUsage(
+            final CustomerOrder customerOrder,
+            final int pointUsed,
             final int pointToMoneyRatio) {
         this.id = customerOrder.getId();
         this.customerOrder = customerOrder;

@@ -48,7 +48,8 @@ public class EmployeeSelfController {
 
     @PutMapping
     public ResponseEntity<EmployeeResponseDto> updateSelfInfo(
-            @RequestBody @Valid final EmployeeSelfRequestDto requestDto, @AuthenticationPrincipal final User user) {
+            @RequestBody @Valid final EmployeeSelfRequestDto requestDto,
+            @AuthenticationPrincipal final User user) {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -60,10 +61,10 @@ public class EmployeeSelfController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case USERNAME_EXISTS -> throw new ConflictException("Username exists");
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case USERNAME_EXISTS -> throw new ConflictException("Username exists");
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
@@ -77,10 +78,10 @@ public class EmployeeSelfController {
         final var result = service.resetPasswordByIdAndBlockedFalseAndDeletedFalse(user.getId(),
                 requestDto.oldPassword(), requestDto.newPassword());
         return switch (result) {
-        case SUCCESS -> ResponseEntity.noContent().build();
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case WRONG_OLD_PASSWORD -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        default -> ResponseEntity.internalServerError().build();
+            case SUCCESS -> ResponseEntity.noContent().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case WRONG_OLD_PASSWORD -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 

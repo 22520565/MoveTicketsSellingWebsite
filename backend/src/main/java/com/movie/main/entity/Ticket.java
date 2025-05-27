@@ -43,7 +43,10 @@ public class Ticket {
     @NotNull
     private OrderDataFilm orderDataFilm = null;
 
-    public Ticket(final int quantity, final int price, final OrderDataFilm orderDataFilm) {
+    public Ticket(
+            final int quantity,
+            final int price,
+            final OrderDataFilm orderDataFilm) {
         this.quantity = quantity;
         this.price = price;
         this.orderDataFilm = orderDataFilm;

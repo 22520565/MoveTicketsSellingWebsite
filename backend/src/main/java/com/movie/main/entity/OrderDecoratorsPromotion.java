@@ -42,7 +42,9 @@ public class OrderDecoratorsPromotion {
     @Setter(value = AccessLevel.NONE)
     private Set<@NotNull Promotion> promotions = new HashSet<>();
 
-    public OrderDecoratorsPromotion(final CustomerOrder customerOrder, final Set<@NotNull Promotion> promotions) {
+    public OrderDecoratorsPromotion(
+            final CustomerOrder customerOrder,
+            final Set<@NotNull Promotion> promotions) {
         this.id = customerOrder.getId();
         this.customerOrder = customerOrder;
         this.promotions = new HashSet<>(promotions);

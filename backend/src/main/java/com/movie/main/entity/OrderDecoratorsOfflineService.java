@@ -44,8 +44,12 @@ public class OrderDecoratorsOfflineService {
     @Column
     private String invalidReasonServed = "";
 
-    public OrderDecoratorsOfflineService(final CustomerOrder customerOrder, final boolean printed, final boolean served,
-            final String invalidReasonPrinted, final String invalidReasonServed) {
+    public OrderDecoratorsOfflineService(
+            final CustomerOrder customerOrder,
+            final boolean printed,
+            final boolean served,
+            final String invalidReasonPrinted,
+            final String invalidReasonServed) {
         this.id = customerOrder.getId();
         this.customerOrder = customerOrder;
         this.printed = printed;

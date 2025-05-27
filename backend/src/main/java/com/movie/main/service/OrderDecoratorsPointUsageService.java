@@ -17,11 +17,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OrderDecoratorsPointUsageService {
     public enum CreationError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     @NotNull
@@ -30,7 +32,8 @@ public class OrderDecoratorsPointUsageService {
     @NotNull
     private final CustomerOrderService customerOrderService;
 
-    public OrderDecoratorsPointUsageService(@NotNull final OrderDecoratorsPointUsageRepository repository,
+    public OrderDecoratorsPointUsageService(
+            @NotNull final OrderDecoratorsPointUsageRepository repository,
             @NotNull final CustomerOrderService customerOrderService) {
         this.repository = repository;
         this.customerOrderService = customerOrderService;
@@ -54,7 +57,9 @@ public class OrderDecoratorsPointUsageService {
             return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
         }
 
-        final var newOrderDecoratorsPointUsage = new OrderDecoratorsPointUsage(customerOrder, requestDto.pointUsed(),
+        final var newOrderDecoratorsPointUsage = new OrderDecoratorsPointUsage(
+                customerOrder,
+                requestDto.pointUsed(),
                 requestDto.pointToMoneyRatio());
 
         try {
@@ -67,7 +72,8 @@ public class OrderDecoratorsPointUsageService {
     }
 
     @NotNull
-    public Expected<OrderDecoratorsPointUsage, UpdateError> updateById(final int id,
+    public Expected<OrderDecoratorsPointUsage, UpdateError> updateById(
+            final int id,
             @NotNull final OrderDecoratorsPointUsageRequestDto requestDto) {
         final var customerOrder = this.customerOrderService.findById(requestDto.customerOrderId());
         if (customerOrder == null) {

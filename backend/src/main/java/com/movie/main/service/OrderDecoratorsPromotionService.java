@@ -17,11 +17,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OrderDecoratorsPromotionService {
     public enum CreationError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     @NotNull
@@ -30,7 +32,8 @@ public class OrderDecoratorsPromotionService {
     @NotNull
     private final CustomerOrderService customerOrderService;
 
-    public OrderDecoratorsPromotionService(@NotNull final OrderDecoratorsPromotionRepository repository,
+    public OrderDecoratorsPromotionService(
+            @NotNull final OrderDecoratorsPromotionRepository repository,
             @NotNull final CustomerOrderService customerOrderService) {
         this.repository = repository;
         this.customerOrderService = customerOrderService;
@@ -54,7 +57,9 @@ public class OrderDecoratorsPromotionService {
             return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
         }
 
-        final var newOrderDecoratorsPromotion = new OrderDecoratorsPromotion(customerOrder, requestDto.promotions());
+        final var newOrderDecoratorsPromotion = new OrderDecoratorsPromotion(
+                customerOrder,
+                requestDto.promotions());
 
         try {
             return Expected.success(this.repository.save(newOrderDecoratorsPromotion));
@@ -66,7 +71,8 @@ public class OrderDecoratorsPromotionService {
     }
 
     @NotNull
-    public Expected<OrderDecoratorsPromotion, UpdateError> updateById(final int id,
+    public Expected<OrderDecoratorsPromotion, UpdateError> updateById(
+            final int id,
             @NotNull final OrderDecoratorsPromotionRequestDto requestDto) {
         final var customerOrder = this.customerOrderService.findById(requestDto.customerOrderId());
         if (customerOrder == null) {

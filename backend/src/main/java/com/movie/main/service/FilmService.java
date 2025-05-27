@@ -22,19 +22,27 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 public class FilmService {
     public enum CreationError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, CANNOT_DELETE_OLD_THUMBNAIL, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        CANNOT_DELETE_OLD_THUMBNAIL,
+        UNSPECIFIED,
     }
 
     public enum UploadThumbnailError {
-        ENTITY_NOT_EXISTS, CANNOT_DELETE_OLD, CANNOT_UPLOAD_NEW, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        CANNOT_DELETE_OLD,
+        CANNOT_UPLOAD_NEW,
+        UNSPECIFIED,
     }
 
     public enum MarkDeletedStatusResult {
-        SUCCESS, ENTITY_NOT_EXISTS_ERROR, UNSPECIFIED_ERROR,
+        SUCCESS,
+        ENTITY_NOT_EXISTS_ERROR,
+        UNSPECIFIED_ERROR,
     }
 
     @NotNull
@@ -46,7 +54,9 @@ public class FilmService {
     @NotNull
     private final CloudinaryService cloudinaryService;
 
-    protected FilmService(@NotNull final FilmRepository repository, @NotNull final TagService tagService,
+    protected FilmService(
+            @NotNull final FilmRepository repository,
+            @NotNull final TagService tagService,
             @NotNull final CloudinaryService cloudinaryService) {
         this.repository = repository;
         this.tagService = tagService;
@@ -64,13 +74,15 @@ public class FilmService {
     }
 
     @NotNull
-    public Page<@NotNull Film> searchAllFilmsWithTagsByDeletedFalse(String keyword,
+    public Page<@NotNull Film> searchAllFilmsWithTagsByDeletedFalse(
+            final String keyword,
             @NotNull final PageRequest pageRequest) {
         return this.repository.searchAllFilmsWithTagsByDeletedFalse(keyword, pageRequest);
     }
 
     @NotNull
-    public Page<@NotNull Film> findAllByTheaterIdAndDeletedFalseOrderByShowDate(final int theaterId,
+    public Page<@NotNull Film> findAllByTheaterIdAndDeletedFalseOrderByShowDate(
+            final int theaterId,
             @NotNull final PageRequest pageRequest) {
         return this.repository.findAllByTheaterIdAndDeletedFalseOrderByShowDate(theaterId, pageRequest);
     }
@@ -104,9 +116,19 @@ public class FilmService {
             tags.add(tag);
         }
 
-        final var newFilm = new Film(requestDto.name(), requestDto.thumbnailUrl(), requestDto.trailerUrl(), tags,
-                requestDto.duration(), requestDto.ageRestriction(), requestDto.voice(), requestDto.originatedCountry(),
-                requestDto.is3D(), requestDto.description(), requestDto.content(), requestDto.beginDate());
+        final var newFilm = new Film(
+                requestDto.name(),
+                requestDto.thumbnailUrl(),
+                requestDto.trailerUrl(),
+                tags,
+                requestDto.duration(),
+                requestDto.ageRestriction(),
+                requestDto.voice(),
+                requestDto.originatedCountry(),
+                requestDto.is3D(),
+                requestDto.description(),
+                requestDto.content(),
+                requestDto.beginDate());
 
         try {
             return Expected.success(this.repository.save(newFilm));
@@ -118,7 +140,8 @@ public class FilmService {
     }
 
     @NotNull
-    public Expected<Film, UpdateError> updateByIdAndDeletedFalse(final int id,
+    public Expected<Film, UpdateError> updateByIdAndDeletedFalse(
+            final int id,
             @NotNull final FilmRequestDto requestDto) {
         final var film = this.findByIdAndDeletedFalse(id);
         if (film == null) {
@@ -173,7 +196,9 @@ public class FilmService {
     }
 
     @NotNull
-    public Expected<CloudinaryImage, UploadThumbnailError> uploadThumbnail(final int id, @NotNull MultipartFile file) {
+    public Expected<CloudinaryImage, UploadThumbnailError> uploadThumbnail(
+            final int id,
+            @NotNull final MultipartFile file) {
         final var film = this.findByIdAndDeletedFalse(id);
         if (film == null) {
             return Expected.failure(UploadThumbnailError.ENTITY_NOT_EXISTS);

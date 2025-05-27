@@ -102,14 +102,15 @@ public class RoomController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<RoomResponseDto> updateById(@PathVariable final int id,
+    public ResponseEntity<RoomResponseDto> updateById(
+            @PathVariable final int id,
             @RequestBody @Valid final RoomRequestDto requestDto) {
         final var result = this.service.updateByIdAndDeletedFalse(id, requestDto);
         final var room = result.getValue();
@@ -119,29 +120,29 @@ public class RoomController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PatchMapping("delete/{id}")
     public ResponseEntity<Void> markAsDeletedById(@PathVariable final int id) {
         return switch (this.service.markAsDeletedById(id)) {
-        case SUCCESS -> ResponseEntity.noContent().build();
-        case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
-        case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case SUCCESS -> ResponseEntity.noContent().build();
+            case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
+            case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PatchMapping("undelete/{id}")
     public ResponseEntity<Void> markAsUndeletedById(@PathVariable final int id) {
         return switch (this.service.markAsUndeletedById(id)) {
-        case SUCCESS -> ResponseEntity.noContent().build();
-        case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
-        case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case SUCCESS -> ResponseEntity.noContent().build();
+            case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
+            case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 

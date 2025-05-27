@@ -48,7 +48,7 @@ public class TheaterController {
     public ResponseEntity<PagedModel<EntityModel<TheaterResponseDto>>> findAll(
             @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
             @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
-            final PagedResourcesAssembler<TheaterResponseDto> assembler) {
+            @NotNull final PagedResourcesAssembler<TheaterResponseDto> assembler) {
         final var result = this.service.findAll(PageRequest.of(page, size)).map(TheaterController::getResponseDtoFrom);
         return ResponseEntity.ok(assembler.toModel(result));
     }
@@ -59,7 +59,7 @@ public class TheaterController {
             @PathVariable final int theaterId,
             @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
             @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
-            final PagedResourcesAssembler<TheaterResponseDto> assembler) {
+            @NotNull final PagedResourcesAssembler<TheaterResponseDto> assembler) {
         final var result = this.service
                 .findAllByFilmIdAndDeletedFalseOrderByShowDateTimeFromNow(theaterId, PageRequest.of(page, size))
                 .map(TheaterController::getResponseDtoFrom);
@@ -93,14 +93,15 @@ public class TheaterController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<TheaterResponseDto> updateById(@PathVariable final int id,
+    public ResponseEntity<TheaterResponseDto> updateById(
+            @PathVariable final int id,
             @RequestBody @Valid final TheaterRequestDto requestDto) {
         final var result = this.service.updateById(id, requestDto);
         final var theater = result.getValue();
@@ -110,9 +111,9 @@ public class TheaterController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 

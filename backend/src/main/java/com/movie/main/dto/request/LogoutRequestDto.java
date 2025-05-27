@@ -4,4 +4,6 @@ import java.util.UUID;
 
 import jakarta.validation.constraints.NotNull;
 
-public record LogoutRequestDto(@NotNull UUID refreshToken) {}
+public record LogoutRequestDto(
+        @NotNull UUID refreshToken) {
+}

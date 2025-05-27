@@ -21,15 +21,19 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class FilmShowService {
     public enum CreationError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum MarkDeletedStatusResult {
-        SUCCESS, ENTITY_NOT_EXISTS_ERROR, UNSPECIFIED_ERROR,
+        SUCCESS,
+        ENTITY_NOT_EXISTS_ERROR,
+        UNSPECIFIED_ERROR,
     }
 
     @NotNull
@@ -41,7 +45,9 @@ public class FilmShowService {
     @NotNull
     private final RoomService roomService;
 
-    protected FilmShowService(@NotNull final FilmShowRepository repository, @NotNull final FilmService filmService,
+    protected FilmShowService(
+            @NotNull final FilmShowRepository repository,
+            @NotNull final FilmService filmService,
             @NotNull final RoomService roomService) {
         this.repository = repository;
         this.filmService = filmService;
@@ -59,7 +65,9 @@ public class FilmShowService {
     }
 
     @NotNull
-    public Page<@NotNull FilmShow> findAllByFilmIdOrderByDateTime(int filmId, @NotNull final PageRequest pageRequest) {
+    public Page<@NotNull FilmShow> findAllByFilmIdOrderByDateTime(
+            int filmId,
+            @NotNull final PageRequest pageRequest) {
         return this.repository.findAllByFilmIdOrderByDateTime(filmId, pageRequest);
     }
 
@@ -70,13 +78,16 @@ public class FilmShowService {
     }
 
     @NotNull
-    public Page<@NotNull FilmShow> findAllByFilmIdAndShowDateAndDeletedFalse(final int filmId,
-            @NotNull final LocalDate date, @NotNull final PageRequest pageRequest) {
+    public Page<@NotNull FilmShow> findAllByFilmIdAndShowDateAndDeletedFalse(
+            final int filmId,
+            @NotNull final LocalDate date,
+            @NotNull final PageRequest pageRequest) {
         return this.repository.findAllByFilmIdAndShowDateAndDeletedFalse(filmId, date, pageRequest);
     }
 
     @NotNull
-    public Page<@NotNull Film> findAllFilmsByShowDateAndDeletedFalse(@NotNull final LocalDate date,
+    public Page<@NotNull Film> findAllFilmsByShowDateAndDeletedFalse(
+            @NotNull final LocalDate date,
             @NotNull final Pageable pageable) {
         return this.repository.findAllFilmsByShowDateAndDeletedFalse(date, pageable);
     }
@@ -87,7 +98,8 @@ public class FilmShowService {
     }
 
     @NotNull
-    public Page<@NotNull Film> findAllFilmsShowingFromTomorrowAndDeletedFalse(int days,
+    public Page<@NotNull Film> findAllFilmsShowingFromTomorrowAndDeletedFalse(
+            int days,
             @NotNull final Pageable pageable) {
         final var tomorrowDate = LocalDate.now().plusDays(1);
         final var maxDate = LocalDate.now().plusDays(days);
@@ -121,7 +133,11 @@ public class FilmShowService {
             return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
         }
 
-        final var newFilmShow = new FilmShow(film, room, requestDto.showDate(), requestDto.showTime(),
+        final var newFilmShow = new FilmShow(
+                film,
+                room,
+                requestDto.showDate(),
+                requestDto.showTime(),
                 requestDto.type());
 
         try {

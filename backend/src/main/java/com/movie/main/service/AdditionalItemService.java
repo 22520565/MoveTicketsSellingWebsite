@@ -19,19 +19,27 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AdditionalItemService {
     public enum CreationError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, CANNOT_DELETE_OLD_THUMBNAIL, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        CANNOT_DELETE_OLD_THUMBNAIL,
+        UNSPECIFIED,
     }
 
     public enum UploadThumbnailError {
-        ENTITY_NOT_EXISTS, CANNOT_DELETE_OLD, CANNOT_UPLOAD_NEW, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        CANNOT_DELETE_OLD,
+        CANNOT_UPLOAD_NEW,
+        UNSPECIFIED,
     }
 
     public enum MarkDeletedStatusResult {
-        SUCCESS, ENTITY_NOT_EXISTS_ERROR, UNSPECIFIED_ERROR,
+        SUCCESS,
+        ENTITY_NOT_EXISTS_ERROR,
+        UNSPECIFIED_ERROR,
     }
 
     @NotNull
@@ -73,7 +81,9 @@ public class AdditionalItemService {
 
     @NotNull
     public Expected<AdditionalItem, CreationError> create(@NotNull final AdditionalItemRequestDto requestDto) {
-        final var newAdditionalItem = new AdditionalItem(requestDto.name(), requestDto.price(),
+        final var newAdditionalItem = new AdditionalItem(
+                requestDto.name(),
+                requestDto.price(),
                 requestDto.thumbnailUrl());
 
         try {
@@ -86,7 +96,8 @@ public class AdditionalItemService {
     }
 
     @NotNull
-    public Expected<AdditionalItem, UpdateError> updateByIdAndDeletedFalse(final int id,
+    public Expected<AdditionalItem, UpdateError> updateByIdAndDeletedFalse(
+            final int id,
             @NotNull final AdditionalItemRequestDto requestDto) {
         final var additionalItem = this.findByIdAndDeletedFalse(id);
         if (additionalItem == null) {

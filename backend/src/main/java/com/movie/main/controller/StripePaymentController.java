@@ -39,33 +39,32 @@ public class StripePaymentController {
         }
 
         return switch (result.getError()) {
-        case CARD_DECLINED -> ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).build();
-        default -> ResponseEntity.internalServerError().build();
+            case CARD_DECLINED -> ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PostMapping("/webhook")
-    public ResponseEntity<Void> handleWebhook(@RequestHeader("Stripe-Signature") final String sigHeader,
+    public ResponseEntity<Void> handleWebhook(
+            @RequestHeader("Stripe-Signature") final String sigHeader,
             @RequestBody final String payload) {
         try {
             final var event = Webhook.constructEvent(payload, sigHeader, ResourceStrings.STRIPE_WEBHOOK_SECRET);
             switch (event.getType()) {
-            case "payment_intent.succeeded":
-                final var intent = (PaymentIntent) event.getDataObjectDeserializer().getObject().orElseThrow();
-                this.service.updatePaymentStatus(intent.getId(), StripePayment.Status.from(intent.getStatus()));
-                return ResponseEntity.ok().build();
+                case "payment_intent.succeeded":
+                    final var intent = (PaymentIntent) event.getDataObjectDeserializer().getObject().orElseThrow();
+                    this.service.updatePaymentStatus(intent.getId(), StripePayment.Status.from(intent.getStatus()));
+                    return ResponseEntity.ok().build();
 
-            case "payment_intent.payment_failed":
-                return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).build();
+                case "payment_intent.payment_failed":
+                    return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).build();
 
-            default:
-                return ResponseEntity.internalServerError().build();
+                default:
+                    return ResponseEntity.internalServerError().build();
             }
-        }
-        catch (final SignatureVerificationException exception) {
+        } catch (final SignatureVerificationException exception) {
             return ResponseEntity.badRequest().build();
-        }
-        catch (final Exception exception) {
+        } catch (final Exception exception) {
             return ResponseEntity.internalServerError().build();
         }
     }

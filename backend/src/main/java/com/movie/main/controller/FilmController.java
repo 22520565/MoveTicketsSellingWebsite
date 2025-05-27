@@ -132,14 +132,15 @@ public class FilmController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<FilmResponseDto> updateById(@PathVariable final int id,
+    public ResponseEntity<FilmResponseDto> updateById(
+            @PathVariable final int id,
             @RequestBody @Valid final FilmRequestDto requestDto) {
         final var result = this.service.updateByIdAndDeletedFalse(id, requestDto);
         final var film = result.getValue();
@@ -149,9 +150,9 @@ public class FilmController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case CANNOT_DELETE_OLD_THUMBNAIL, UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case CANNOT_DELETE_OLD_THUMBNAIL, UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
@@ -166,29 +167,29 @@ public class FilmController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case CANNOT_DELETE_OLD, CANNOT_UPLOAD_NEW, UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case CANNOT_DELETE_OLD, CANNOT_UPLOAD_NEW, UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PatchMapping("delete/{id}")
     public ResponseEntity<Void> markAsDeletedById(@PathVariable final int id) {
         return switch (this.service.markAsDeletedById(id)) {
-        case SUCCESS -> ResponseEntity.noContent().build();
-        case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
-        case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case SUCCESS -> ResponseEntity.noContent().build();
+            case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
+            case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PatchMapping("undelete/{id}")
     public ResponseEntity<Void> markAsUndeletedById(@PathVariable final int id) {
         return switch (this.service.markAsUndeletedById(id)) {
-        case SUCCESS -> ResponseEntity.noContent().build();
-        case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
-        case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case SUCCESS -> ResponseEntity.noContent().build();
+            case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
+            case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 

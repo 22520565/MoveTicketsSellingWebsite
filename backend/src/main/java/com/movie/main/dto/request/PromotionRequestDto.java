@@ -7,6 +7,10 @@ import com.movie.main.entity.Promotion;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record PromotionRequestDto(@NotBlank String name,
-        @Size(max = Promotion.MaxLengthThumbnailUrl) String thumbnailUrl, int discountRate, LocalDate beginDate,
-        LocalDate endDate) {}
+public record PromotionRequestDto(
+        @NotBlank String name,
+        @Size(max = Promotion.MaxLengthThumbnailUrl) String thumbnailUrl,
+        int discountRate,
+        LocalDate beginDate,
+        LocalDate endDate) {
+}

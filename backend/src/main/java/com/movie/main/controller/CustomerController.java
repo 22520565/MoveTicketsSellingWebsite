@@ -121,14 +121,15 @@ public class CustomerController {
         }
 
         return switch (result.getError()) {
-        case USERNAME_EXISTS -> throw new ConflictException("Username exists");
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case USERNAME_EXISTS -> throw new ConflictException("Username exists");
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<CustomerResponseDto> updateByIdAndDeletedFalse(@PathVariable final int id,
+    public ResponseEntity<CustomerResponseDto> updateByIdAndDeletedFalse(
+            @PathVariable final int id,
             @RequestBody @Valid final CustomerRequestDto requestDto) {
         final var result = this.service.updateByIdAndDeletedFalse(id, requestDto);
         final var customer = result.getValue();
@@ -138,61 +139,62 @@ public class CustomerController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case USERNAME_EXISTS -> throw new ConflictException("Username exists");
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case USERNAME_EXISTS -> throw new ConflictException("Username exists");
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PatchMapping("set-password/{id}")
-    public ResponseEntity<Void> setPasswordByIdAndDeletedFalse(@PathVariable final int id,
+    public ResponseEntity<Void> setPasswordByIdAndDeletedFalse(
+            @PathVariable final int id,
             @RequestBody @Valid final SetPasswordRequestDto requestDto) {
         return switch (this.service.setPasswordByIdAndDeletedFalse(id, requestDto.password())) {
-        case SUCCESS -> ResponseEntity.noContent().build();
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case SUCCESS -> ResponseEntity.noContent().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PatchMapping("block/{id}")
     public ResponseEntity<Void> markAsBlockedById(@PathVariable final int id) {
         return switch (this.service.markAsBlockedById(id)) {
-        case SUCCESS -> ResponseEntity.noContent().build();
-        case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
-        case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case SUCCESS -> ResponseEntity.noContent().build();
+            case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
+            case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PatchMapping("unblock/{id}")
     public ResponseEntity<Void> markAsUnblockedById(@PathVariable final int id) {
         return switch (this.service.markAsUnblockedById(id)) {
-        case SUCCESS -> ResponseEntity.noContent().build();
-        case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
-        case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case SUCCESS -> ResponseEntity.noContent().build();
+            case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
+            case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PatchMapping("delete/{id}")
     public ResponseEntity<Void> markAsDeletedById(@PathVariable final int id) {
         return switch (this.service.markAsDeletedById(id)) {
-        case SUCCESS -> ResponseEntity.noContent().build();
-        case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
-        case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case SUCCESS -> ResponseEntity.noContent().build();
+            case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
+            case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PatchMapping("undelete/{id}")
     public ResponseEntity<Void> markAsUndeletedById(@PathVariable final int id) {
         return switch (this.service.markAsUndeletedById(id)) {
-        case SUCCESS -> ResponseEntity.noContent().build();
-        case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
-        case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case SUCCESS -> ResponseEntity.noContent().build();
+            case ENTITY_NOT_EXISTS_ERROR -> ResponseEntity.notFound().build();
+            case UNSPECIFIED_ERROR -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 

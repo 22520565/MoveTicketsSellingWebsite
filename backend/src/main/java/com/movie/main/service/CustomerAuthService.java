@@ -22,15 +22,20 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CustomerAuthService {
     public enum RegisterError {
-        USERNAME_EXISTS, UNSPECIFIED,
+        USERNAME_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum LoginError {
-        USERNAME_NOT_EXISTS, WRONG_PASSWORD, BLOCKED, UNSPECIFIED,
+        USERNAME_NOT_EXISTS,
+        WRONG_PASSWORD,
+        BLOCKED,
+        UNSPECIFIED,
     }
 
     public enum RefreshTokenError {
-        NOT_FOUND, EXPRIED,
+        NOT_FOUND,
+        EXPRIED,
     }
 
     @NotNull
@@ -42,7 +47,8 @@ public class CustomerAuthService {
     @NotNull
     private final PasswordEncoder passwordEncoder;
 
-    public CustomerAuthService(@NotNull final CustomerService customerService,
+    public CustomerAuthService(
+            @NotNull final CustomerService customerService,
             @NotNull final UserRefreshTokenService userRefreshTokenService,
             @NotNull final PasswordEncoder passwordEncoder) {
         this.customerService = customerService;
@@ -87,9 +93,9 @@ public class CustomerAuthService {
         }
 
         return switch (result.getError()) {
-        case USERNAME_EXISTS -> Expected.failure(RegisterError.USERNAME_EXISTS);
-        case UNSPECIFIED -> Expected.failure(RegisterError.UNSPECIFIED);
-        default -> Expected.failure(RegisterError.UNSPECIFIED);
+            case USERNAME_EXISTS -> Expected.failure(RegisterError.USERNAME_EXISTS);
+            case UNSPECIFIED -> Expected.failure(RegisterError.UNSPECIFIED);
+            default -> Expected.failure(RegisterError.UNSPECIFIED);
         };
     }
 

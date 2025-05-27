@@ -102,9 +102,19 @@ public class Film {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public Film(final String name, final String thumbnailUrl, final String trailerUrl, final Set<@NotNull Tag> tags,
-            final int duration, final String ageRestriction, final String voice, final String originatedCountry,
-            final boolean is3D, final String description, final String content, final LocalDate beginDate) {
+    public Film(
+            final String name,
+            final String thumbnailUrl,
+            final String trailerUrl,
+            final Set<@NotNull Tag> tags,
+            final int duration,
+            final String ageRestriction,
+            final String voice,
+            final String originatedCountry,
+            final boolean is3D,
+            final String description,
+            final String content,
+            final LocalDate beginDate) {
         this.name = name;
         this.thumbnailUrl = thumbnailUrl;
         this.trailerUrl = trailerUrl;

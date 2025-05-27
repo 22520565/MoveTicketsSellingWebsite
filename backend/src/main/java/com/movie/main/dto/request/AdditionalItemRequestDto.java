@@ -6,5 +6,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record AdditionalItemRequestDto(@NotBlank @Size(max = AdditionalItem.MaxLengthName) String name,
-        @Min(0) int price, @Size(max = AdditionalItem.MaxLengthThumbnailUrl) String thumbnailUrl) {}
+public record AdditionalItemRequestDto(
+        @NotBlank @Size(max = AdditionalItem.MaxLengthName) String name,
+        @Min(0) int price,
+        @Size(max = AdditionalItem.MaxLengthThumbnailUrl) String thumbnailUrl) {
+}

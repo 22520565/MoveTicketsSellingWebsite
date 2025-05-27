@@ -20,12 +20,14 @@ public class UserService {
     }
 
     @Nullable
-    public User findByUsernameAndDeletedFalse(@Nullable final String username) {
+    public User findByUsernameAndDeletedFalse(
+            @Nullable final String username) {
         return this.repository.findByUsernameAndDeletedFalse(username).orElse(null);
     }
 
     @Nullable
-    public User findByUsername(@Nullable final String username) {
+    public User findByUsername(
+            @Nullable final String username) {
         return this.repository.findByUsername(username).orElse(null);
     }
 }

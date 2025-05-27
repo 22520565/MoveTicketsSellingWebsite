@@ -60,7 +60,11 @@ public class FilmShow {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public FilmShow(final Film film, final Room room, final LocalDate showDate, final LocalTime showTime,
+    public FilmShow(
+            final Film film,
+            final Room room,
+            final LocalDate showDate,
+            final LocalTime showTime,
             final String type) {
         this.film = film;
         this.room = room;

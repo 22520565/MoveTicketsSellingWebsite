@@ -8,6 +8,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-public record CustomerOrderRequestDto(@NotNull LocalDate date,
+public record CustomerOrderRequestDto(
+        @NotNull LocalDate date,
         @Size(min = CustomerOrder.VerifyCodeLength, max = CustomerOrder.VerifyCodeLength) @NotBlank String verifyCode,
-        int totalPrice, int totalPriceAfterDiscount, int customerId) {}
+        int totalPrice,
+        int totalPriceAfterDiscount,
+        int customerId) {
+}

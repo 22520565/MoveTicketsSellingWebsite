@@ -51,7 +51,10 @@ public final class RoomSeat {
     @NotNull
     private Room room = null;
 
-    public RoomSeat(final String name, final String type, final Room room) {
+    public RoomSeat(
+            final String name,
+            final String type,
+            final Room room) {
         this.name = name;
         this.type = type;
         this.room = room;

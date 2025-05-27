@@ -23,6 +23,8 @@ public class Theater {
     public static final int MaxLengthName = 100;
     public static final int MinLengthAddress = 1;
     public static final int MaxLengthAddress = 200;
+    public static final int MinLengthCity = 1;
+    public static final int MaxLengthCity = 30;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,18 +32,27 @@ public class Theater {
     @Setter(value = AccessLevel.PACKAGE)
     private int id = 0;
 
-    @Column(length = MaxLengthName, nullable = false, unique = true)
+    @Column(length = MaxLengthName, nullable = false)
     @NotBlank
     @Size(min = MinLengthName, max = MaxLengthName)
     private String name = "";
 
-    @Column(length = MaxLengthAddress, nullable = false, unique = true)
+    @Column(length = MaxLengthAddress, nullable = false)
     @NotBlank
     @Size(min = MinLengthAddress, max = MaxLengthAddress)
     private String address = "";
 
-    public Theater(final String name, final String address) {
+    @Column(length = MaxLengthCity, nullable = false)
+    @NotBlank
+    @Size(min = MinLengthCity, max = MaxLengthCity)
+    private String city = "";
+
+    public Theater(
+            final String name,
+            final String address,
+            final String city) {
         this.name = name;
         this.address = address;
+        this.city = city;
     }
 }

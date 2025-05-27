@@ -6,6 +6,17 @@ import java.util.Set;
 
 import com.movie.main.entity.Employee.Permission;
 
-public record EmployeeResponseDto(int id, String name, LocalDate birthDate, String email, String phoneNumber,
-        String username, String jobTitle, int salary, LocalTime shiftStart, LocalTime shiftEnd,
-        LocalDate beginWorkingDate, Set<Permission> permissions) {}
+public record EmployeeResponseDto(
+        int id,
+        String name,
+        LocalDate birthDate,
+        String email,
+        String phoneNumber,
+        String username,
+        String jobTitle,
+        int salary,
+        LocalTime shiftStart,
+        LocalTime shiftEnd,
+        LocalDate beginWorkingDate,
+        Set<Permission> permissions) {
+}

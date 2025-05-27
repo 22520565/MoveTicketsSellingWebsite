@@ -40,7 +40,10 @@ public class OrderItem {
     @Min(0)
     private int price = 0;
 
-    public OrderItem(final String name, final int quantity, final int price) {
+    public OrderItem(
+            final String name,
+            final int quantity,
+            final int price) {
         this.name = name;
         this.quantity = quantity;
         this.price = price;

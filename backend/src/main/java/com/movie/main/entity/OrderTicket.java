@@ -37,7 +37,10 @@ public class OrderTicket {
     @Column(nullable = false)
     private int price = 0;
 
-    public OrderTicket(final String name, final int quantity, final int price) {
+    public OrderTicket(
+            final String name,
+            final int quantity,
+            final int price) {
         this.name = name;
         this.quantity = quantity;
         this.price = price;

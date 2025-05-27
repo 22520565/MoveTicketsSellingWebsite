@@ -17,15 +17,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RoomService {
     public enum CreationError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum MarkDeletedStatusResult {
-        SUCCESS, ENTITY_NOT_EXISTS_ERROR, UNSPECIFIED_ERROR,
+        SUCCESS,
+        ENTITY_NOT_EXISTS_ERROR,
+        UNSPECIFIED_ERROR,
     }
 
     @NotNull
@@ -71,9 +75,16 @@ public class RoomService {
             return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
         }
 
-        final var newRoom = new Room(requestDto.name(), requestDto.numberOfSeatRow(), requestDto.numberOfSeatColumn(),
-                requestDto.centerX1(), requestDto.centerX2(), requestDto.centerY1(), requestDto.centerY2(),
-                requestDto.note(), theater);
+        final var newRoom = new Room(
+                requestDto.name(),
+                requestDto.numberOfSeatRow(),
+                requestDto.numberOfSeatColumn(),
+                requestDto.centerX1(),
+                requestDto.centerX2(),
+                requestDto.centerY1(),
+                requestDto.centerY2(),
+                requestDto.note(),
+                theater);
 
         try {
             return Expected.success(this.repository.save(newRoom));
@@ -85,7 +96,8 @@ public class RoomService {
     }
 
     @NotNull
-    public Expected<Room, UpdateError> updateByIdAndDeletedFalse(final int id,
+    public Expected<Room, UpdateError> updateByIdAndDeletedFalse(
+            final int id,
             @NotNull final RoomRequestDto requestDto) {
         final var theater = this.theaterService.findById(requestDto.theaterId());
         if (theater == null) {
@@ -127,7 +139,9 @@ public class RoomService {
     }
 
     @NotNull
-    public MarkDeletedStatusResult markDeletedStatusById(final int id, final boolean deletedStatusToMark) {
+    public MarkDeletedStatusResult markDeletedStatusById(
+            final int id,
+            final boolean deletedStatusToMark) {
         final var room = this.findById(id);
         if (room == null) {
             return MarkDeletedStatusResult.ENTITY_NOT_EXISTS_ERROR;

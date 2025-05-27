@@ -79,14 +79,15 @@ public class OrderDataFilmController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<OrderDataFilmResponseDto> updateById(@PathVariable final int id,
+    public ResponseEntity<OrderDataFilmResponseDto> updateById(
+            @PathVariable final int id,
             @RequestBody @Valid final OrderDataFilmRequestDto requestDto) {
         final var result = this.service.updateById(id, requestDto);
         final var orderDataFilm = result.getValue();
@@ -96,9 +97,9 @@ public class OrderDataFilmController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 

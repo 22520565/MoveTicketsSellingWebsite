@@ -39,10 +39,10 @@ public class EmployeeAuthController {
         }
 
         return switch (result.getError()) {
-        case USERNAME_NOT_EXISTS, WRONG_PASSWORD -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        case BLOCKED -> ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case USERNAME_NOT_EXISTS, WRONG_PASSWORD -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            case BLOCKED -> ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
