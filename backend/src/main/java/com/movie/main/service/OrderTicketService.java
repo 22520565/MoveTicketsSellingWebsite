@@ -17,11 +17,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OrderTicketService {
     public enum CreationError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     @NotNull
@@ -43,7 +45,10 @@ public class OrderTicketService {
 
     @NotNull
     public Expected<OrderTicket, CreationError> create(@NotNull final OrderTicketRequestDto requestDto) {
-        final var newOrderTicket = new OrderTicket(requestDto.name(), requestDto.quantity(), requestDto.price());
+        final var newOrderTicket = new OrderTicket(
+                requestDto.name(),
+                requestDto.quantity(),
+                requestDto.price());
 
         try {
             return Expected.success(this.repository.save(newOrderTicket));
@@ -55,7 +60,8 @@ public class OrderTicketService {
     }
 
     @NotNull
-    public Expected<OrderTicket, UpdateError> updateById(final int id,
+    public Expected<OrderTicket, UpdateError> updateById(
+            final int id,
             @NotNull final OrderTicketRequestDto requestDto) {
         final var orderTicket = this.findById(id);
         if (orderTicket == null) {

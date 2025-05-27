@@ -81,9 +81,16 @@ public class OrderDataFilm {
     @Setter(value = AccessLevel.NONE)
     private Set<@NotNull OrderTicket> tickets = new HashSet<>();
 
-    public OrderDataFilm(final CustomerOrder customerOrder, final String filmName, final String ageRestriction,
-            final LocalDate date, final LocalTime time, final String verifyCode, final String roomName,
-            final Set<@NotBlank String> seatNames, final Set<@NotNull OrderTicket> tickets) {
+    public OrderDataFilm(
+            final CustomerOrder customerOrder,
+            final String filmName,
+            final String ageRestriction,
+            final LocalDate date,
+            final LocalTime time,
+            final String verifyCode,
+            final String roomName,
+            final Set<@NotBlank String> seatNames,
+            final Set<@NotNull OrderTicket> tickets) {
         this.id = customerOrder.getId();
         this.customerOrder = customerOrder;
         this.filmName = filmName;

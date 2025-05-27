@@ -17,11 +17,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OrderDecoratorsOfflineServiceService {
     public enum CreationError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     @NotNull
@@ -54,14 +56,16 @@ public class OrderDecoratorsOfflineServiceService {
             return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
         }
 
-        final var newOrderDecoratorsOfflineService = new OrderDecoratorsOfflineService(customerOrder,
-                requestDto.printed(), requestDto.served(), requestDto.invalidReasonPrinted(),
+        final var newOrderDecoratorsOfflineService = new OrderDecoratorsOfflineService(
+                customerOrder,
+                requestDto.printed(),
+                requestDto.served(),
+                requestDto.invalidReasonPrinted(),
                 requestDto.invalidReasonServed());
 
         try {
             return Expected.success(this.repository.save(newOrderDecoratorsOfflineService));
-        }
-        catch (final Exception exception) {
+        } catch (final Exception exception) {
             log.error(exception.getMessage());
             return Expected.failure(CreationError.UNSPECIFIED);
         }
@@ -88,8 +92,7 @@ public class OrderDecoratorsOfflineServiceService {
 
         try {
             return Expected.success(this.repository.save(orderDecoratorsOfflineService));
-        }
-        catch (final Exception exception) {
+        } catch (final Exception exception) {
             log.error(exception.getMessage());
             return Expected.failure(UpdateError.UNSPECIFIED);
         }

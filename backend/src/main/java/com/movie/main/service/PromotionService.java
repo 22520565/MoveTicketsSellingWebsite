@@ -19,19 +19,27 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PromotionService {
     public enum CreationError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, CANNOT_DELETE_OLD_THUMBNAIL, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        CANNOT_DELETE_OLD_THUMBNAIL,
+        UNSPECIFIED,
     }
 
     public enum UploadThumbnailError {
-        ENTITY_NOT_EXISTS, CANNOT_DELETE_OLD, CANNOT_UPLOAD_NEW, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        CANNOT_DELETE_OLD,
+        CANNOT_UPLOAD_NEW,
+        UNSPECIFIED,
     }
 
     public enum MarkPausedStatusResult {
-        SUCCESS, ENTITY_NOT_EXISTS_ERROR, UNSPECIFIED_ERROR,
+        SUCCESS,
+        ENTITY_NOT_EXISTS_ERROR,
+        UNSPECIFIED_ERROR,
     }
 
     @NotNull
@@ -40,7 +48,8 @@ public class PromotionService {
     @NotNull
     private final CloudinaryService cloudinaryService;
 
-    public PromotionService(@NotNull final PromotionRepository repository,
+    public PromotionService(
+            @NotNull final PromotionRepository repository,
             @NotNull final CloudinaryService cloudinaryService) {
         this.repository = repository;
         this.cloudinaryService = cloudinaryService;
@@ -58,8 +67,12 @@ public class PromotionService {
 
     @NotNull
     public Expected<Promotion, CreationError> create(@NotNull final PromotionRequestDto requestDto) {
-        final var newPromotion = new Promotion(requestDto.name(), requestDto.thumbnailUrl(), requestDto.discountRate(),
-                requestDto.beginDate(), requestDto.endDate());
+        final var newPromotion = new Promotion(
+                requestDto.name(),
+                requestDto.thumbnailUrl(),
+                requestDto.discountRate(),
+                requestDto.beginDate(),
+                requestDto.endDate());
 
         try {
             return Expected.success(this.repository.save(newPromotion));
@@ -71,7 +84,9 @@ public class PromotionService {
     }
 
     @NotNull
-    public Expected<Promotion, UpdateError> updateById(final int id, @NotNull final PromotionRequestDto requestDto) {
+    public Expected<Promotion, UpdateError> updateById(
+            final int id,
+            @NotNull final PromotionRequestDto requestDto) {
         final var promotion = this.findById(id);
         if (promotion == null) {
             return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);

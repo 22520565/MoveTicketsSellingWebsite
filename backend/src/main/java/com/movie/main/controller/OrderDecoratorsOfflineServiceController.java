@@ -80,14 +80,15 @@ public class OrderDecoratorsOfflineServiceController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<OrderDecoratorsOfflineServiceResponseDto> updateById(@PathVariable final int id,
+    public ResponseEntity<OrderDecoratorsOfflineServiceResponseDto> updateById(
+            @PathVariable final int id,
             @RequestBody @Valid final OrderDecoratorsOfflineServiceRequestDto requestDto) {
         final var result = this.service.updateById(id, requestDto);
         final var orderDecoratorsOfflineService = result.getValue();
@@ -98,9 +99,9 @@ public class OrderDecoratorsOfflineServiceController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 

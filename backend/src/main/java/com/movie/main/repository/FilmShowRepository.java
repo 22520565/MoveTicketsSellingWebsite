@@ -31,22 +31,27 @@ public interface FilmShowRepository extends JpaRepository<FilmShow, Integer> {
     Page<@NotNull FilmShow> findAllByDeletedTrue(@NonNull final Pageable pageable);
 
     @Query("SELECT f FROM FilmShow f WHERE (f.film.id = :filmId) AND (f.deleted = false) ORDER BY f.showDate ASC, f.showTime ASC")
-    Page<@NotNull FilmShow> findAllByFilmIdOrderByDateTime(@Param("filmId") int filmId,
+    Page<@NotNull FilmShow> findAllByFilmIdOrderByDateTime(
+            @Param("filmId") int filmId,
             @NonNull final Pageable pageable);
 
     @Query("SELECT f FROM FilmShow f WHERE (f.showDate = :date) AND (f.deleted = false)")
     @NonNull
-    Page<@NotNull FilmShow> findAllByShowDateAndDeletedFalse(@Param("date") @NotNull final LocalDate date,
+    Page<@NotNull FilmShow> findAllByShowDateAndDeletedFalse(
+            @Param("date") @NotNull final LocalDate date,
             @NonNull final Pageable pageable);
 
     @Query("SELECT f FROM FilmShow f WHERE (f.film.id = :filmId) AND (f.showDate = :date) AND (f.deleted = false)")
     @NonNull
-    Page<@NotNull FilmShow> findAllByFilmIdAndShowDateAndDeletedFalse(@Param("filmId") int filmId,
-            @Param("date") @NotNull final LocalDate date, @NonNull final Pageable pageable);
+    Page<@NotNull FilmShow> findAllByFilmIdAndShowDateAndDeletedFalse(
+            @Param("filmId") int filmId,
+            @Param("date") @NotNull final LocalDate date,
+            @NonNull final Pageable pageable);
 
     @Query(value = "SELECT DISTINCT f.film FROM FilmShow f WHERE (f.showDate = :date) AND (f.deleted = false)")
     @NonNull
-    Page<@NotNull Film> findAllFilmsByShowDateAndDeletedFalse(@Param("date") @NotNull final LocalDate date,
+    Page<@NotNull Film> findAllFilmsByShowDateAndDeletedFalse(
+            @Param("date") @NotNull final LocalDate date,
             @NonNull final Pageable pageable);
 
     @Query(value = "SELECT DISTINCT f.film FROM FilmShow f WHERE (f.showDate = CURRENT_DATE) AND (f.showTime >= CURRENT_TIME) AND (f.deleted = false) ORDER BY f.showTime ASC")
@@ -56,6 +61,7 @@ public interface FilmShowRepository extends JpaRepository<FilmShow, Integer> {
     @Query("SELECT DISTINCT f.film FROM FilmShow f WHERE (f.showDate BETWEEN :startDate AND :endDate) AND (f.deleted = false) ORDER BY f.showDate ASC, f.showTime ASC")
     @NonNull
     Page<@NotNull Film> findAllFilmsByShowDateRangeAndDeletedFalse(
-            @Param("startDate") @NotNull final LocalDate startDate, @Param("endDate") @NotNull final LocalDate endDate,
+            @Param("startDate") @NotNull final LocalDate startDate,
+            @Param("endDate") @NotNull final LocalDate endDate,
             @NonNull final Pageable pageable);
 }

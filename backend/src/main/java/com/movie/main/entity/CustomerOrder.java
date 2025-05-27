@@ -57,8 +57,12 @@ public class CustomerOrder {
     @NotNull
     private Customer customer = null;
 
-    public CustomerOrder(final LocalDate date, final String verifyCode, final int totalPrice,
-            final int totalPriceAfterDiscount, final Customer customer) {
+    public CustomerOrder(
+            final LocalDate date,
+            final String verifyCode,
+            final int totalPrice,
+            final int totalPriceAfterDiscount,
+            final Customer customer) {
         this.date = date;
         this.verifyCode = verifyCode;
         this.totalPrice = totalPrice;

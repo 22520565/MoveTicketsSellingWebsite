@@ -1,3 +1,6 @@
 package com.movie.main.dto.response;
 
-public record TagResponseDto(Integer id, String name) {}
+public record TagResponseDto(
+        int id,
+        String name) {
+}

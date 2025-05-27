@@ -55,7 +55,11 @@ public class Promotion {
     @NotNull
     private LocalDate endDate = LocalDate.now();
 
-    public Promotion(final String name, final String thumbnailUrl, final int discountRate, final LocalDate beginDate,
+    public Promotion(
+            final String name,
+            final String thumbnailUrl,
+            final int discountRate,
+            final LocalDate beginDate,
             final LocalDate endDate) {
         this.name = name;
         this.thumbnailUrl = thumbnailUrl;

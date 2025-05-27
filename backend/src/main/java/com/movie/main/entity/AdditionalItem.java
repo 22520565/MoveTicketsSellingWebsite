@@ -50,7 +50,10 @@ public class AdditionalItem {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    public AdditionalItem(final String name, final int price, final String thumbnailUrl) {
+    public AdditionalItem(
+            final String name,
+            final int price,
+            final String thumbnailUrl) {
         this.name = name;
         this.price = price;
         this.thumbnailUrl = thumbnailUrl;

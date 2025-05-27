@@ -17,11 +17,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TagService {
     public enum CreationError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     @NotNull
@@ -32,7 +34,8 @@ public class TagService {
     }
 
     @NotNull
-    public Page<@NotNull Tag> findAll(@NotNull final PageRequest pageRequest) {
+    public Page<@NotNull Tag> findAll(
+            @NotNull final PageRequest pageRequest) {
         return this.repository.findAll(pageRequest);
     }
 
@@ -42,7 +45,8 @@ public class TagService {
     }
 
     @NotNull
-    public Expected<Tag, CreationError> create(@NotNull final TagRequestDto requestDto) {
+    public Expected<Tag, CreationError> create(
+            @NotNull final TagRequestDto requestDto) {
         final var newTag = new Tag(requestDto.name());
 
         try {
@@ -55,7 +59,9 @@ public class TagService {
     }
 
     @NotNull
-    public Expected<Tag, UpdateError> updateById(final int id, @NotNull final TagRequestDto requestDto) {
+    public Expected<Tag, UpdateError> updateById(
+            final int id,
+            @NotNull final TagRequestDto requestDto) {
         final var tag = this.findById(id);
         if (tag == null) {
             return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);

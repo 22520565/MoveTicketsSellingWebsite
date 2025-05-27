@@ -75,8 +75,13 @@ public class User {
     @Column(nullable = false)
     private boolean deleted = false;
 
-    protected User(final String name, final LocalDate birthDate, final String email, final String phoneNumber,
-            final String username, final String hashedPassword) {
+    protected User(
+            final String name,
+            final LocalDate birthDate,
+            final String email,
+            final String phoneNumber,
+            final String username,
+            final String hashedPassword) {
         this.name = name;
         this.birthDate = birthDate;
         this.email = email;

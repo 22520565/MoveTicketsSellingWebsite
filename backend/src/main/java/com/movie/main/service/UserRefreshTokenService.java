@@ -1,6 +1,5 @@
 package com.movie.main.service;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -17,8 +16,6 @@ import jakarta.validation.constraints.NotNull;
 
 @Service
 public class UserRefreshTokenService {
-    public static final Duration REFRESH_TOKEN_DURATION = Duration.ofDays(7);
-
     @NotNull
     private final UserRefreshTokenRepository repository;
 
@@ -26,13 +23,15 @@ public class UserRefreshTokenService {
         this.repository = repository;
     }
 
-    public UserRefreshToken createRefreshToken(@NotNull final User user) {
+    public UserRefreshToken createRefreshToken(
+            @NotNull final User user) {
         final var newUserRefreshToken = new UserRefreshToken(user);
         return this.repository.save(newUserRefreshToken);
     }
 
     @Transactional
-    public UserRefreshToken createRefreshToken(@NotNull final UserRefreshToken oldUserRefreshToken) {
+    public UserRefreshToken createRefreshToken(
+            @NotNull final UserRefreshToken oldUserRefreshToken) {
         this.deleteById(oldUserRefreshToken.getId());
         return this.createRefreshToken(oldUserRefreshToken.getUser());
     }

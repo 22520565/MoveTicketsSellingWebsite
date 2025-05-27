@@ -17,11 +17,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OrderDataFilmService {
     public enum CreationError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     @NotNull
@@ -47,7 +49,9 @@ public class OrderDataFilmService {
     }
 
     @Nullable
-    public OrderDataFilm findByIdAndCustomerId(final int id, final int customerId) {
+    public OrderDataFilm findByIdAndCustomerId(
+            final int id,
+            final int customerId) {
         return this.repository.findByIdAndCustomerId(id, customerId).orElse(null);
     }
 
@@ -58,9 +62,16 @@ public class OrderDataFilmService {
             return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
         }
 
-        final var newOrderDataFilm = new OrderDataFilm(customerOrder, requestDto.filmName(),
-                requestDto.ageRestriction(), requestDto.date(), requestDto.time(), requestDto.verifyCode(),
-                requestDto.roomName(), requestDto.seatNames(), requestDto.tickets());
+        final var newOrderDataFilm = new OrderDataFilm(
+                customerOrder,
+                requestDto.filmName(),
+                requestDto.ageRestriction(),
+                requestDto.date(),
+                requestDto.time(),
+                requestDto.verifyCode(),
+                requestDto.roomName(),
+                requestDto.seatNames(),
+                requestDto.tickets());
 
         try {
             return Expected.success(this.repository.save(newOrderDataFilm));
@@ -72,7 +83,8 @@ public class OrderDataFilmService {
     }
 
     @NotNull
-    public Expected<OrderDataFilm, UpdateError> updateById(final int id,
+    public Expected<OrderDataFilm, UpdateError> updateById(
+            final int id,
             @NotNull final OrderDataFilmRequestDto requestDto) {
         final var customerOrder = this.customerOrderService.findById(requestDto.customerOrderId());
         if (customerOrder == null) {

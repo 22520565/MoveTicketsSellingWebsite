@@ -48,7 +48,7 @@ public class TagController {
     public ResponseEntity<PagedModel<EntityModel<TagResponseDto>>> findAll(
             @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
             @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
-            final PagedResourcesAssembler<TagResponseDto> assembler) {
+            @NotNull final PagedResourcesAssembler<TagResponseDto> assembler) {
         final var result = this.service.findAll(PageRequest.of(page, size)).map(TagController::getResponseDtoFrom);
         return ResponseEntity.ok(assembler.toModel(result));
     }
@@ -80,14 +80,15 @@ public class TagController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<TagResponseDto> updateById(@PathVariable final int id,
+    public ResponseEntity<TagResponseDto> updateById(
+            @PathVariable final int id,
             @RequestBody @Valid final TagRequestDto requestDto) {
         final var result = this.service.updateById(id, requestDto);
         final var tag = result.getValue();
@@ -97,9 +98,9 @@ public class TagController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 

@@ -43,7 +43,9 @@ public class OrderDataItem {
     @NotNull
     private Set<@NotNull OrderItem> items = new HashSet<>();
 
-    public OrderDataItem(final CustomerOrder customerOrder, final Set<@NotNull OrderItem> items) {
+    public OrderDataItem(
+            final CustomerOrder customerOrder,
+            final Set<@NotNull OrderItem> items) {
         this.id = this.customerOrder.getId();
         this.customerOrder = customerOrder;
         this.items = new HashSet<>(items);

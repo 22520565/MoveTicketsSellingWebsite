@@ -17,11 +17,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AgeRestrictionService {
     public enum CreationError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     @NotNull
@@ -55,7 +57,8 @@ public class AgeRestrictionService {
     }
 
     @NotNull
-    public Expected<AgeRestriction, UpdateError> updateById(final int id,
+    public Expected<AgeRestriction, UpdateError> updateById(
+            final int id,
             @NotNull final AgeRestrictionRequestDto requestDto) {
         final var ageRestriction = this.findById(id);
         if (ageRestriction == null) {

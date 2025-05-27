@@ -20,15 +20,20 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EmployeeAuthService {
     public enum RegisterError {
-        USERNAME_EXISTS, UNSPECIFIED,
+        USERNAME_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum LoginError {
-        USERNAME_NOT_EXISTS, WRONG_PASSWORD, BLOCKED, UNSPECIFIED,
+        USERNAME_NOT_EXISTS,
+        WRONG_PASSWORD,
+        BLOCKED,
+        UNSPECIFIED,
     }
 
     public enum RefreshTokenError {
-        NOT_FOUND, EXPRIED,
+        NOT_FOUND,
+        EXPRIED,
     }
 
     @NotNull
@@ -40,7 +45,8 @@ public class EmployeeAuthService {
     @NotNull
     private final PasswordEncoder passwordEncoder;
 
-    public EmployeeAuthService(@NotNull final EmployeeService employeeService,
+    public EmployeeAuthService(
+            @NotNull final EmployeeService employeeService,
             @NotNull final UserRefreshTokenService userRefreshTokenService,
             @NotNull final PasswordEncoder passwordEncoder) {
         this.employeeService = employeeService;
@@ -76,7 +82,8 @@ public class EmployeeAuthService {
     }
 
     @NotNull
-    public Expected<TokenRefreshResponseDto, RefreshTokenError> refreshToken(final TokenRefreshRequestDto requestDto) {
+    public Expected<TokenRefreshResponseDto, RefreshTokenError> refreshToken(
+            @NotNull final TokenRefreshRequestDto requestDto) {
         final var oldRefreshToken = requestDto.token();
 
         final var oldUserRefreshToken = userRefreshTokenService.findById(oldRefreshToken);

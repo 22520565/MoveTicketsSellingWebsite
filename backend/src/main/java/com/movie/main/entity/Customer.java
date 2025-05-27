@@ -13,8 +13,13 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class Customer extends User {
-    public Customer(final String name, final LocalDate birthDate, final String email, final String phoneNumber,
-            final String username, final String hashedPassword) {
+    public Customer(
+            final String name,
+            final LocalDate birthDate,
+            final String email,
+            final String phoneNumber,
+            final String username,
+            final String hashedPassword) {
         super(name, birthDate, email, phoneNumber, username, hashedPassword);
     }
 }

@@ -78,14 +78,15 @@ public class OrderItemController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<OrderItemResponseDto> updateById(@PathVariable final int id,
+    public ResponseEntity<OrderItemResponseDto> updateById(
+            @PathVariable final int id,
             @RequestBody @Valid final OrderItemRequestDto requestDto) {
         final var result = this.service.updateById(id, requestDto);
         final var orderItem = result.getValue();
@@ -95,9 +96,9 @@ public class OrderItemController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 

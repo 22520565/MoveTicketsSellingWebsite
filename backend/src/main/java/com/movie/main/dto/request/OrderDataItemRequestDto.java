@@ -6,4 +6,7 @@ import com.movie.main.entity.OrderItem;
 
 import jakarta.validation.constraints.NotNull;
 
-public record OrderDataItemRequestDto(int customerOrderId, @NotNull Set<@NotNull OrderItem> items) {}
+public record OrderDataItemRequestDto(
+        int customerOrderId,
+        @NotNull Set<@NotNull OrderItem> items) {
+}

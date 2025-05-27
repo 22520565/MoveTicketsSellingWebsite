@@ -25,7 +25,9 @@ public class CloudinaryService {
     public CloudinaryImage uploadImage(@NotNull final MultipartFile file) {
         try {
             final var result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-            return new CloudinaryImage(result.get("secure_url").toString(), result.get("public_id").toString());
+            return new CloudinaryImage(
+                    result.get("secure_url").toString(),
+                    result.get("public_id").toString());
         }
         catch (final Exception exception) {
             log.error(exception.getMessage());

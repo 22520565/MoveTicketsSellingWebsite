@@ -17,11 +17,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RoomSeatService {
     public enum CreationError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     @NotNull
@@ -30,7 +32,9 @@ public class RoomSeatService {
     @NotNull
     private final RoomService roomService;
 
-    public RoomSeatService(@NotNull final RoomSeatRepository repository, @NotNull final RoomService roomService) {
+    public RoomSeatService(
+            @NotNull final RoomSeatRepository repository,
+            @NotNull final RoomService roomService) {
         this.repository = repository;
         this.roomService = roomService;
     }
@@ -52,7 +56,10 @@ public class RoomSeatService {
             return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
         }
 
-        final var newRoomSeat = new RoomSeat(requestDto.name(), requestDto.type(), room);
+        final var newRoomSeat = new RoomSeat(
+                requestDto.name(),
+                requestDto.type(),
+                room);
 
         try {
             return Expected.success(this.repository.save(newRoomSeat));
@@ -64,7 +71,9 @@ public class RoomSeatService {
     }
 
     @NotNull
-    public Expected<RoomSeat, UpdateError> updateById(final int id, @NotNull final RoomSeatRequestDto requestDto) {
+    public Expected<RoomSeat, UpdateError> updateById(
+            final int id,
+            @NotNull final RoomSeatRequestDto requestDto) {
         final var room = this.roomService.findByIdAndDeletedFalse(requestDto.roomId());
         if (room == null) {
             return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);

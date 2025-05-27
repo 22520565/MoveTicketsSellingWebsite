@@ -20,27 +20,39 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CustomerService {
     public enum CreationError {
-        USERNAME_EXISTS, UNSPECIFIED,
+        USERNAME_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, USERNAME_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        USERNAME_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum SetPasswordResult {
-        SUCCESS, ENTITY_NOT_EXISTS, UNSPECIFIED,
+        SUCCESS,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum ResetPasswordResult {
-        SUCCESS, ENTITY_NOT_EXISTS, WRONG_OLD_PASSWORD, UNSPECIFIED,
+        SUCCESS,
+        ENTITY_NOT_EXISTS,
+        WRONG_OLD_PASSWORD,
+        UNSPECIFIED,
     }
 
     public enum MarkBlockedStatusResult {
-        SUCCESS, ENTITY_NOT_EXISTS_ERROR, UNSPECIFIED_ERROR,
+        SUCCESS,
+        ENTITY_NOT_EXISTS_ERROR,
+        UNSPECIFIED_ERROR,
     }
 
     public enum MarkDeletedStatusResult {
-        SUCCESS, ENTITY_NOT_EXISTS_ERROR, UNSPECIFIED_ERROR,
+        SUCCESS,
+        ENTITY_NOT_EXISTS_ERROR,
+        UNSPECIFIED_ERROR,
     }
 
     @NotNull
@@ -52,7 +64,9 @@ public class CustomerService {
     @NotNull
     private final UserRefreshTokenService userRefreshTokenService;
 
-    public CustomerService(@NotNull final CustomerRepository repository, @NotNull final PasswordEncoder passwordEncoder,
+    public CustomerService(
+            @NotNull final CustomerRepository repository,
+            @NotNull final PasswordEncoder passwordEncoder,
             @NotNull final UserRefreshTokenService userRefreshTokenService) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
@@ -119,8 +133,13 @@ public class CustomerService {
             return Expected.failure(CreationError.USERNAME_EXISTS);
         }
 
-        final var newCustomer = new Customer(requestDto.name(), requestDto.birthDate(), requestDto.email(),
-                requestDto.phoneNumber(), requestDto.username(), this.passwordEncoder.encode(requestDto.password()));
+        final var newCustomer = new Customer(
+                requestDto.name(),
+                requestDto.birthDate(),
+                requestDto.email(),
+                requestDto.phoneNumber(),
+                requestDto.username(),
+                this.passwordEncoder.encode(requestDto.password()));
 
         try {
             return Expected.success(this.repository.save(newCustomer));
@@ -132,7 +151,8 @@ public class CustomerService {
     }
 
     @NotNull
-    public Expected<Customer, UpdateError> updateByIdAndDeletedFalse(final int id,
+    public Expected<Customer, UpdateError> updateByIdAndDeletedFalse(
+            final int id,
             @NotNull final CustomerRequestDto requestDto) {
         final var customer = this.findByIdAndDeletedFalse(id);
         if (customer == null) {
@@ -161,7 +181,8 @@ public class CustomerService {
     }
 
     @NotNull
-    public Expected<Customer, UpdateError> updateByIdAndBlockedFalseAndDeletedFalse(final int id,
+    public Expected<Customer, UpdateError> updateByIdAndBlockedFalseAndDeletedFalse(
+            final int id,
             @NotNull final CustomerSelfRequestDto requestDto) {
         final var customer = this.findByIdAndBlockedFalseAndDeletedFalse(id);
         if (customer == null) {
@@ -189,7 +210,9 @@ public class CustomerService {
     }
 
     @NotNull
-    public SetPasswordResult setPasswordByIdAndDeletedFalse(final int id, final String newPassword) {
+    public SetPasswordResult setPasswordByIdAndDeletedFalse(
+            final int id,
+            final String newPassword) {
         final var customer = this.findByIdAndDeletedFalse(id);
         if (customer == null) {
             return SetPasswordResult.ENTITY_NOT_EXISTS;
@@ -208,7 +231,9 @@ public class CustomerService {
     }
 
     @NotNull
-    public ResetPasswordResult resetPasswordByIdAndBlockedFalseAndDeletedFalse(final int id, final String oldPassword,
+    public ResetPasswordResult resetPasswordByIdAndBlockedFalseAndDeletedFalse(
+            final int id,
+            final String oldPassword,
             final String newPassword) {
         var customer = this.findByIdAndBlockedFalseAndDeletedFalse(id);
         if (customer == null)
@@ -241,7 +266,9 @@ public class CustomerService {
     }
 
     @NotNull
-    public MarkBlockedStatusResult markBlockedStatusById(final int id, final boolean blockedStatusToMark) {
+    public MarkBlockedStatusResult markBlockedStatusById(
+            final int id,
+            final boolean blockedStatusToMark) {
         final var customer = this.findByIdAndDeletedFalse(id);
         if (customer == null) {
             return MarkBlockedStatusResult.ENTITY_NOT_EXISTS_ERROR;
@@ -270,7 +297,9 @@ public class CustomerService {
     }
 
     @NotNull
-    public MarkDeletedStatusResult markDeletedStatusById(final int id, final boolean deletedStatusToMark) {
+    public MarkDeletedStatusResult markDeletedStatusById(
+            final int id,
+            final boolean deletedStatusToMark) {
         final var customer = this.findById(id);
         if (customer == null) {
             return MarkDeletedStatusResult.ENTITY_NOT_EXISTS_ERROR;

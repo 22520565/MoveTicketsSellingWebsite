@@ -20,23 +20,34 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.param.PaymentIntentCreateParams;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class StripePaymentService {
     public enum PaymentError {
-        AUTH_ERROR, INVALID_REQUEST, CARD_DECLINED, NETWORK_ERROR, SERVER_ERROR, RATE_LIMIT, IDEMPOTENCY,
-        PERMISSION_DENIED, INTERNAL_ERROR, UNSPECIFIED,
+        AUTH_ERROR,
+        INVALID_REQUEST,
+        CARD_DECLINED,
+        NETWORK_ERROR,
+        SERVER_ERROR,
+        RATE_LIMIT,
+        IDEMPOTENCY,
+        PERMISSION_DENIED,
+        INTERNAL_ERROR,
+        UNSPECIFIED,
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
+    @NotNull
     private final StripePaymentRepository repository;
 
-    public StripePaymentService(final StripePaymentRepository repository) {
+    public StripePaymentService(@NotNull final StripePaymentRepository repository) {
         this.repository = repository;
     }
 
@@ -103,7 +114,8 @@ public class StripePaymentService {
         }
     }
 
-    public Expected<StripePayment, UpdateError> updatePaymentStatus(final String intentId,
+    public Expected<StripePayment, UpdateError> updatePaymentStatus(
+            final String intentId,
             final StripePayment.Status status) {
         final var stripePayment = this.repository.findByPaymentIntentId(intentId).orElse(null);
         if (stripePayment == null) {

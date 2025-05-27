@@ -20,27 +20,39 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EmployeeService {
     public enum CreationError {
-        USERNAME_EXISTS, UNSPECIFIED,
+        USERNAME_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum UpdateError {
-        ENTITY_NOT_EXISTS, USERNAME_EXISTS, UNSPECIFIED,
+        ENTITY_NOT_EXISTS,
+        USERNAME_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum SetPasswordResult {
-        SUCCESS, ENTITY_NOT_EXISTS, UNSPECIFIED,
+        SUCCESS,
+        ENTITY_NOT_EXISTS,
+        UNSPECIFIED,
     }
 
     public enum ResetPasswordResult {
-        SUCCESS, ENTITY_NOT_EXISTS, WRONG_OLD_PASSWORD, UNSPECIFIED,
+        SUCCESS,
+        ENTITY_NOT_EXISTS,
+        WRONG_OLD_PASSWORD,
+        UNSPECIFIED,
     }
 
     public enum MarkBlockedStatusResult {
-        SUCCESS, ENTITY_NOT_EXISTS_ERROR, UNSPECIFIED_ERROR,
+        SUCCESS,
+        ENTITY_NOT_EXISTS_ERROR,
+        UNSPECIFIED_ERROR,
     }
 
     public enum MarkDeletedStatusResult {
-        SUCCESS, ENTITY_NOT_EXISTS_ERROR, UNSPECIFIED_ERROR,
+        SUCCESS,
+        ENTITY_NOT_EXISTS_ERROR,
+        UNSPECIFIED_ERROR,
     }
 
     @NotNull
@@ -119,10 +131,19 @@ public class EmployeeService {
             return Expected.failure(CreationError.USERNAME_EXISTS);
         }
 
-        final var newEmployee = new Employee(requestDto.name(), requestDto.birthDate(), requestDto.email(),
-                requestDto.phoneNumber(), requestDto.username(), this.passwordEncoder.encode(requestDto.username()),
-                requestDto.jobTitle(), requestDto.salary(), requestDto.shiftStart(), requestDto.shiftEnd(),
-                requestDto.beginWorkingDate(), requestDto.permissions());
+        final var newEmployee = new Employee(
+                requestDto.name(),
+                requestDto.birthDate(),
+                requestDto.email(),
+                requestDto.phoneNumber(),
+                requestDto.username(),
+                this.passwordEncoder.encode(requestDto.username()),
+                requestDto.jobTitle(),
+                requestDto.salary(),
+                requestDto.shiftStart(),
+                requestDto.shiftEnd(),
+                requestDto.beginWorkingDate(),
+                requestDto.permissions());
 
         try {
             return Expected.success(this.repository.save(newEmployee));
@@ -134,7 +155,8 @@ public class EmployeeService {
     }
 
     @NotNull
-    public Expected<Employee, UpdateError> updateByIdAndDeletedFalse(final int id,
+    public Expected<Employee, UpdateError> updateByIdAndDeletedFalse(
+            final int id,
             @NotNull final EmployeeRequestDto requestDto) {
         final var employee = this.findByIdAndDeletedFalse(id);
         if (employee == null) {
@@ -168,7 +190,8 @@ public class EmployeeService {
     }
 
     @NotNull
-    public Expected<Employee, UpdateError> updateByIdAndBlockedFalseAndDeletedFalse(final int id,
+    public Expected<Employee, UpdateError> updateByIdAndBlockedFalseAndDeletedFalse(
+            final int id,
             @NotNull final EmployeeSelfRequestDto requestDto) {
         final var employee = this.findByIdAndBlockedFalseAndDeletedFalse(id);
         if (employee == null) {
@@ -201,7 +224,9 @@ public class EmployeeService {
     }
 
     @NotNull
-    public SetPasswordResult setPasswordByIdAndDeletedFalse(final int id, final String newPassword) {
+    public SetPasswordResult setPasswordByIdAndDeletedFalse(
+            final int id,
+            final String newPassword) {
         final var employee = this.findByIdAndDeletedFalse(id);
         if (employee == null) {
             return SetPasswordResult.ENTITY_NOT_EXISTS;
@@ -220,7 +245,9 @@ public class EmployeeService {
     }
 
     @NotNull
-    public ResetPasswordResult resetPasswordByIdAndBlockedFalseAndDeletedFalse(final int id, final String oldPassword,
+    public ResetPasswordResult resetPasswordByIdAndBlockedFalseAndDeletedFalse(
+            final int id,
+            final String oldPassword,
             final String newPassword) {
         var employee = this.findByIdAndBlockedFalseAndDeletedFalse(id);
         if (employee == null)
@@ -282,7 +309,9 @@ public class EmployeeService {
     }
 
     @NotNull
-    public MarkDeletedStatusResult markDeletedStatusById(final int id, final boolean deletedStatusToMark) {
+    public MarkDeletedStatusResult markDeletedStatusById(
+            final int id,
+            final boolean deletedStatusToMark) {
         final var employee = this.findById(id);
         if (employee == null) {
             return MarkDeletedStatusResult.ENTITY_NOT_EXISTS_ERROR;

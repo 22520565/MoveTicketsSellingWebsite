@@ -79,14 +79,15 @@ public class OrderDecoratorsPromotionController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<OrderDecoratorsPromotionResponseDto> updateById(@PathVariable final int id,
+    public ResponseEntity<OrderDecoratorsPromotionResponseDto> updateById(
+            @PathVariable final int id,
             @RequestBody @Valid final OrderDecoratorsPromotionRequestDto requestDto) {
         final var result = this.service.updateById(id, requestDto);
         final var orderDecoratorsPromotion = result.getValue();
@@ -96,9 +97,9 @@ public class OrderDecoratorsPromotionController {
         }
 
         return switch (result.getError()) {
-        case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
-        case UNSPECIFIED -> ResponseEntity.internalServerError().build();
-        default -> ResponseEntity.internalServerError().build();
+            case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+            case UNSPECIFIED -> ResponseEntity.internalServerError().build();
+            default -> ResponseEntity.internalServerError().build();
         };
     }
 

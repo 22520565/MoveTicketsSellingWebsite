@@ -12,16 +12,25 @@ public final class Expected<T, E> {
 
     private final E error;
 
-    private Expected(@Nullable final T value, @Nullable final E error) {
+    private Expected(
+            @Nullable
+            final T value,
+
+            @Nullable
+            final E error) {
         this.value = value;
         this.error = error;
     }
 
-    public static <T, E> Expected<T, E> success(@NotNull final T value) {
+    public static <T, E> Expected<T, E> success(
+            @NotNull
+            final T value) {
         return new Expected<>(value, null);
     }
 
-    public static <T, E> Expected<T, E> failure(@NotNull final E error) {
+    public static <T, E> Expected<T, E> failure(
+            @NotNull
+            final E error) {
         return new Expected<>(null, error);
     }
 

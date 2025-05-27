@@ -29,8 +29,8 @@ public class StripePayment {
     public static final int MinAnount = 1;
 
     public enum Status {
-        REQUIRES_PAYMENT_METHOD("requires_payment_method"), REQUIRES_ACTION("requires_action"),
-        PROCESSING("processing"), REQUIRES_CAPTURE("requires_capture"), SUCCEEDED("succeeded"), CANCELED("canceled");
+        REQUIRES_PAYMENT_METHOD("requires_payment_method"), REQUIRES_ACTION("requires_action"), PROCESSING(
+                "processing"), REQUIRES_CAPTURE("requires_capture"), SUCCEEDED("succeeded"), CANCELED("canceled");
 
         @Nullable
         private final String stripeValue;
@@ -80,7 +80,11 @@ public class StripePayment {
     @NotNull
     private Instant createdAt = Instant.now();
 
-    public StripePayment(final String paymentIntentId, final Status status, final int amount, final Instant createdAt) {
+    public StripePayment(
+            final String paymentIntentId,
+            final Status status,
+            final int amount,
+            final Instant createdAt) {
         this.paymentIntentId = paymentIntentId;
         this.status = status;
         this.amount = amount;
