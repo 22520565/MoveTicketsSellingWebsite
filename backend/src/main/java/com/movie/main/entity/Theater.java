@@ -32,17 +32,17 @@ public class Theater {
     @Setter(value = AccessLevel.PACKAGE)
     private int id = 0;
 
-    @Column(length = MaxLengthName, nullable = false, unique = true)
+    @Column(length = MaxLengthName, nullable = false)
     @NotBlank
     @Size(min = MinLengthName, max = MaxLengthName)
     private String name = "";
 
-    @Column(length = MaxLengthAddress, nullable = false, unique = true)
+    @Column(length = MaxLengthAddress, nullable = false)
     @NotBlank
     @Size(min = MinLengthAddress, max = MaxLengthAddress)
     private String address = "";
 
-    @Column(length = MaxLengthCity, nullable = false, unique = true)
+    @Column(length = MaxLengthCity, nullable = false)
     @NotBlank
     @Size(min = MinLengthCity, max = MaxLengthCity)
     private String city = "";
