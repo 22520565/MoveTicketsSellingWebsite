@@ -60,6 +60,21 @@ public class PromotionService {
         return this.repository.findAll(pageRequest);
     }
 
+    @NotNull
+    public Page<@NotNull Promotion> findAllActivePromotionOrderByDate(@NotNull final PageRequest pageRequest) {
+        return this.repository.findAllActivePromotionOrderByDate(pageRequest);
+    }
+
+    @NotNull
+    public Page<@NotNull Promotion> findAllInactivePromotionOrderByDate(@NotNull final PageRequest pageRequest) {
+        return this.repository.findAllInactivePromotionOrderByDate(pageRequest);
+    }
+
+    @NotNull
+    public Page<@NotNull Promotion> findAllExpiredPromotionOrderByDate(@NotNull final PageRequest pageRequest) {
+        return this.repository.findAllExpiredPromotionOrderByDate(pageRequest);
+    }
+
     @Nullable
     public Promotion findById(final int id) {
         return this.repository.findById(id).orElse(null);
@@ -152,12 +167,12 @@ public class PromotionService {
     }
 
     @NotNull
-    public MarkPausedStatusResult markAsDeletedById(final int id) {
+    public MarkPausedStatusResult markAsPausedById(final int id) {
         return this.markPausedStatusById(id, true);
     }
 
     @NotNull
-    public MarkPausedStatusResult markAsUndeletedById(final int id) {
+    public MarkPausedStatusResult markAsUnpausedById(final int id) {
         return this.markPausedStatusById(id, false);
     }
 
