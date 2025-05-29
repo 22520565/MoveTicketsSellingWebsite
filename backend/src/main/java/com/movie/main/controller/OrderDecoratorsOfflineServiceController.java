@@ -114,8 +114,10 @@ public class OrderDecoratorsOfflineServiceController {
     @NotNull
     public static OrderDecoratorsOfflineServiceResponseDto getResponseDtoFrom(
             @NotNull final OrderDecoratorsOfflineService orderDecoratorsOfflineService) {
-        return new OrderDecoratorsOfflineServiceResponseDto(orderDecoratorsOfflineService.getCustomerOrder().getId(),
-                orderDecoratorsOfflineService.isPrinted(), orderDecoratorsOfflineService.isServed(),
+        return new OrderDecoratorsOfflineServiceResponseDto(
+                orderDecoratorsOfflineService.getCustomerOrder().getId(),
+                orderDecoratorsOfflineService.isPrinted(),
+                orderDecoratorsOfflineService.isServed(),
                 orderDecoratorsOfflineService.getInvalidReasonPrinted(),
                 orderDecoratorsOfflineService.getInvalidReasonServed());
     }

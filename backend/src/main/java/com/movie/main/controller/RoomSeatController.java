@@ -112,7 +112,10 @@ public class RoomSeatController {
 
     @NotNull
     public static RoomSeatResponseDto getResponseDtoFrom(@NotNull final RoomSeat roomSeat) {
-        return new RoomSeatResponseDto(roomSeat.getId(), roomSeat.getName(), roomSeat.getType(),
+        return new RoomSeatResponseDto(
+                roomSeat.getId(),
+                roomSeat.getName(),
+                roomSeat.getType(),
                 roomSeat.getRoom().getId());
     }
 }

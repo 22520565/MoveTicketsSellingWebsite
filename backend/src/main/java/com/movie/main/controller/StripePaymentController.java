@@ -62,9 +62,11 @@ public class StripePaymentController {
                 default:
                     return ResponseEntity.internalServerError().build();
             }
-        } catch (final SignatureVerificationException exception) {
+        }
+        catch (final SignatureVerificationException exception) {
             return ResponseEntity.badRequest().build();
-        } catch (final Exception exception) {
+        }
+        catch (final Exception exception) {
             return ResponseEntity.internalServerError().build();
         }
     }

@@ -201,8 +201,19 @@ public class FilmController {
             tagIds.add(tag.getId());
         }
 
-        return new FilmResponseDto(film.getId(), film.getName(), film.getThumbnailUrl(), film.getTrailerUrl(), tagIds,
-                film.getDuration(), film.getAgeRestriction(), film.getVoice(), film.getOriginatedCountry(), film.is3D(),
-                film.getDescription(), film.getContent(), film.getBeginDate());
+        return new FilmResponseDto(
+                film.getId(),
+                film.getName(),
+                film.getThumbnailUrl(),
+                film.getTrailerUrl(),
+                tagIds,
+                film.getDuration(),
+                film.getAgeRestriction(),
+                film.getVoice(),
+                film.getOriginatedCountry(),
+                film.is3D(),
+                film.getDescription(),
+                film.getContent(),
+                film.getBeginDate());
     }
 }

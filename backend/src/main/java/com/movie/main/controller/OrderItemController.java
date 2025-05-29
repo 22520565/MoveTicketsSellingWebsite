@@ -110,7 +110,10 @@ public class OrderItemController {
 
     @NotNull
     public static OrderItemResponseDto getResponseDtoFrom(@NotNull final OrderItem orderItem) {
-        return new OrderItemResponseDto(orderItem.getId(), orderItem.getName(), orderItem.getQuantity(),
+        return new OrderItemResponseDto(
+                orderItem.getId(),
+                orderItem.getName(),
+                orderItem.getQuantity(),
                 orderItem.getPrice());
     }
 }

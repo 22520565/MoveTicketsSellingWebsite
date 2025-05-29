@@ -125,6 +125,9 @@ public class TheaterController {
 
     @NotNull
     public static TheaterResponseDto getResponseDtoFrom(@NotNull final Theater theater) {
-        return new TheaterResponseDto(theater.getId(), theater.getName(), theater.getAddress());
+        return new TheaterResponseDto(
+                theater.getId(),
+                theater.getName(),
+                theater.getAddress());
     }
 }

@@ -113,7 +113,10 @@ public class OrderTicketController {
 
     @NotNull
     public static OrderTicketResponseDto getResponseDtoFrom(@NotNull final OrderTicket orderTicket) {
-        return new OrderTicketResponseDto(orderTicket.getId(), orderTicket.getName(), orderTicket.getQuantity(),
+        return new OrderTicketResponseDto(
+                orderTicket.getId(),
+                orderTicket.getName(),
+                orderTicket.getQuantity(),
                 orderTicket.getPrice());
     }
 }

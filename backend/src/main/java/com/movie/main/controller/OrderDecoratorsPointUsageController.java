@@ -113,7 +113,9 @@ public class OrderDecoratorsPointUsageController {
     @NotNull
     public static OrderDecoratorsPointUsageResponseDto getResponseDtoFrom(
             @NotNull final OrderDecoratorsPointUsage orderDecoratorsPointUsage) {
-        return new OrderDecoratorsPointUsageResponseDto(orderDecoratorsPointUsage.getCustomerOrder().getId(),
-                orderDecoratorsPointUsage.getPointUsed(), orderDecoratorsPointUsage.getPointToMoneyRatio());
+        return new OrderDecoratorsPointUsageResponseDto(
+                orderDecoratorsPointUsage.getCustomerOrder().getId(),
+                orderDecoratorsPointUsage.getPointUsed(),
+                orderDecoratorsPointUsage.getPointToMoneyRatio());
     }
 }

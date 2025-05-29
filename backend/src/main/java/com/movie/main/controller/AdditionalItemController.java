@@ -169,7 +169,10 @@ public class AdditionalItemController {
 
     @NotNull
     public static AdditionalItemResponseDto getResponseDtoFrom(@NotNull final AdditionalItem additionalItem) {
-        return new AdditionalItemResponseDto(additionalItem.getId(), additionalItem.getName(),
-                additionalItem.getPrice(), additionalItem.getThumbnailUrl());
+        return new AdditionalItemResponseDto(
+                additionalItem.getId(),
+                additionalItem.getName(),
+                additionalItem.getPrice(),
+                additionalItem.getThumbnailUrl());
     }
 }

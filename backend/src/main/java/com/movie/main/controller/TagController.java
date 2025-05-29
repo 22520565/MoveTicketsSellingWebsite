@@ -112,6 +112,8 @@ public class TagController {
 
     @NotNull
     public static TagResponseDto getResponseDtoFrom(@NotNull final Tag tag) {
-        return new TagResponseDto(tag.getId(), tag.getName());
+        return new TagResponseDto(
+                tag.getId(),
+                tag.getName());
     }
 }

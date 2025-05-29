@@ -226,7 +226,12 @@ public class FilmShowController {
 
     @NotNull
     public static FilmShowResponseDto getResponseDtoFrom(@NotNull final FilmShow filmShow) {
-        return new FilmShowResponseDto(filmShow.getId(), filmShow.getFilm().getId(), filmShow.getRoom().getId(),
-                filmShow.getShowDate(), filmShow.getShowTime(), filmShow.getType());
+        return new FilmShowResponseDto(
+                filmShow.getId(),
+                filmShow.getFilm().getId(),
+                filmShow.getRoom().getId(),
+                filmShow.getShowDate(),
+                filmShow.getShowTime(),
+                filmShow.getType());
     }
 }

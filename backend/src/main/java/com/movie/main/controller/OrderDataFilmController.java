@@ -111,9 +111,15 @@ public class OrderDataFilmController {
 
     @NotNull
     public static OrderDataFilmResponseDto getResponseDtoFrom(@NotNull final OrderDataFilm orderDataFilm) {
-        return new OrderDataFilmResponseDto(orderDataFilm.getCustomerOrder().getId(), orderDataFilm.getFilmName(),
-                orderDataFilm.getAgeRestriction(), orderDataFilm.getDate(), orderDataFilm.getTime(),
-                orderDataFilm.getVerifyCode(), orderDataFilm.getRoomName(), orderDataFilm.getSeatNames(),
+        return new OrderDataFilmResponseDto(
+                orderDataFilm.getCustomerOrder().getId(),
+                orderDataFilm.getFilmName(),
+                orderDataFilm.getAgeRestriction(),
+                orderDataFilm.getDate(),
+                orderDataFilm.getTime(),
+                orderDataFilm.getVerifyCode(),
+                orderDataFilm.getRoomName(),
+                orderDataFilm.getSeatNames(),
                 orderDataFilm.getTickets());
     }
 }

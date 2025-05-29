@@ -200,7 +200,12 @@ public class CustomerController {
 
     @NotNull
     public static CustomerResponseDto getResponseDtoFrom(@NotNull final Customer customer) {
-        return new CustomerResponseDto(customer.getId(), customer.getName(), customer.getBirthDate(),
-                customer.getEmail(), customer.getPhoneNumber(), customer.getUsername());
+        return new CustomerResponseDto(
+                customer.getId(),
+                customer.getName(),
+                customer.getBirthDate(),
+                customer.getEmail(),
+                customer.getPhoneNumber(),
+                customer.getUsername());
     }
 }

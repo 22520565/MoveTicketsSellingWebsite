@@ -199,9 +199,18 @@ public class EmployeeController {
 
     @NotNull
     public static EmployeeResponseDto getResponseDtoFrom(@NotNull final Employee employee) {
-        return new EmployeeResponseDto(employee.getId(), employee.getName(), employee.getBirthDate(),
-                employee.getEmail(), employee.getPhoneNumber(), employee.getUsername(), employee.getJobTitle(),
-                employee.getSalary(), employee.getShiftStart(), employee.getShiftEnd(), employee.getBeginWorkingDate(),
+        return new EmployeeResponseDto(
+                employee.getId(),
+                employee.getName(),
+                employee.getBirthDate(),
+                employee.getEmail(),
+                employee.getPhoneNumber(),
+                employee.getUsername(),
+                employee.getJobTitle(),
+                employee.getSalary(),
+                employee.getShiftStart(),
+                employee.getShiftEnd(),
+                employee.getBeginWorkingDate(),
                 employee.getPermissions());
     }
 }

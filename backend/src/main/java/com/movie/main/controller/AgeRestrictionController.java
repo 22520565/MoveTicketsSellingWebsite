@@ -114,6 +114,8 @@ public class AgeRestrictionController {
 
     @NotNull
     public static AgeRestrictionResponseDto getResponseDtoFrom(@NotNull final AgeRestriction ageRestriction) {
-        return new AgeRestrictionResponseDto(ageRestriction.getId(), ageRestriction.getName());
+        return new AgeRestrictionResponseDto(
+                ageRestriction.getId(),
+                ageRestriction.getName());
     }
 }

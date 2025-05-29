@@ -148,8 +148,16 @@ public class RoomController {
 
     @NotNull
     public static RoomResponseDto getResponseDtoFrom(@NotNull final Room room) {
-        return new RoomResponseDto(room.getId(), room.getName(), room.getNumberOfSeatRow(),
-                room.getNumberOfSeatColumn(), room.getCenterX1(), room.getCenterX2(), room.getCenterY1(),
-                room.getCenterY2(), room.getNote(), room.getTheater().getId());
+        return new RoomResponseDto(
+                room.getId(),
+                room.getName(),
+                room.getNumberOfSeatRow(),
+                room.getNumberOfSeatColumn(),
+                room.getCenterX1(),
+                room.getCenterX2(),
+                room.getCenterY1(),
+                room.getCenterY2(),
+                room.getNote(),
+                room.getTheater().getId());
     }
 }

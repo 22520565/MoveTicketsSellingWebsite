@@ -184,7 +184,12 @@ public class PromotionController {
 
     @NotNull
     public static PromotionResponseDto getResponseDtoFrom(@NotNull final Promotion promotion) {
-        return new PromotionResponseDto(promotion.getId(), promotion.getName(), promotion.getThumbnailUrl(),
-                promotion.getDiscountRate(), promotion.getBeginDate(), promotion.getEndDate());
+        return new PromotionResponseDto(
+                promotion.getId(),
+                promotion.getName(),
+                promotion.getThumbnailUrl(),
+                promotion.getDiscountRate(),
+                promotion.getBeginDate(),
+                promotion.getEndDate());
     }
 }
