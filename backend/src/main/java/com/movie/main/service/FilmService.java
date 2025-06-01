@@ -162,7 +162,7 @@ public class FilmService {
 
         final var oldThumbnailUrl = film.getThumbnailUrl();
         final var newThumbnailUrl = requestDto.thumbnailUrl();
-        if ((oldThumbnailUrl != null) && (oldThumbnailUrl.equals(newThumbnailUrl))) {
+        if ((oldThumbnailUrl != null) && (!oldThumbnailUrl.equals(newThumbnailUrl))) {
             final var oldThumbnailPublicId = film.getThumbnailPublicId();
 
             if ((oldThumbnailPublicId != null) && (!this.cloudinaryService.deleteImage(oldThumbnailPublicId))) {

@@ -109,7 +109,7 @@ public class PromotionService {
 
         final var oldThumbnailUrl = promotion.getThumbnailUrl();
         final var newThumbnailUrl = requestDto.thumbnailUrl();
-        if ((oldThumbnailUrl != null) && (oldThumbnailUrl.equals(newThumbnailUrl))) {
+        if ((oldThumbnailUrl != null) && (!oldThumbnailUrl.equals(newThumbnailUrl))) {
             final var oldThumbnailPublicId = promotion.getThumbnailPublicId();
 
             if ((oldThumbnailPublicId != null) && (!this.cloudinaryService.deleteImage(oldThumbnailPublicId))) {
