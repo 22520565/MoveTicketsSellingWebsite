@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import Table from "../../components/Table";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import { BsSortDown } from "react-icons/bs";
+import { IoIosRefresh } from "react-icons/io";
 import { BiRefresh } from "react-icons/bi";
 import AdditionalItemModal from "../../components/Modal/AdditionalItemModal";
 import SuccessDialog from "../../components/Dialog/SuccessDialog";
@@ -9,6 +10,14 @@ import Dialog from "../../components/Dialog/ConfirmDialog";
 import FailedDialog from "../../components/Dialog/FailedDialog";
 import RefreshLoader from "../../components/Loading";
 import axios from "axios";
+import {
+  addItem,
+  getAllItems,
+  deleteItem,
+  undeleteItem,
+  updateItem,
+  getAllItemsDeleted,
+} from "../../config/api";
 
 const AdditionalItemManagementPage = () => {
   const [tableSearchQuery, setTableSearchQuery] = useState("");
@@ -35,10 +44,29 @@ const AdditionalItemManagementPage = () => {
   const fetchItems = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        "http://localhost:8000/api/additional-items"
-      );
-      setItems(response.data.data); // Lưu dữ liệu vào state
+      const [activeRes, deletedRes] = await Promise.all([
+        getAllItems(),
+        getAllItemsDeleted(),
+      ]);
+      const activeItems =
+        activeRes?.data?._embedded?.additionalItemResponseDtoList?.map(
+          (item) => ({
+            ...item,
+            deleted: false,
+          })
+        ) || [];
+
+      const deletedItems =
+        deletedRes?.data?._embedded?.additionalItemResponseDtoList?.map(
+          (item) => ({
+            ...item,
+            name: `${item.name} (ĐÃ XÓA)`,
+            deleted: true,
+          })
+        ) || [];
+
+      const mergedItems = [...activeItems, ...deletedItems];
+      setItems(mergedItems);
     } catch (error) {
       console.error("Error fetching items:", error);
     } finally {
@@ -71,6 +99,8 @@ const AdditionalItemManagementPage = () => {
         return "Bạn chắc chắn muốn thêm sản phẩm này ?";
       case "edit":
         return `Bạn chắc chắn muốn cập nhật sản phẩm này ?`;
+      case "restore":
+        return `Bạn chắc chắn muốn khôi phục sản phẩm này ?`;
       default:
         return "Xác nhận hành động?";
     }
@@ -85,6 +115,8 @@ const AdditionalItemManagementPage = () => {
         return "Thêm sản phẩm thành công";
       case "edit":
         return "Cập nhật sản phẩm thành công";
+      case "restore":
+        return "Khôi phục sản phẩm thành công";
       default:
         return "Thao tác thành công";
     }
@@ -117,41 +149,38 @@ const AdditionalItemManagementPage = () => {
     }, 2000);
   };
 
+  const handleRestoreClick = (item) => {
+    openConfirmDialog("restore", item);
+  };
+
   const handleConfirmClick = async () => {
     setLoading(true);
     try {
-      if (actionType === "delete") {
-        await axios.delete(
-          `http://localhost:8000/api/additional-items/${selectedItem._id}`
-        );
-        const updatedFilteredData = items.filter((item) =>
-          item.name.toLowerCase().includes(tableSearchQuery.toLowerCase())
-        );
-        const newTotalPages = Math.ceil(
-          updatedFilteredData.length / itemsPerPage
-        );
+      console.log("Selected Item:", selectedItem);
 
-        // Kiểm tra nếu trang hiện tại không còn dữ liệu, chuyển về trang trước
-        if (newTotalPages < currentPage && newTotalPages > 0) {
-          setCurrentPage(newTotalPages); // Quay về trang trước nếu trang hiện tại không còn dữ liệu
-        } else {
-          setCurrentPage(currentPage - 1); // Giữ nguyên trang hiện tại nếu còn dữ liệu
-        }
+      if (actionType === "delete") {
+        await deleteItem(selectedItem.id);
+        // const updatedFilteredData = items.filter((item) =>
+        //   item.name.toLowerCase().includes(tableSearchQuery.toLowerCase())
+        // );
+        // const newTotalPages = Math.ceil(
+        //   updatedFilteredData.length / itemsPerPage
+        // );
+
+        // // Kiểm tra nếu trang hiện tại không còn dữ liệu, chuyển về trang trước
+        // if (newTotalPages < currentPage && newTotalPages > 0) {
+        //   setCurrentPage(newTotalPages); // Quay về trang trước nếu trang hiện tại không còn dữ liệu
+        // } else {
+        //   setCurrentPage(currentPage - 1); // Giữ nguyên trang hiện tại nếu còn dữ liệu
+        // }
+        await fetchItems();
       } else if (actionType === "edit") {
-        const res = await axios.put(
-          `http://localhost:8000/api/additional-items/${selectedItem._id}`,
-          selectedItem
-        );
+        const res = await updateItem(selectedItem.id, selectedItem);
       } else if (actionType === "add") {
         console.log("haha: ", selectedItem);
-        const formData = new FormData();
-        formData.append("name", selectedItem.name);
-        formData.append("price", selectedItem.price);
-        formData.append("thumbnailFile", selectedItem.file);
-        await axios.post(
-          "http://localhost:8000/api/additional-items",
-          formData
-        );
+        addItem(selectedItem);
+      } else if (actionType === "restore") {
+        await undeleteItem(selectedItem.id);
       }
       await handleRefresh(); // Làm mới dữ liệu sau khi thành công
 
@@ -194,18 +223,30 @@ const AdditionalItemManagementPage = () => {
       key: "actions",
       render: (_, row) => (
         <div className="flex space-x-3">
-          <button
-            className="text-blue-600 hover:text-blue-800"
-            onClick={() => handleEditClick(row)}
-          >
-            <FiEdit2 className="w-4 h-4" />
-          </button>
-          <button
-            className="text-red-600 hover:text-red-800"
-            onClick={() => handleDelete(row)}
-          >
-            <FiTrash2 className="w-4 h-4" />
-          </button>
+          {row.deleted ? (
+            // Render Restore Button if `deleted` is true
+            <button
+              className="text-green-600 hover:text-green-800"
+              onClick={() => handleRestoreClick(row)}
+            >
+              <IoIosRefresh className="w-4 h-4" /> {/* Restore icon */}
+            </button>
+          ) : (
+            <>
+              <button
+                className="text-blue-600 hover:text-blue-800"
+                onClick={() => handleEditClick(row)}
+              >
+                <FiEdit2 className="w-4 h-4" />
+              </button>
+              <button
+                className="text-red-600 hover:text-red-800"
+                onClick={() => handleDelete(row)}
+              >
+                <FiTrash2 className="w-4 h-4" />
+              </button>
+            </>
+          )}
         </div>
       ),
     },

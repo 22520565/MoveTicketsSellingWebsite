@@ -5,6 +5,9 @@ import {
   getShowTimeOfDateByFilmId,
   getCinemas,
   getFilmByTheaterId,
+  getFilmShowByFilmId,
+  getRoomById,
+  getFilmShowByFilmIdAndDate,
 } from "../../config/api";
 import { useNavigate } from "react-router-dom";
 import {
@@ -29,6 +32,7 @@ const QuickBooking = () => {
 
   const [availableMovies, setAvailableMovies] = useState([]);
   const [availableDates, setAvailableDates] = useState([]);
+  const [allShowtimes, setAllShowtimes] = useState([]);
   const [availableShowtimes, setAvailableShowtimes] = useState([]);
 
   const [isLoadingMovies, setIsLoadingMovies] = useState(false);
@@ -119,6 +123,8 @@ const QuickBooking = () => {
         }
       } catch {
         throw new Error("There is an error while getting film detail");
+      } finally {
+        setIsLoadingMovies(false);
       }
     };
     if (selectedCinema?.id) {
@@ -126,40 +132,65 @@ const QuickBooking = () => {
     }
   }, [selectedCinema]);
 
-  // useEffect(() => {
-  //   const fetchFilmShowing = async () => {
-  //     try {
-  //       const response = await getShowingFilms();
-  //       if (response && response.data) {
-  //         const filmShowingMap = response.data.map((film) => ({
-  //           id: film._id,
-  //           name: film.name,
-  //         }));
-  //         setAvailableMovies(filmShowingMap);
-  //       }
-  //     } catch {
-  //       throw new Error("There is an error while getting film detail");
-  //     }
-  //   };
-  //   fetchFilmShowing();
-  // }, []);
+  useEffect(() => {
+    const fetchDate = async () => {
+      try {
+        setIsLoadingDates(true);
+        const response = await getFilmShowByFilmId(selectedMovie.id);
+        const filmShows = response?._embedded?.filmShowResponseDtoList;
+        console.log(filmShows);
 
-  // useEffect(() => {
-  //   setSelectedDate("");
-  //   setSelectedShowtime("");
-  //   if (selectedMovie?.id) {
-  //     handleGetDateAndShowTime(selectedMovie.id);
-  //   }
-  // }, [selectedMovie]);
+        const roomIdsInSelectedTheater = [];
 
-  // useEffect(() => {
-  //   setSelectedShowtime("");
-  //   if (selectedDate) {
-  //     // Find showtimes for selected date
-  //     const dateData = availableDates.find((d) => d.date === selectedDate);
-  //     setAvailableShowtimes(dateData?.showtimes || []);
-  //   }
-  // }, [selectedDate]);
+        for (const show of filmShows) {
+          const roomRes = await getRoomById(show.roomId);
+          console.log(roomRes);
+
+          const roomData = roomRes;
+          if (roomData.theaterId === selectedCinema.id) {
+            roomIdsInSelectedTheater.push(roomData.id);
+          }
+        }
+
+        const filteredShows = filmShows.filter((show) =>
+          roomIdsInSelectedTheater.includes(show.roomId)
+        );
+
+        const now = new Date();
+
+        const upcomingShows = filteredShows.filter((show) => {
+          const showDateTime = new Date(`${show.showDate}T${show.showTime}`);
+          return showDateTime > now;
+        });
+
+        setAllShowtimes(upcomingShows);
+        const uniqueValidDates = [
+          ...new Set(upcomingShows.map((show) => show.showDate)),
+        ];
+
+        setAvailableDates(uniqueValidDates);
+      } catch {
+        throw new Error("There is an error while getting date");
+      } finally {
+        setIsLoadingDates(false);
+      }
+    };
+    if (selectedMovie?.id) {
+      fetchDate();
+    }
+  }, [selectedMovie]);
+
+  console.log(allShowtimes);
+
+  useEffect(() => {
+    const showtimes = allShowtimes
+      .filter((show) => show.showDate === selectedDate)
+      .map((show) => show.showTime.slice(0, 5));
+
+    showtimes.sort();
+
+    setAvailableShowtimes(showtimes);
+  }, [selectedDate, allShowtimes]);
 
   const handleScroll = (dropdownName) => {
     const dropdown = dropdownRefs[dropdownName].current;
@@ -237,16 +268,15 @@ const QuickBooking = () => {
   };
 
   const handleNavigate = () => {
+    localStorage.setItem("allShows", JSON.stringify(allShowtimes));
     navigate(`/movie/detail/${selectedMovie.id}`, {
       state: {
         initShowDate: selectedDate,
         initShowTime: selectedShowtime,
+        initCinema: selectedCinema,
       },
     });
   };
-
-  console.log(selectedCinema);
-  console.log(availableMovies);
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-4 flex items-center gap-3">
@@ -293,7 +323,7 @@ const QuickBooking = () => {
                 setSelectedMovie(null);
                 setSelectedDate("");
                 setSelectedShowtime("");
-                setIsCinemaDropdownOpen(false);
+                setIsCinemaDropdownOpen(!isCinemaDropdownOpen);
               }}
             >
               {cinema.name}
@@ -324,7 +354,7 @@ const QuickBooking = () => {
                 : "text-gray-500 text-xl"
             }
           >
-            {isLoadingDates ? (
+            {isLoadingMovies ? (
               <div className="flex items-center gap-2">
                 <Spinner size={18} /> Đang tải...
               </div>
@@ -399,7 +429,7 @@ const QuickBooking = () => {
           >
             {(selectedDate &&
               getDayOfWeekFromISOString(selectedDate) +
-                " , " +
+                ", " +
                 getDayAndMonthFromISOString(selectedDate)) ||
               "3. Chọn Ngày"}
           </span>
@@ -429,14 +459,20 @@ const QuickBooking = () => {
               key={index}
               className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-black text-xl"
               onClick={() => {
-                setSelectedDate(dateItem.date);
+                const isSame = selectedDate === dateItem;
+                setIsDateDropdownOpen(!isDateDropdownOpen);
+
+                if (isSame) return;
+
+                setSelectedDate(dateItem);
                 setSelectedShowtime("");
-                setIsDateDropdownOpen(false);
+                setIsDateDropdownOpen(!isDateDropdownOpen);
+                setIsShowtimeDropdownOpen(!isShowtimeDropdownOpen);
               }}
             >
-              {getDayOfWeekFromISOString(dateItem.date) +
-                "," +
-                getDayAndMonthFromISOString(dateItem.date)}
+              {getDayOfWeekFromISOString(dateItem) +
+                ", " +
+                getDayAndMonthFromISOString(dateItem)}
             </div>
           ))}
         </div>
@@ -481,20 +517,20 @@ const QuickBooking = () => {
             }`}
         >
           {availableShowtimes.length === 0 && (
-            <div className="p-4 text-gray-500">
+            <div className="p-4 text-gray-500 text-xl">
               Không có suất chiếu khả dụng
             </div>
           )}
-          {availableShowtimes.map((timeItem) => (
+          {availableShowtimes.map((timeItem, index) => (
             <div
-              key={timeItem.id}
+              key={index}
               className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-black text-xl"
               onClick={() => {
-                setSelectedShowtime(timeItem.time);
-                setIsShowtimeDropdownOpen(false);
+                setSelectedShowtime(timeItem);
+                setIsShowtimeDropdownOpen(!isShowtimeDropdownOpen);
               }}
             >
-              {timeItem.time}
+              {timeItem}
             </div>
           ))}
         </div>

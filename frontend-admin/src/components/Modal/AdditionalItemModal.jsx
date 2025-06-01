@@ -10,17 +10,16 @@ const AdditionalItemModal = ({ isOpen, onClose, item, onSave, mode }) => {
 
   // Initialize state with existing film data or empty values
   const [formData, setFormData] = useState({
-    _id: item?._id || "",
+    id: item?.id || "",
     name: item?.name || "",
     price: item?.price || "",
     loyalPointRate: item?.loyalPointRate || "",
-    thumbnailURL: item?.thumbnailURL || "",
+    thumbnailUrl: item?.thumbnailUrl || "",
     file: null,
   });
 
   const isFormValid = useMemo(() => {
-    const requiredFields = ["name", "price", "thumbnailURL", "loyalPointRate"];
-    console.log(formData);
+    const requiredFields = ["name", "price", "thumbnailUrl"];
 
     return requiredFields.every((field) => !!formData[field]); // Chuyển đổi giá trị thành Boolean
   }, [formData]);
@@ -91,14 +90,31 @@ const AdditionalItemModal = ({ isOpen, onClose, item, onSave, mode }) => {
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Link ảnh
+                </label>
+                <input
+                  type="text"
+                  name="thumbnailUrl"
+                  value={formData.thumbnailUrl}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      thumbnailUrl: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
             <div className="w-1/3">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Ảnh
               </label>
-              {formData.thumbnailURL && (
+              {formData.thumbnailUrl && (
                 <img
-                  src={formData.thumbnailURL}
+                  src={formData.thumbnailUrl}
                   alt="Film"
                   className="w-full h-4/5 object-cover rounded-lg mb-2"
                 />
@@ -115,7 +131,7 @@ const AdditionalItemModal = ({ isOpen, onClose, item, onSave, mode }) => {
                     setFormData((prev) => ({
                       ...prev,
                       file: file,
-                      thumbnailURL: imageUrl,
+                      thumbnailUrl: imageUrl,
                     }));
                   }
                   console.log("File selected:", e.target.files[0]);

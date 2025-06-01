@@ -151,9 +151,21 @@ export const getFilmById = async (id) => {
 };
 
 export const getFilmShowByFilmId = async (id) => {
-  return await axios.get(`/film-shows/by-film/{date}?filmId=${id}`);
+  return await axios.get(`/film-shows/by-film/${id}`);
+};
+
+export const getFilmShowByFilmIdAndDate = async (id, date) => {
+  return await axios.get(`/film-shows/by-film/${id}/by-date/${date}`);
 };
 
 export const getAdditionalItem = async () => {
   return await axios.get(`/additional-items`);
+};
+
+export const getRoomById = async (id) => {
+  return await axios.get(`/rooms/${id}`);
+};
+
+export const getAllRooms = async () => {
+  return await axios.get(`/rooms`);
 };

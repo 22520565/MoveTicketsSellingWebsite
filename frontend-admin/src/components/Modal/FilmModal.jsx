@@ -2,8 +2,13 @@ import React from "react";
 import { FiX } from "react-icons/fi";
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
-import { addNewFilm, updateFilm } from "../../config/api";
-import { getAllTags } from "../../config/api";
+import {
+  addNewFilm,
+  updateFilm,
+  getAllTags,
+  uploadThumbnail,
+} from "../../config/api";
+
 import { debounce } from "lodash";
 import { Combobox, ComboboxOption } from "@headlessui/react";
 import { FiSearch } from "react-icons/fi";
@@ -165,10 +170,8 @@ const FilmModal = ({ isOpen, onClose, film, mode }) => {
       "beginDate",
     ];
 
-    return (
-      requiredFields.every((field) => !!formData[field]) &&
-      (formData.thumbnailFile || formData.thumbnailURL)
-    ); // Chuyển đổi giá trị thành Boolean
+    return requiredFields.every((field) => !!formData[field]);
+    //  && (formData.thumbnailFile || formData.thumbnailURL) //
   }, [formData]);
 
   const handleSubmit = () => {
@@ -205,6 +208,7 @@ const FilmModal = ({ isOpen, onClose, film, mode }) => {
         content: formData.filmContent,
         beginDate: formData.beginDate,
       };
+
       let response;
 
       if (mode === "edit") {
@@ -233,6 +237,22 @@ const FilmModal = ({ isOpen, onClose, film, mode }) => {
       alert("Thao tác thất bại, lỗi: " + error);
       setIsConfirmDialogOpen(false);
       setIsLoading(false); // Tắt trạng thái loading
+    }
+  };
+
+  const handleUploadThumbnail = async (filmId, file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await uploadThumbnail(filmId, formData);
+      console.log(response);
+
+      // giả sử response.data.thumbnailUrl là chuỗi trả về
+      return response.data.url;
+    } catch (error) {
+      console.error("Upload thumbnail failed:", error);
+      throw error;
     }
   };
 
@@ -478,22 +498,35 @@ const FilmModal = ({ isOpen, onClose, film, mode }) => {
                   className="w-full h-4/5 object-cover rounded-lg mb-2"
                 />
               )}
-              <input
-                type="file"
-                className="w-full"
-                accept="image/*"
-                multiple={false}
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file) {
-                    setFormData((prev) => ({
-                      ...prev,
-                      thumbnailFile: file,
-                    }));
-                  }
-                  console.log("File selected:", e.target.files[0]);
-                }}
-              />
+              {mode === "edit" && (
+                <input
+                  type="file"
+                  className="w-full"
+                  accept="image/*"
+                  multiple={false}
+                  onChange={async (e) => {
+                    const file = e.target.files[0];
+                    console.log(file);
+
+                    if (file) {
+                      try {
+                        const thumbnailUrl = await handleUploadThumbnail(
+                          film.id,
+                          file
+                        );
+                        setFormData((prev) => ({
+                          ...prev,
+                          thumbnailFile: file,
+                          thumbnailURL: thumbnailUrl,
+                        }));
+                      } catch (err) {
+                        console.error("Upload thumbnail error:", err);
+                        alert("Lỗi khi upload ảnh!");
+                      }
+                    }
+                  }}
+                />
+              )}
             </div>
           </div>
           <div>

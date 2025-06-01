@@ -4,8 +4,7 @@ const allCinemas = [
   {
     city: "TP.HCM",
     name: "Cinestar Satra Quận 6 (TP.HCM)",
-    address:
-      "Tầng 6, TTTM Satra Võ Văn Kiệt, 1466 Võ Văn Kiệt, Phường 1, Quận 6, TP.HCM",
+
     schedules: {
       Standard: [
         "08:20",
@@ -23,7 +22,7 @@ const allCinemas = [
   {
     city: "TP.HCM",
     name: "Cinestar Quận 1 (TP.HCM)",
-    address: "135 Hai Bà Trưng, Quận 1, TP.HCM",
+
     schedules: {
       Standard: ["09:15", "11:45", "14:10", "19:30"],
     },
@@ -31,18 +30,18 @@ const allCinemas = [
   {
     city: "Hà Nội",
     name: "CGV Times City",
-    address: "458 Minh Khai, Hai Bà Trưng, Hà Nội",
+
     schedules: {
       Standard: ["10:00", "13:00", "16:00", "20:00"],
     },
   },
 ];
 
-export default function CinemaScheduleList() {
-  const [selectedCity, setSelectedCity] = useState("TP.HCM");
+export default function CinemaScheduleList({ cinemasData }) {
+  const [selectedCity, setSelectedCity] = useState("Quốc Thanh, TP.HCM");
 
-  const cities = [...new Set(allCinemas.map((cinema) => cinema.city))];
-  const cinemas = allCinemas.filter((cinema) => cinema.city === selectedCity);
+  const cities = [...new Set(cinemasData.map((cinema) => cinema.city))];
+  const cinemas = cinemasData.filter((cinema) => cinema.city === selectedCity);
 
   return (
     <div className=" min-h-screen p-4 text-white">
@@ -52,7 +51,7 @@ export default function CinemaScheduleList() {
           <select
             value={selectedCity}
             onChange={(e) => setSelectedCity(e.target.value)}
-            className="text-lg bg-transparent border border-yellow-400 text-yellow-300 px-4 py-2 rounded cursor-pointer hover:bg-yellow-500 hover:text-black transition"
+            className="text-lg bg-transparent border border-yellow-400 text-yellow-300 px-4 py-2 rounded cursor-pointer   transition"
           >
             {cities.map((city, idx) => (
               <option key={idx} value={city} className="text-black">
@@ -66,30 +65,38 @@ export default function CinemaScheduleList() {
       {cinemas.map((cinema, index) => (
         <div
           key={index}
-          className="bg-purple-700 rounded-lg p-8 mb-6 text-base sm:text-lg"
+          className="bg-purple-700 rounded-lg p-8 mb-6 text-base sm:text-lg min-w-[900px]"
         >
           <h2 className="text-2xl font-extrabold text-yellow-400 mb-2">
             {cinema.name}
           </h2>
           <p className="mb-4 text-lg">{cinema.address}</p>
 
-          {Object.entries(cinema.schedules).map(([roomType, times]) => (
-            <div key={roomType} className="mb-3">
-              <h3 className="font-semibold text-white mb-2 text-base">
-                {roomType}
-              </h3>
-              <div className="flex flex-wrap gap-3">
-                {times.map((time, idx) => (
-                  <button
-                    key={idx}
-                    className="border border-white px-4 py-2 rounded text-base font-semibold hover:bg-yellow-400 hover:text-black transition"
-                  >
-                    {time}
-                  </button>
-                ))}
-              </div>
+          {Object.entries(cinema.schedules).every(
+            ([_, times]) => times.length === 0
+          ) ? (
+            <div className="p-4 border border-white text-white rounded flex items-center gap-2 ">
+              <span>Hiện chưa có lịch chiếu</span>
             </div>
-          ))}
+          ) : (
+            Object.entries(cinema.schedules).map(([roomType, times]) => (
+              <div key={roomType} className="mb-3 min-w-[300px]">
+                <h3 className="font-semibold text-white mb-2 text-base">
+                  {roomType}
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {times.map((time, idx) => (
+                    <button
+                      key={idx}
+                      className="border border-white px-4 py-2 rounded text-base font-semibold hover:bg-yellow-400 hover:text-black transition"
+                    >
+                      {time}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       ))}
     </div>

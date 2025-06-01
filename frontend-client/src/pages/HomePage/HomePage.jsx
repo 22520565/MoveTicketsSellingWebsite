@@ -62,8 +62,6 @@ const HomePage = () => {
         filmList={upcomingFilm}
         onCLickSeeMore={() => navigate("/movie/upcoming")}
       />
-
-      <CinemaScheduleList />
     </div>
   );
 };

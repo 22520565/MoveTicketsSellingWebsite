@@ -90,6 +90,37 @@ export const getTagById = async (id) => {
   return await api.get(`/tags/${id}`);
 };
 
+export const uploadThumbnail = async (id, formData) => {
+  return await api.patch(`/films/${id}/thumbnail`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const getAllItems = async () => {
+  return await api.get(`/additional-items`);
+};
+
+export const getAllItemsDeleted = async () => {
+  return await api.get(`/additional-items/deleted`);
+};
+
+export const addItem = async (data) => {
+  return await api.post(`/additional-items`, data);
+};
+
+export const updateItem = async (id, data) => {
+  return await api.put(`/additional-items/${id}`, data);
+};
+
+export const deleteItem = async (id) => {
+  return await api.patch(`/additional-items/delete/${id}`);
+};
+
+export const undeleteItem = async (id) => {
+  return await api.patch(`/additional-items/undelete/${id}`);
+};
 //............
 // export const callSignUp = async (data) => {
 //   return axios.post("/auth/user/sign-up", { ...data });

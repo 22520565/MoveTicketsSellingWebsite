@@ -6,10 +6,12 @@ import {
   getFilmById,
   getRoomById,
   getAllRooms,
+  getAllTags,
 } from "../../config/api";
 
 const FilmShowChartPage = () => {
   const [rooms, setRooms] = useState([]); // State cho rooms
+  const [allTags, setAllTags] = useState([]);
   const [events, setEvents] = useState([]); // State cho events
 
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -20,6 +22,9 @@ const FilmShowChartPage = () => {
 
   const fetchData = async (date) => {
     try {
+      const tagRes = await getAllTags();
+      setAllTags(tagRes.data._embedded.tagResponseDtoList);
+
       const roomRes = await getAllRooms();
       setRooms(roomRes.data._embedded.roomResponseDtoList);
 
@@ -38,13 +43,19 @@ const FilmShowChartPage = () => {
           const roomRes = await getRoomById(event.roomId);
           const roomData = roomRes.data;
 
+          console.log(filmData);
+
+          const categoryNames = filmData.tagIds
+            .map((id) => allTags.find((tag) => tag.id === id)?.name)
+            .filter(Boolean);
+
           return {
             ...event,
 
             room: roomData.name,
             film: filmData.name,
             duration: filmData.duration,
-            category: filmData.tags.join(", "),
+            category: categoryNames.join(", "),
             description: filmData.description,
           };
         })

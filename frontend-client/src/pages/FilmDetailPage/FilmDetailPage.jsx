@@ -40,8 +40,12 @@ import {
   getFilmShowByFilmId,
   getAdditionalItem,
   getAllTags,
+  getAllRooms,
+  getCinemas,
+  getRoomById,
 } from "../../config/api";
 import { FileImage } from "lucide-react";
+import CinemaScheduleList from "../../Components/CinemaList";
 
 const seatWidth = 50;
 const seatHeight = 40;
@@ -51,7 +55,7 @@ const gapY = 5;
 const FilmDetailPage = () => {
   const { filmID } = useParams();
   const location = useLocation();
-  const { initShowDate, initShowTime } = location.state || {};
+  const { initShowDate, initShowTime, initCinema } = location.state || {};
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [videoOpen, setVideoOpen] = useState(false);
@@ -59,6 +63,7 @@ const FilmDetailPage = () => {
   const [isPromotionListOpen, setIsPromotionListOpen] = useState(false); // Trạng thái PromotionList
   const [selectedPromotions, setSelectedPromotions] = useState([]);
   const [totalDiscount, setTotalDiscount] = useState(0);
+  const [availableCinemaSchedules, setAvailableCinemaSchedules] = useState([]);
 
   const [allTags, setAllTags] = useState([]);
 
@@ -72,18 +77,112 @@ const FilmDetailPage = () => {
   const [availableShowtimesWithFilmType, setAvailableShowtimesWithFilmType] =
     useState([]);
 
+  const fetchDate = async () => {
+    try {
+      const response = await getFilmShowByFilmId(selectedMovie.id);
+      const filmShows = response?._embedded?.filmShowResponseDtoList;
+      console.log(filmShows);
+
+      const roomIdsInSelectedTheater = [];
+
+      for (const show of filmShows) {
+        const roomRes = await getRoomById(show.roomId);
+        console.log(roomRes);
+
+        const roomData = roomRes;
+        if (roomData.theaterId === selectedCinema.id) {
+          roomIdsInSelectedTheater.push(roomData.id);
+        }
+      }
+
+      const filteredShows = filmShows.filter((show) =>
+        roomIdsInSelectedTheater.includes(show.roomId)
+      );
+
+      const now = new Date();
+
+      const upcomingShows = filteredShows.filter((show) => {
+        const showDateTime = new Date(`${show.showDate}T${show.showTime}`);
+        return showDateTime > now;
+      });
+
+      setAvailableDates(upcomingShows);
+    } catch {
+      throw new Error("There is an error while getting date");
+    }
+  };
+
   const handleGetDateAndShowTime = async (filmID) => {
     try {
-      const response = await getFilmShowByFilmId(filmID);
-      console.log("🚀 ~ handleGetDateAndShowTime ~ response:", response);
+      console.log(filmID);
+
+      const dateRes = localStorage.getItem("allShows");
+      localStorage.removeItem("allShows");
+      const dateData = JSON.parse(dateRes).filter(
+        (s) => s.filmId === Number(filmID)
+      );
+
+      const response = dateData ? dateData : null;
+
+      console.log("available Date: ", response);
+
       if (response) {
-        setAvailableDates(response._embedded.filmShowResponseDtoList);
+        setAvailableDates(response);
         setAvailableShowtimesWithFilmType([]);
+      } else {
+        fetchDate();
       }
     } catch (error) {
       console.error("Error fetching dates and showtimes:", error);
     }
   };
+
+  useEffect(() => {
+    const fetCinemaList = async () => {
+      const rooms = (await getAllRooms())._embedded.roomResponseDtoList;
+      const allCinemas = (await getCinemas())._embedded.theaterResponseDtoList;
+
+      console.log("phòng: ", rooms);
+      console.log("cinema: ", allCinemas);
+
+      const cinemaSchedules = [];
+
+      allCinemas.forEach((cinema) => {
+        const schedules = [];
+
+        availableDates.forEach((show) => {
+          console.log("single show: ", show);
+
+          const room = rooms.find((r) => r.id === show.roomId);
+          if (!room) return;
+
+          console.log("available: room: ", room);
+
+          const isSameCinema = cinema.id === room.theaterId;
+          if (!isSameCinema) return;
+
+          console.log("available cinema: ", cinema);
+
+          // Lấy giờ HH:mm
+          const time = show.showTime.slice(0, 5);
+          if (!schedules.includes(time)) {
+            schedules.push(time);
+          }
+        });
+
+        cinemaSchedules.push({
+          city: cinema.address,
+          name: cinema.name,
+          schedules: { Standard: schedules.sort() }, // có thể rỗng []
+        });
+      });
+
+      setAvailableCinemaSchedules(cinemaSchedules);
+    };
+    fetCinemaList();
+    console.log("final: ", availableCinemaSchedules);
+  }, [availableDates]);
+
   //useEffect(()=>{console.log("HI" + JSON.stringify(availableShowtimesWithFilmType))},[availableShowtimesWithFilmType])
   useEffect(() => {
     setSelectedShowtime("");
@@ -460,8 +559,6 @@ const FilmDetailPage = () => {
     return tag ? tag.name : "Không rõ";
   };
 
-  console.log(filmDetail);
-
   return (
     <div className="p-6 space-y-12 md:space-y-40">
       {isPopupOpen && (
@@ -581,13 +678,14 @@ const FilmDetailPage = () => {
             {availableDates.map((dateGroup) => {
               return (
                 <ScheduleChooseBox
-                  date={dateGroup.date}
-                  isSelected={selectedDate === dateGroup.date}
-                  onClick={() => setSelectedDate(dateGroup.date)}
+                  date={dateGroup.showDate}
+                  isSelected={selectedDate === dateGroup.showDate}
+                  onClick={() => setSelectedDate(dateGroup.showDate)}
                 />
               );
             })}
           </div>
+          <CinemaScheduleList cinemasData={availableCinemaSchedules} />
 
           {availableShowtimesWithFilmType?.map((dataGroup) => {
             return (
