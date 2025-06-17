@@ -23,5 +23,4 @@ public record FilmRequestDto(
         boolean is3D,
         @NotBlank @Size(min = Film.MinLengthDescription, max = Film.MaxLengthDescription) String description,
         @NotBlank @Size(min = Film.MinLengthContent, max = Film.MaxLengthContent) String content,
-        @NotNull LocalDate beginDate) {
-}
+        @NotNull LocalDate beginDate) {}

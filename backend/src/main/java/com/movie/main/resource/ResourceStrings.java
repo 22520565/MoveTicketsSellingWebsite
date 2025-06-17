@@ -9,6 +9,12 @@ public final class ResourceStrings {
     private static final Dotenv dotenv = Dotenv.load();
 
     @Include
+    public static final String DEFAULT_ADMIN_USERNAME;
+
+    @Include
+    public static final String DEFAULT_ADMIN_PASSWORD;
+
+    @Include
     public static final String CLOUDINARY_CLOUD_NAME;
 
     @Include
@@ -27,6 +33,8 @@ public final class ResourceStrings {
     public static final String STRIPE_CURRENCY;
 
     static {
+        DEFAULT_ADMIN_USERNAME = dotenv.get(ResourceStrings.Fields.DEFAULT_ADMIN_USERNAME, "Admin");
+        DEFAULT_ADMIN_PASSWORD = dotenv.get(ResourceStrings.Fields.DEFAULT_ADMIN_PASSWORD, "Admin");
         CLOUDINARY_CLOUD_NAME = dotenv.get(ResourceStrings.Fields.CLOUDINARY_CLOUD_NAME);
         CLOUDINARY_API_KEY = dotenv.get(ResourceStrings.Fields.CLOUDINARY_API_KEY);
         CLOUDINARY_API_SECRET = dotenv.get(ResourceStrings.Fields.CLOUDINARY_API_SECRET);

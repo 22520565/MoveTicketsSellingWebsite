@@ -28,7 +28,8 @@ import lombok.experimental.FieldNameConstants;
 @FieldNameConstants
 public class Employee extends User {
     public enum Permission {
-        NORMAL, ADMIN,
+        NORMAL,
+        ADMIN,
     }
 
     @Column(nullable = false)
@@ -52,7 +53,7 @@ public class Employee extends User {
     @Enumerated(value = EnumType.STRING)
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    private Set<Permission> permissions = EnumSet.noneOf(Employee.Permission.class);
+    private EnumSet<Permission> permissions = EnumSet.noneOf(Employee.Permission.class);
 
     public Employee(
             final String name,

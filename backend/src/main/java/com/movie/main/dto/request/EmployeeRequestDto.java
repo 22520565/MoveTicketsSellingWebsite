@@ -25,5 +25,4 @@ public record EmployeeRequestDto(
         @NotNull LocalTime shiftStart,
         @NotNull LocalTime shiftEnd,
         @NotNull LocalDate beginWorkingDate,
-        @NotEmpty Set<Permission> permissions) {
-}
+        @NotEmpty Set<Permission> permissions) {}

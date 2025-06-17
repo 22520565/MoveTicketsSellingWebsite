@@ -18,5 +18,4 @@ public record EmployeeResponseDto(
         LocalTime shiftStart,
         LocalTime shiftEnd,
         LocalDate beginWorkingDate,
-        Set<Permission> permissions) {
-}
+        Set<Permission> permissions) {}
