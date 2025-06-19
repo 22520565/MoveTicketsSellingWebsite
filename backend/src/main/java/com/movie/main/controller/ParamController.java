@@ -20,7 +20,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 @RestController
-@RequestMapping("api/param")
+@RequestMapping("api/params")
 @RequirePermission(value = Permission.ADMIN)
 @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
 public class ParamController {
