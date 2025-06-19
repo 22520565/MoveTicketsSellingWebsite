@@ -10,6 +10,5 @@ import com.movie.main.event.CustomerCreatedEvent;
 @Component
 public class CustomerCreatedListener {
     @EventListener
-    public void handleUserCreated(final CustomerCreatedEvent event) {
-    }
+    public void handleEvent(final CustomerCreatedEvent event) {}
 }

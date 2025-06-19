@@ -1,11 +1,13 @@
 package com.movie.main.service;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.movie.main.dto.request.CustomerOrderRequestDto;
 import com.movie.main.entity.CustomerOrder;
+import com.movie.main.event.CustomerOrderCreatedEvent;
 import com.movie.main.repository.CustomerOrderRepository;
 import com.movie.main.ulti.Expected;
 
@@ -32,10 +34,15 @@ public class CustomerOrderService {
     @NotNull
     private final CustomerService customerService;
 
+    @NotNull
+    private final ApplicationEventPublisher publisher;
+
     public CustomerOrderService(@NotNull final CustomerOrderRepository repository,
-            @NotNull final CustomerService customerService) {
+            @NotNull final CustomerService customerService,
+            @NotNull final ApplicationEventPublisher publisher) {
         this.repository = repository;
         this.customerService = customerService;
+        this.publisher = publisher;
     }
 
     @NotNull
@@ -63,7 +70,10 @@ public class CustomerOrderService {
                 customer);
 
         try {
-            return Expected.success(this.repository.save(newCustomerOrder));
+            final var result = this.repository.save(newCustomerOrder);
+
+            this.publisher.publishEvent(new CustomerOrderCreatedEvent(result));
+            return Expected.success(result);
         }
         catch (final Exception exception) {
             log.error(exception.getMessage());
