@@ -1,11 +1,15 @@
 package com.movie.main.service;
 
+import java.util.HashSet;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.movie.main.dto.request.OrderDataFilmRequestDto;
 import com.movie.main.entity.OrderDataFilm;
+import com.movie.main.entity.OrderTicket;
+import com.movie.main.entity.RoomSeat;
 import com.movie.main.repository.OrderDataFilmRepository;
 import com.movie.main.ulti.Expected;
 
@@ -32,10 +36,25 @@ public class OrderDataFilmService {
     @NotNull
     private final CustomerOrderService customerOrderService;
 
+    @NotNull
+    private final FilmShowService filmShowService;
+
+    @NotNull
+    private final RoomSeatService roomSeatService;
+
+    @NotNull
+    private final OrderTicketService orderTicketService;
+
     public OrderDataFilmService(@NotNull final OrderDataFilmRepository repository,
-            @NotNull final CustomerOrderService customerOrderService) {
+            @NotNull final CustomerOrderService customerOrderService,
+            @NotNull final FilmShowService filmShowService,
+            @NotNull final RoomSeatService roomSeatService,
+            @NotNull final OrderTicketService orderTicketService) {
         this.repository = repository;
         this.customerOrderService = customerOrderService;
+        this.filmShowService = filmShowService;
+        this.roomSeatService = roomSeatService;
+        this.orderTicketService = orderTicketService;
     }
 
     @NotNull
@@ -62,16 +81,43 @@ public class OrderDataFilmService {
             return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
         }
 
+        final var filmShow = this.filmShowService.findByIdAndDeletedFalse(requestDto.filmShowId());
+        if (filmShow == null) {
+            return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
+        }
+
+        final var roomSeatIds = requestDto.roomSeatIds();
+        final HashSet<RoomSeat> roomSeats = HashSet.newHashSet(roomSeatIds.size());
+        for (final var roomSeatId : roomSeatIds) {
+            final var roomSeat = this.roomSeatService.findById(roomSeatId);
+
+            if (roomSeat == null) {
+                return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
+            }
+
+            roomSeats.add(roomSeat);
+        }
+
+        final var orderTicketIds = requestDto.orderTicketIds();
+        final HashSet<OrderTicket> orderTickets = HashSet.newHashSet(orderTicketIds.size());
+        for (final var orderTicketId : orderTicketIds) {
+            final var orderTicket = this.orderTicketService.findById(orderTicketId);
+
+            if (orderTicket == null) {
+                return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
+            }
+
+            orderTickets.add(orderTicket);
+        }
+
         final var newOrderDataFilm = new OrderDataFilm(
                 customerOrder,
-                requestDto.filmName(),
-                requestDto.ageRestriction(),
                 requestDto.date(),
                 requestDto.time(),
+                filmShow,
                 requestDto.verifyCode(),
-                requestDto.roomName(),
-                requestDto.seatNames(),
-                requestDto.tickets());
+                roomSeats,
+                orderTickets);
 
         try {
             return Expected.success(this.repository.save(newOrderDataFilm));
@@ -96,15 +142,42 @@ public class OrderDataFilmService {
             return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
         }
 
+        final var filmShow = this.filmShowService.findByIdAndDeletedFalse(requestDto.filmShowId());
+        if (filmShow == null) {
+            return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
+        }
+
+        final var roomSeatIds = requestDto.roomSeatIds();
+        final HashSet<RoomSeat> roomSeats = HashSet.newHashSet(roomSeatIds.size());
+        for (final var roomSeatId : roomSeatIds) {
+            final var roomSeat = this.roomSeatService.findById(roomSeatId);
+
+            if (roomSeat == null) {
+                return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
+            }
+
+            roomSeats.add(roomSeat);
+        }
+
+        final var orderTicketIds = requestDto.orderTicketIds();
+        final HashSet<OrderTicket> orderTickets = HashSet.newHashSet(orderTicketIds.size());
+        for (final var orderTicketId : orderTicketIds) {
+            final var orderTicket = this.orderTicketService.findById(orderTicketId);
+
+            if (orderTicket == null) {
+                return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
+            }
+
+            orderTickets.add(orderTicket);
+        }
+
         orderDataFilm.setCustomerOrder(customerOrder);
-        orderDataFilm.setFilmName(requestDto.filmName());
-        orderDataFilm.setAgeRestriction(requestDto.ageRestriction());
         orderDataFilm.setDate(requestDto.date());
         orderDataFilm.setTime(requestDto.time());
+        orderDataFilm.setFilmShow(filmShow);
         orderDataFilm.setVerifyCode(requestDto.verifyCode());
-        orderDataFilm.setRoomName(requestDto.roomName());
-        orderDataFilm.setSeatNames(requestDto.seatNames());
-        orderDataFilm.setTickets(requestDto.tickets());
+        orderDataFilm.setSeatNames(roomSeats);
+        orderDataFilm.setOrderTickets(orderTickets);
 
         try {
             return Expected.success(this.repository.save(orderDataFilm));

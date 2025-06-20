@@ -11,7 +11,9 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotBlank;
@@ -44,16 +46,6 @@ public class OrderDataFilm {
     @NotNull
     private CustomerOrder customerOrder = null;
 
-    @Column(nullable = false, length = Film.MaxLengthName)
-    @Size(min = Film.MinLengthName, max = Film.MaxLengthName)
-    @NotBlank
-    private String filmName = "";
-
-    @Column(nullable = false, length = AgeRestriction.MaxLengthName)
-    @Size(min = AgeRestriction.MaxLengthName, max = AgeRestriction.MaxLengthName)
-    @NotBlank
-    private String ageRestriction = "";
-
     @Column(nullable = false)
     @NotNull
     private LocalDate date = LocalDate.now();
@@ -62,45 +54,44 @@ public class OrderDataFilm {
     @NotNull
     private LocalTime time = LocalTime.now();
 
+    @ManyToOne(cascade = {
+            CascadeType.PERSIST, CascadeType.MERGE
+    }, fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(nullable = false)
+    @NotNull
+    private FilmShow filmShow = null;
+
     @Column(nullable = false, length = VerifyCodeLength)
     @Size(min = VerifyCodeLength, max = VerifyCodeLength)
     @NotBlank
     private String verifyCode = "";
 
-    @Column(nullable = false)
-    @NotBlank
-    private String roomName = "";
-
     @ElementCollection(fetch = FetchType.EAGER)
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    private Set<@NotBlank String> seatNames = new HashSet<>();
+    private Set<@NotBlank RoomSeat> roomSeats = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    private Set<@NotNull OrderTicket> tickets = new HashSet<>();
+    private Set<@NotNull OrderTicket> orderTickets = new HashSet<>();
 
     public OrderDataFilm(
             final CustomerOrder customerOrder,
-            final String filmName,
-            final String ageRestriction,
             final LocalDate date,
             final LocalTime time,
+            final FilmShow filmShow,
             final String verifyCode,
-            final String roomName,
-            final Set<@NotBlank String> seatNames,
-            final Set<@NotNull OrderTicket> tickets) {
+            final Set<@NotBlank RoomSeat> roomSeats,
+            final Set<@NotNull OrderTicket> orderTickets) {
         this.id = customerOrder.getId();
         this.customerOrder = customerOrder;
-        this.filmName = filmName;
-        this.ageRestriction = ageRestriction;
         this.date = date;
         this.time = time;
+        this.filmShow = filmShow;
         this.verifyCode = verifyCode;
-        this.roomName = roomName;
-        this.seatNames = new HashSet<>(seatNames);
-        this.tickets = new HashSet<>(tickets);
+        this.roomSeats = new HashSet<>(roomSeats);
+        this.orderTickets = new HashSet<>(orderTickets);
     }
 
     public void setCustomerOrder(@NotNull final CustomerOrder customerOrder) {
@@ -108,19 +99,19 @@ public class OrderDataFilm {
         this.customerOrder = customerOrder;
     }
 
-    public Set<@NotBlank String> getSeatNames() {
-        return new HashSet<>(this.seatNames);
+    public Set<@NotBlank RoomSeat> getRoomSeats() {
+        return new HashSet<>(this.roomSeats);
     }
 
-    public void setSeatNames(final Set<@NotBlank String> seatNames) {
-        this.seatNames = new HashSet<>(seatNames);
+    public void setSeatNames(final Set<@NotBlank RoomSeat> roomSeats) {
+        this.roomSeats = new HashSet<>(roomSeats);
     }
 
-    public Set<@NotNull OrderTicket> getTickets() {
-        return new HashSet<>(this.tickets);
+    public Set<@NotNull OrderTicket> getOrderTickets() {
+        return new HashSet<>(this.orderTickets);
     }
 
-    public void setTickets(final Set<@NotNull OrderTicket> tickets) {
-        this.tickets = new HashSet<>(tickets);
+    public void setOrderTickets(final Set<@NotNull OrderTicket> orderTickets) {
+        this.orderTickets = new HashSet<>(orderTickets);
     }
 }

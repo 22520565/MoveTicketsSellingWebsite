@@ -4,18 +4,17 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Set;
 
+import com.movie.main.entity.FilmShow;
 import com.movie.main.entity.OrderTicket;
+import com.movie.main.entity.RoomSeat;
 
 import jakarta.validation.constraints.NotNull;
 
 public record OrderDataFilmResponseDto(
         int customerOrderId,
-        String filmName,
-        String ageRestriction,
         LocalDate date,
         LocalTime time,
+        FilmShow filmShow,
         String verifyCode,
-        String roomName,
-        Set<@NotNull String> seatNames,
-        Set<@NotNull OrderTicket> tickets) {
-}
+        Set<@NotNull RoomSeat> roomSeats,
+        Set<@NotNull OrderTicket> orderTickets) {}

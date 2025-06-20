@@ -113,13 +113,11 @@ public class OrderDataFilmController {
     public static OrderDataFilmResponseDto getResponseDtoFrom(@NotNull final OrderDataFilm orderDataFilm) {
         return new OrderDataFilmResponseDto(
                 orderDataFilm.getCustomerOrder().getId(),
-                orderDataFilm.getFilmName(),
-                orderDataFilm.getAgeRestriction(),
                 orderDataFilm.getDate(),
                 orderDataFilm.getTime(),
+                orderDataFilm.getFilmShow(),
                 orderDataFilm.getVerifyCode(),
-                orderDataFilm.getRoomName(),
-                orderDataFilm.getSeatNames(),
-                orderDataFilm.getTickets());
+                orderDataFilm.getRoomSeats(),
+                orderDataFilm.getOrderTickets());
     }
 }

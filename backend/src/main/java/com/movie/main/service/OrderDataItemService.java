@@ -1,11 +1,15 @@
 package com.movie.main.service;
 
+import java.util.HashSet;
+
+import org.hibernate.validator.constraints.pl.NIP;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.movie.main.dto.request.OrderDataItemRequestDto;
 import com.movie.main.entity.OrderDataItem;
+import com.movie.main.entity.OrderItem;
 import com.movie.main.repository.OrderDataItemRepository;
 import com.movie.main.ulti.Expected;
 
@@ -32,10 +36,15 @@ public class OrderDataItemService {
     @NotNull
     private final CustomerOrderService customerOrderService;
 
+    @NotNull
+    private final OrderItemService orderItemService;
+
     public OrderDataItemService(@NotNull final OrderDataItemRepository repository,
-            @NotNull final CustomerOrderService customerOrderService) {
+            @NotNull final CustomerOrderService customerOrderService,
+            @NotNull final OrderItemService orderItemService) {
         this.repository = repository;
         this.customerOrderService = customerOrderService;
+        this.orderItemService = orderItemService;
     }
 
     @NotNull
@@ -55,9 +64,21 @@ public class OrderDataItemService {
             return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
         }
 
+        final var orderItemIds = requestDto.orderItemIds();
+        final HashSet<OrderItem> orderItems = HashSet.newHashSet(orderItemIds.size());
+        for (final var orderItemId : orderItemIds) {
+            final var orderItem = this.orderItemService.findById(orderItemId);
+
+            if (orderItem == null) {
+                return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
+            }
+
+            orderItems.add(orderItem);
+        }
+
         final var newOrderDataItem = new OrderDataItem(
                 customerOrder,
-                requestDto.items());
+                orderItems);
 
         try {
             return Expected.success(this.repository.save(newOrderDataItem));
@@ -82,8 +103,20 @@ public class OrderDataItemService {
             return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
         }
 
+        final var orderItemIds = requestDto.orderItemIds();
+        final HashSet<OrderItem> orderItems = HashSet.newHashSet(orderItemIds.size());
+        for (final var orderItemId : orderItemIds) {
+            final var orderItem = this.orderItemService.findById(orderItemId);
+
+            if (orderItem == null) {
+                return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
+            }
+
+            orderItems.add(orderItem);
+        }
+
         orderDataItem.setCustomerOrder(customerOrder);
-        orderDataItem.setItems(requestDto.items());
+        orderDataItem.setOrderItems(orderItems);
 
         try {
             return Expected.success(this.repository.save(orderDataItem));

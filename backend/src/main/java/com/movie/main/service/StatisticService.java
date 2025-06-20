@@ -20,7 +20,7 @@ public class StatisticService {
 
     public DailyStatisticResponseDto getDailyStatistic(final LocalDate date) {
         return new DailyStatisticResponseDto(
-                this.customerOrderRepository.getTotalNetRevenueOfDate(date),
-                this.customerOrderRepository.getTotalEffectiveRevenue(date));
+                this.customerOrderRepository.getTotalNetRevenueByDate(date),
+                this.customerOrderRepository.getTotalEffectiveRevenueByDate(date));
     }
 }

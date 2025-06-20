@@ -41,14 +41,14 @@ public class OrderDataItem {
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
     @NotNull
-    private Set<@NotNull OrderItem> items = new HashSet<>();
+    private Set<@NotNull OrderItem> orderItems = new HashSet<>();
 
     public OrderDataItem(
             final CustomerOrder customerOrder,
-            final Set<@NotNull OrderItem> items) {
+            final Set<@NotNull OrderItem> orderItems) {
         this.id = this.customerOrder.getId();
         this.customerOrder = customerOrder;
-        this.items = new HashSet<>(items);
+        this.orderItems = new HashSet<>(orderItems);
     }
 
     public void setCustomerOrder(@NotNull final CustomerOrder customerOrder) {
@@ -56,11 +56,11 @@ public class OrderDataItem {
         this.customerOrder = customerOrder;
     }
 
-    public Set<OrderItem> getItems() {
-        return new HashSet<>(items);
+    public Set<OrderItem> getOrderItems() {
+        return new HashSet<>(orderItems);
     }
 
-    public void setItems(final Set<OrderItem> items) {
-        this.items = new HashSet<>(items);
+    public void setOrderItems(final Set<OrderItem> orderItems) {
+        this.orderItems = new HashSet<>(orderItems);
     }
 }

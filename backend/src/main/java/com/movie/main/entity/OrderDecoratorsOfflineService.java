@@ -39,10 +39,10 @@ public class OrderDecoratorsOfflineService {
     private boolean served = false;
 
     @Column
-    private String invalidReasonPrinted = "";
+    private String invalidReasonPrinted = null;
 
     @Column
-    private String invalidReasonServed = "";
+    private String invalidReasonServed = null;
 
     public OrderDecoratorsOfflineService(
             final CustomerOrder customerOrder,

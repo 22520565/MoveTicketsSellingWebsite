@@ -1,11 +1,14 @@
 package com.movie.main.service;
 
+import java.util.HashSet;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.movie.main.dto.request.OrderDecoratorsPromotionRequestDto;
 import com.movie.main.entity.OrderDecoratorsPromotion;
+import com.movie.main.entity.Promotion;
 import com.movie.main.repository.OrderDecoratorsPromotionRepository;
 import com.movie.main.ulti.Expected;
 
@@ -32,11 +35,16 @@ public class OrderDecoratorsPromotionService {
     @NotNull
     private final CustomerOrderService customerOrderService;
 
+    @NotNull
+    private final PromotionService promotionService;
+
     public OrderDecoratorsPromotionService(
             @NotNull final OrderDecoratorsPromotionRepository repository,
-            @NotNull final CustomerOrderService customerOrderService) {
+            @NotNull final CustomerOrderService customerOrderService,
+            @NotNull final PromotionService promotionService) {
         this.repository = repository;
         this.customerOrderService = customerOrderService;
+        this.promotionService = promotionService;
     }
 
     @NotNull
@@ -57,9 +65,21 @@ public class OrderDecoratorsPromotionService {
             return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
         }
 
+        final var promotionIds = requestDto.promotionIds();
+        final HashSet<Promotion> promotions = HashSet.newHashSet(promotionIds.size());
+        for (final var promotionId : promotionIds) {
+            final var promotion = this.promotionService.findById(promotionId);
+
+            if (promotion == null) {
+                return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
+            }
+
+            promotions.add(promotion);
+        }
+
         final var newOrderDecoratorsPromotion = new OrderDecoratorsPromotion(
                 customerOrder,
-                requestDto.promotions());
+                promotions);
 
         try {
             return Expected.success(this.repository.save(newOrderDecoratorsPromotion));
@@ -84,8 +104,20 @@ public class OrderDecoratorsPromotionService {
             return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
         }
 
+        final var promotionIds = requestDto.promotionIds();
+        final HashSet<Promotion> promotions = HashSet.newHashSet(promotionIds.size());
+        for (final var promotionId : promotionIds) {
+            final var promotion = this.promotionService.findById(promotionId);
+
+            if (promotion == null) {
+                return Expected.failure(UpdateError.ENTITY_NOT_EXISTS);
+            }
+
+            promotions.add(promotion);
+        }
+
         orderDecoratorsPromotion.setCustomerOrder(customerOrder);
-        orderDecoratorsPromotion.setPromotions(requestDto.promotions());
+        orderDecoratorsPromotion.setPromotions(promotions);
 
         try {
             return Expected.success(this.repository.save(orderDecoratorsPromotion));
