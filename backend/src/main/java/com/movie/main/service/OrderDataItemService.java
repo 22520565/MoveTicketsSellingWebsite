@@ -2,7 +2,6 @@ package com.movie.main.service;
 
 import java.util.HashSet;
 
-import org.hibernate.validator.constraints.pl.NIP;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;

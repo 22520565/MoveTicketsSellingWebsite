@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.movie.main.dto.response.DailyStatisticResponseDto;
 import com.movie.main.repository.CustomerOrderRepository;
 import com.movie.main.repository.OrderDataFilmRepository;
+import com.movie.main.repository.OrderDataItemRepository;
 
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
@@ -19,11 +20,16 @@ public class StatisticService {
     @NotNull
     private final OrderDataFilmRepository orderDataFilmRepository;
 
+    @NotNull
+    private final OrderDataItemRepository orderDataItemRepository;
+
     public StatisticService(
             @NotNull final CustomerOrderRepository customerOrderRepository,
-            @NotNull final OrderDataFilmRepository orderDataFilmRepository) {
+            @NotNull final OrderDataFilmRepository orderDataFilmRepository,
+            @NotNull final OrderDataItemRepository orderDataItemRepository) {
         this.customerOrderRepository = customerOrderRepository;
         this.orderDataFilmRepository = orderDataFilmRepository;
+        this.orderDataItemRepository = orderDataItemRepository;
     }
 
     @Nullable
@@ -43,10 +49,16 @@ public class StatisticService {
             return null;
         }
 
+        final var totalItemRevenue = this.orderDataItemRepository.getTotalItemRevenueByDate(date);
+        if (totalItemRevenue == null) {
+            return null;
+        }
+
         return new DailyStatisticResponseDto(
                 totalNetRevenue,
                 totalEffectiveRevenue,
-                totalTicketRevenue);
+                totalTicketRevenue,
+                totalItemRevenue);
     }
 
     @Nullable
@@ -70,9 +82,16 @@ public class StatisticService {
             return null;
         }
 
+        final var totalItemRevenue = this.orderDataItemRepository
+                .getTotalItemRevenueByDateAndTheaterId(date, theaterId);
+        if (totalItemRevenue == null) {
+            return null;
+        }
+
         return new DailyStatisticResponseDto(
                 totalNetRevenue,
                 totalEffectiveRevenue,
-                totalTicketRevenue);
+                totalTicketRevenue,
+                totalItemRevenue);
     }
 }
