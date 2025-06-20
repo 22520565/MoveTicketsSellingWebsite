@@ -26,4 +26,14 @@ public interface CustomerOrderRepository extends JpaRepository<CustomerOrder, In
     Long getTotalNetRevenueByDateAndTheaterId(
             @Param("date") final LocalDate date,
             @Param("theaterId") final int theaterId);
+
+    @Query("SELECT SUM(co.totalPriceAfterDiscount) FROM CustomerOrder co "
+            + "LEFT JOIN OrderDecoratorsOfflineService odos ON (co.id = odos.id)"
+            + "INNER JOIN OrderDataFilm odf ON (co.id = odf.id) "
+            + "INNER JOIN odf.filmShow.room.theater t "
+            + "WHERE (co.date = :date) AND (t.id = :theater) "
+            + "AND (odos.invalidReasonPrinted IS NULL) AND (odos.invalidReasonServed IS NULL)")
+    Long getTotalEffectiveRevenueByDateAndTheaterId(
+            @Param("date") final LocalDate date,
+            @Param("theaterId") final int theaterId);
 }

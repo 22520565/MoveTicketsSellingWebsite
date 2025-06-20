@@ -16,7 +16,7 @@ import java.time.LocalDate;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("api/statistics")
@@ -30,9 +30,26 @@ public class StatisticController {
         this.service = service;
     }
 
-    @GetMapping("daily")
-    public ResponseEntity<DailyStatisticResponseDto> getDailyStatistic(
-            @RequestParam @NotNull final LocalDate date) {
-        return ResponseEntity.ok(this.service.getDailyStatistic(date));
+    @GetMapping("daily/{date}")
+    public ResponseEntity<DailyStatisticResponseDto> getDailyStatisticByDate(
+            @PathVariable @NotNull final LocalDate date) {
+        final var dailyStatistic = this.service.getDailyStatisticByDate(date);
+        if (dailyStatistic != null) {
+            return ResponseEntity.ok(dailyStatistic);
+        }
+
+        return ResponseEntity.internalServerError().build();
+    }
+
+    @GetMapping("daily/{date}/theater/{theaterId}")
+    public ResponseEntity<DailyStatisticResponseDto> getDailyStatisticByDateAndTheaterId(
+            @PathVariable @NotNull final LocalDate date,
+            @PathVariable final int theaterId) {
+        final var dailyStatistic = this.service.getDailyStatisticByDateAndTheaterId(date, theaterId);
+        if (dailyStatistic != null) {
+            return ResponseEntity.ok(dailyStatistic);
+        }
+
+        return ResponseEntity.internalServerError().build();
     }
 }
