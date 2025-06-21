@@ -1,10 +1,15 @@
 package com.movie.main.service;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.movie.main.dto.internal.RevenueByMonth;
 import com.movie.main.dto.response.DailyStatisticResponseDto;
+import com.movie.main.dto.response.MonthlyStatisticResponseDto;
 import com.movie.main.repository.CustomerOrderRepository;
 import com.movie.main.repository.OrderDataFilmRepository;
 import com.movie.main.repository.OrderDataItemRepository;
@@ -32,27 +37,19 @@ public class StatisticService {
         this.orderDataItemRepository = orderDataItemRepository;
     }
 
-    @Nullable
+    @NotNull
     public DailyStatisticResponseDto getDailyStatisticByDate(final LocalDate date) {
-        final var totalNetRevenue = this.customerOrderRepository.getTotalNetRevenueByDate(date);
-        if (totalNetRevenue == null) {
-            return null;
-        }
+        final long totalNetRevenue = Objects.requireNonNullElse(
+                this.customerOrderRepository.getTotalNetRevenueByDate(date), 0L);
 
-        final var totalEffectiveRevenue = this.customerOrderRepository.getTotalEffectiveRevenueByDate(date);
-        if (totalEffectiveRevenue == null) {
-            return null;
-        }
+        final long totalEffectiveRevenue = Objects.requireNonNullElse(
+                this.customerOrderRepository.getTotalEffectiveRevenueByDate(date), 0L);
 
-        final var totalTicketRevenue = this.orderDataFilmRepository.getTotalTicketRevenueByDate(date);
-        if (totalTicketRevenue == null) {
-            return null;
-        }
+        final long totalTicketRevenue = Objects.requireNonNullElse(
+                this.orderDataFilmRepository.getTotalTicketRevenueByDate(date), 0L);
 
-        final var totalItemRevenue = this.orderDataItemRepository.getTotalItemRevenueByDate(date);
-        if (totalItemRevenue == null) {
-            return null;
-        }
+        final long totalItemRevenue = Objects.requireNonNullElse(
+                this.orderDataItemRepository.getTotalItemRevenueByDate(date), 0L);
 
         return new DailyStatisticResponseDto(
                 totalNetRevenue,
@@ -61,37 +58,73 @@ public class StatisticService {
                 totalItemRevenue);
     }
 
-    @Nullable
+    @NotNull
     public DailyStatisticResponseDto getDailyStatisticByDateAndTheaterId(
-            final LocalDate date, final int theaterId) {
-        final var totalNetRevenue = this.customerOrderRepository
-                .getTotalNetRevenueByDateAndTheaterId(date, theaterId);
-        if (totalNetRevenue == null) {
-            return null;
-        }
+            final LocalDate date,
+            final int theaterId) {
+        final long totalNetRevenue = Objects.requireNonNullElse(
+                this.customerOrderRepository.getTotalNetRevenueByDateAndTheaterId(date, theaterId), 0L);
 
-        final var totalEffectiveRevenue = this.customerOrderRepository
-                .getTotalEffectiveRevenueByDateAndTheaterId(date, theaterId);
-        if (totalEffectiveRevenue == null) {
-            return null;
-        }
+        final var totalEffectiveRevenue = Objects.requireNonNullElse(
+                this.customerOrderRepository.getTotalEffectiveRevenueByDateAndTheaterId(date, theaterId), 0L);
 
-        final var totalTicketRevenue = this.orderDataFilmRepository
-                .getTotalTicketRevenueByDateAndTheaterId(date, theaterId);
-        if (totalTicketRevenue == null) {
-            return null;
-        }
+        final var totalTicketRevenue = Objects.requireNonNullElse(
+                this.orderDataFilmRepository.getTotalTicketRevenueByDateAndTheaterId(date, theaterId), 0L);
 
-        final var totalItemRevenue = this.orderDataItemRepository
-                .getTotalItemRevenueByDateAndTheaterId(date, theaterId);
-        if (totalItemRevenue == null) {
-            return null;
-        }
+        final var totalItemRevenue = Objects.requireNonNullElse(
+                this.orderDataItemRepository.getTotalItemRevenueByDateAndTheaterId(date, theaterId), 0L);
 
         return new DailyStatisticResponseDto(
                 totalNetRevenue,
                 totalEffectiveRevenue,
                 totalTicketRevenue,
                 totalItemRevenue);
+    }
+
+    public List<MonthlyStatisticResponseDto> getMonthlyStatisticByYear(final int year) {
+        final var monthlyNetRevenue = this.customerOrderRepository
+                .getMonthlyNetRevenueByYear(year);
+
+        final var monthlyEffectiveRevenue = this.customerOrderRepository
+                .getMonthlyEffectiveRevenueByYear(year);
+
+        final var effectiveMap = monthlyEffectiveRevenue.stream()
+                .collect(Collectors.toMap(
+                        RevenueByMonth::month,
+                        RevenueByMonth::totalRevenue));
+
+        return monthlyNetRevenue.stream()
+                .map((final var net) -> {
+                    final var effective = effectiveMap.getOrDefault(net.month(), 0L);
+                    return new MonthlyStatisticResponseDto(
+                            net.month(),
+                            net.totalRevenue(),
+                            effective);
+                })
+                .toList();
+    }
+
+    public List<MonthlyStatisticResponseDto> getMonthlyStatisticByYearAndTheaterId(
+            final int year,
+            final int theaterId) {
+        final var monthlyNetRevenue = this.customerOrderRepository
+                .getMonthlyNetRevenueByYearAndTheaterId(year, theaterId);
+        final var monthlyEffectiveRevenue = this.customerOrderRepository
+                .getMonthlyEffectiveRevenueByYearAndTheaterId(year, theaterId);
+
+        final var effectiveMap = monthlyEffectiveRevenue.stream()
+                .collect(Collectors.toMap(
+                        RevenueByMonth::month,
+                        RevenueByMonth::totalRevenue));
+
+        return monthlyNetRevenue.stream()
+                .map((final var net) -> {
+                    final var effective = effectiveMap.getOrDefault(net.month(), 0L);
+                    return new MonthlyStatisticResponseDto(
+                            net.month(),
+                            net.totalRevenue(),
+                            effective);
+                })
+                .toList();
     }
 }
