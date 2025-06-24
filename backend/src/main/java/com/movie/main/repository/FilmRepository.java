@@ -30,10 +30,10 @@ public interface FilmRepository extends JpaRepository<Film, Integer> {
 
     @Query("SELECT DISTINCT f FROM Film f JOIN f.tags t " + "WHERE (NOT f.deleted) AND ("
             + "LOWER(f.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR "
-            + "LOWER(f.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR "
             + "LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%'))" + ")")
     @NonNull
-    Page<@NotNull Film> searchAllFilmsWithTagsByDeletedFalse(@Param("keyword") final String keyword,
+    Page<@NotNull Film> searchAllFilmsWithTagsByDeletedFalse(
+            @Param("keyword") final String keyword,
             @NonNull final Pageable pageable);
 
     @Query("SELECT DISTINCT f.film FROM FilmShow f " + "WHERE (NOT f.deleted) AND (NOT f.film.deleted) "
@@ -41,6 +41,7 @@ public interface FilmRepository extends JpaRepository<Film, Integer> {
             + "AND ((f.showDate > CURRENT_DATE) OR ((f.showDate = CURRENT_DATE) AND (f.showTime >= CURRENT_TIME)))"
             + "ORDER BY f.showDate ASC, f.showTime ASC")
     @NonNull
-    Page<@NotNull Film> findAllByTheaterIdAndDeletedFalseOrderByShowDate(@Param("theaterId") final int theaterId,
+    Page<@NotNull Film> findAllByTheaterIdAndDeletedFalseOrderByShowDate(
+            @Param("theaterId") final int theaterId,
             @NonNull final Pageable pageable);
 }
