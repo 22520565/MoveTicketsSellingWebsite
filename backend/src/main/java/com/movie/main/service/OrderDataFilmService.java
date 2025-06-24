@@ -115,7 +115,6 @@ public class OrderDataFilmService {
                 requestDto.date(),
                 requestDto.time(),
                 filmShow,
-                requestDto.verifyCode(),
                 roomSeats,
                 orderTickets);
 
@@ -175,7 +174,6 @@ public class OrderDataFilmService {
         orderDataFilm.setDate(requestDto.date());
         orderDataFilm.setTime(requestDto.time());
         orderDataFilm.setFilmShow(filmShow);
-        orderDataFilm.setVerifyCode(requestDto.verifyCode());
         orderDataFilm.setSeatNames(roomSeats);
         orderDataFilm.setOrderTickets(orderTickets);
 

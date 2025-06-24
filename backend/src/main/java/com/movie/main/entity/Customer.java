@@ -2,7 +2,9 @@ package com.movie.main.entity;
 
 import java.time.LocalDate;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,6 +15,10 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class Customer extends User {
+    @Column(nullable = false)
+    @Min(0)
+    private int loyalPoint = 0;
+
     public Customer(
             final String name,
             final LocalDate birthDate,

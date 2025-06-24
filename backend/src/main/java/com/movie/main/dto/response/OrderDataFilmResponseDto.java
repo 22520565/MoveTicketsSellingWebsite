@@ -15,6 +15,5 @@ public record OrderDataFilmResponseDto(
         LocalDate date,
         LocalTime time,
         FilmShow filmShow,
-        String verifyCode,
         Set<@NotNull RoomSeat> roomSeats,
         Set<@NotNull OrderTicket> orderTickets) {}

@@ -8,5 +8,5 @@ public record CustomerResponseDto(
         LocalDate birthDate,
         String email,
         String phoneNumber,
-        String username) {
-}
+        String username,
+        int loyalPoint) {}

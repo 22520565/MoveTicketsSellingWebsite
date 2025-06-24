@@ -11,6 +11,5 @@ public record OrderDataFilmRequestDto(
         @NotNull LocalDate date,
         @NotNull LocalTime time,
         int filmShowId,
-        String verifyCode,
         @NotNull Set<@NotNull Integer> roomSeatIds,
         @NotNull Set<@NotNull Integer> orderTicketIds) {}

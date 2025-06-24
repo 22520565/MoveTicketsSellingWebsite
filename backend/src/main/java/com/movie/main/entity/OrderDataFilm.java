@@ -18,7 +18,6 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
@@ -31,8 +30,6 @@ import lombok.experimental.FieldNameConstants;
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
 public class OrderDataFilm {
-    public static final int VerifyCodeLength = 8;
-
     @Id
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.PACKAGE)
@@ -61,11 +58,6 @@ public class OrderDataFilm {
     @NotNull
     private FilmShow filmShow = null;
 
-    @Column(nullable = false, length = VerifyCodeLength)
-    @Size(min = VerifyCodeLength, max = VerifyCodeLength)
-    @NotBlank
-    private String verifyCode = "";
-
     @ElementCollection(fetch = FetchType.EAGER)
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
@@ -81,7 +73,6 @@ public class OrderDataFilm {
             final LocalDate date,
             final LocalTime time,
             final FilmShow filmShow,
-            final String verifyCode,
             final Set<@NotBlank RoomSeat> roomSeats,
             final Set<@NotNull OrderTicket> orderTickets) {
         this.id = customerOrder.getId();
@@ -89,7 +80,6 @@ public class OrderDataFilm {
         this.date = date;
         this.time = time;
         this.filmShow = filmShow;
-        this.verifyCode = verifyCode;
         this.roomSeats = new HashSet<>(roomSeats);
         this.orderTickets = new HashSet<>(orderTickets);
     }

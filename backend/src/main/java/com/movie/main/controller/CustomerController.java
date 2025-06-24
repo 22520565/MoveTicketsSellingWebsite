@@ -206,6 +206,7 @@ public class CustomerController {
                 customer.getBirthDate(),
                 customer.getEmail(),
                 customer.getPhoneNumber(),
-                customer.getUsername());
+                customer.getUsername(),
+                customer.getLoyalPoint());
     }
 }

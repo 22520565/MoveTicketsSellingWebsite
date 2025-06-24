@@ -116,7 +116,6 @@ public class OrderDataFilmController {
                 orderDataFilm.getDate(),
                 orderDataFilm.getTime(),
                 orderDataFilm.getFilmShow(),
-                orderDataFilm.getVerifyCode(),
                 orderDataFilm.getRoomSeats(),
                 orderDataFilm.getOrderTickets());
     }

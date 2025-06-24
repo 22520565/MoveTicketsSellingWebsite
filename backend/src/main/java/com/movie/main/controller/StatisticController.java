@@ -37,9 +37,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("api/statistics")
-// @RequirePermission(value = Permission.ADMIN)
-// @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
-@PermitAll
+@RequirePermission(value = Permission.ADMIN)
+@SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
 public class StatisticController {
     @NotNull
     private final StatisticService service;
