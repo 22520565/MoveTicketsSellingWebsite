@@ -30,6 +30,21 @@ public interface FilmShowRepository extends JpaRepository<FilmShow, Integer> {
     @NonNull
     Page<@NotNull FilmShow> findAllByDeletedTrue(@NonNull final Pageable pageable);
 
+    @NonNull
+    Page<@NotNull FilmShow> findByShowDateAndDeletedFalse(LocalDate date, @NonNull final Pageable pageable);
+
+    @Query("""
+            SELECT fs
+            FROM FilmShow fs
+            WHERE (fs.showDate = :date)
+                AND (fs.room.theater.id = :theaterId)
+            """)
+    @NonNull
+    Page<@NotNull FilmShow> findByShowDateAndTheaterIdAndDeletedFalse(
+            @Param("date") final LocalDate date,
+            @Param("theaterId") final int theaterId,
+            @NonNull final Pageable pageable);
+
     @Query("SELECT f FROM FilmShow f WHERE (f.film.id = :filmId) AND (f.deleted = false) ORDER BY f.showDate ASC, f.showTime ASC")
     Page<@NotNull FilmShow> findAllByFilmIdOrderByDateTime(
             @Param("filmId") int filmId,
@@ -48,13 +63,13 @@ public interface FilmShowRepository extends JpaRepository<FilmShow, Integer> {
             @Param("date") @NotNull final LocalDate date,
             @NonNull final Pageable pageable);
 
-    @Query(value = "SELECT DISTINCT f.film FROM FilmShow f WHERE (f.showDate = :date) AND (f.deleted = false)")
+    @Query("SELECT DISTINCT f.film FROM FilmShow f WHERE (f.showDate = :date) AND (f.deleted = false)")
     @NonNull
     Page<@NotNull Film> findAllFilmsByShowDateAndDeletedFalse(
             @Param("date") @NotNull final LocalDate date,
             @NonNull final Pageable pageable);
 
-    @Query(value = "SELECT DISTINCT f.film FROM FilmShow f WHERE (f.showDate = CURRENT_DATE) AND (f.showTime >= CURRENT_TIME) AND (f.deleted = false) ORDER BY f.showTime ASC")
+    @Query("SELECT DISTINCT f.film FROM FilmShow f WHERE (f.showDate = CURRENT_DATE) AND (f.showTime >= CURRENT_TIME) AND (f.deleted = false) ORDER BY f.showTime ASC")
     @NonNull
     Page<@NotNull Film> findAllFilmsShowingFromNowToEndOfTodayAndDeletedFalse(@NonNull final Pageable pageable);
 
