@@ -14,9 +14,9 @@ const RenevueOverview = () => {
 
   const fetchData = async (year) => {
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/statistics/monthly-statistic?year=${year}`
-      );
+      // const response = await axios.get(
+      //   `http://localhost:8000/api/statistics/monthly-statistic?year=${year}`
+      // );
       const transformedData = transformApiDataToRevenueData(
         response.data,
         year

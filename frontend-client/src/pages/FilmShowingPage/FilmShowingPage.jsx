@@ -7,6 +7,11 @@ const FilmShowingPage = () => {
   const [filmShowing, setFilmShowing] = useState([]);
 
   useEffect(() => {
+    // Khi component mounted, reset scroll về đầu
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
     document.title = "Phim đang chiếu";
     const fetchFilmShowing = async () => {
       try {
@@ -22,7 +27,11 @@ const FilmShowingPage = () => {
   }, []);
 
   if (!filmShowing || filmShowing.length === 0) {
-    return <div>Loading...</div>;
+    return (
+      <div className="text-center text-white py-20 text-xl">
+        🎬 Hiện tại không có phim nào đang chiếu. Vui lòng quay lại sau.
+      </div>
+    );
   }
 
   return (

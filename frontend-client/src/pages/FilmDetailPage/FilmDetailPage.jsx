@@ -170,6 +170,8 @@ const FilmDetailPage = () => {
           }
         });
 
+        console.log(cinema);
+
         cinemaSchedules.push({
           city: cinema.address,
           name: cinema.name,

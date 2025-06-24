@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaPlay, FaInfoCircle } from "react-icons/fa";
+import DatePicker from "react-datepicker";
 import { IoClose } from "react-icons/io5";
 import {
   getAllFilmShows,
@@ -121,6 +122,15 @@ const FilmShowChartPage = () => {
     setShowModal(true);
   };
 
+  // Hàm định dạng ngày tháng
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
   //Hiển thị time trong modal
   const formatTime = (timeStrOrMinutes) => {
     // Nếu là chuỗi: "14:30:00"
@@ -192,23 +202,23 @@ const FilmShowChartPage = () => {
       <div className="mb-6 flex gap-4">
         <div className="flex items-center">
           <label className="mr-2 text-gray-700">Chọn ngày:</label>
-          <input
+          {/* <input
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             className="border rounded-md p-2 "
+          /> */}
+          <DatePicker
+            selected={startDate}
+            onChange={(date) => setStartDate(date)}
+            dateFormat="dd/MM/yyyy"
+            className="text-center border rounded-md p-2 w-[150px]"
           />
         </div>
       </div>
       <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">
-          {new Date(startDate).toLocaleDateString({
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </h2>
+        <h2 className="text-xl font-semibold mb-4">{formatDate(startDate)}</h2>
+
         <div className="relative overflow-x-auto">
           {filteredEvents.length === 0 ? (
             <h1 style={{ textAlign: "center" }}>Không có lịch chiếu</h1>
