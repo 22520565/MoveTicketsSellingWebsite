@@ -121,6 +121,7 @@ public class AdditionalItemService {
 
         additionalItem.setName(requestDto.name());
         additionalItem.setPrice(requestDto.price());
+        additionalItem.setLoyalPointRate(requestDto.loyalPointRate());
 
         try {
             return Expected.success(this.repository.save(additionalItem));
