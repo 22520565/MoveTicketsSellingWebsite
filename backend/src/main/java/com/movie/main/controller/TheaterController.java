@@ -128,6 +128,7 @@ public class TheaterController {
         return new TheaterResponseDto(
                 theater.getId(),
                 theater.getName(),
-                theater.getAddress());
+                theater.getAddress(),
+                theater.getCity());
     }
 }
