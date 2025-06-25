@@ -56,6 +56,8 @@ const AdditionalItemManagementPage = () => {
           })
         ) || [];
 
+      console.log("Active Items:", activeItems);
+
       const deletedItems =
         deletedRes?.data?._embedded?.additionalItemResponseDtoList?.map(
           (item) => ({
@@ -66,6 +68,7 @@ const AdditionalItemManagementPage = () => {
         ) || [];
 
       const mergedItems = [...activeItems, ...deletedItems];
+
       setItems(mergedItems);
     } catch (error) {
       console.error("Error fetching items:", error);
@@ -143,7 +146,8 @@ const AdditionalItemManagementPage = () => {
 
   const handleRefresh = async () => {
     setLoading(true);
-    fetchItems();
+    await fetchItems();
+
     setTimeout(() => {
       setLoading(false);
     }, 2000);
@@ -156,8 +160,6 @@ const AdditionalItemManagementPage = () => {
   const handleConfirmClick = async () => {
     setLoading(true);
     try {
-      console.log("Selected Item:", selectedItem);
-
       if (actionType === "delete") {
         await deleteItem(selectedItem.id);
         // const updatedFilteredData = items.filter((item) =>
@@ -178,7 +180,7 @@ const AdditionalItemManagementPage = () => {
         const res = await updateItem(selectedItem.id, selectedItem);
       } else if (actionType === "add") {
         console.log("haha: ", selectedItem);
-        addItem(selectedItem);
+        await addItem(selectedItem);
       } else if (actionType === "restore") {
         await undeleteItem(selectedItem.id);
       }

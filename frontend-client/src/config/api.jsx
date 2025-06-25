@@ -25,11 +25,12 @@ export const changePasword = async (id, updateData) => {
   return axios.post(`/user/user/change-password/${id}`, { ...updateData });
 };
 
-export const searchFilm = async ({ keyword, page = 1, limit = 2 }) => {
-  return await axios.post(`films/searchFilm`, {
-    keyword,
-    page,
-    limit,
+export const searchFilm = async ({ keyword, page = 0, size = 10 }) => {
+  return await axios.get(`/films/search/${keyword}`, {
+    params: {
+      page,
+      size,
+    },
   });
 };
 
@@ -45,18 +46,8 @@ export const getAvailableShowDate = async (filmId) => {
   return await axios.get(`film-show/get-available/showDate`);
 };
 
-export const getAvailableFilmByDate = async ({
-  date,
-  filmId,
-  page,
-  limit = 1000,
-}) => {
-  return await axios.post(`film-show/get-film-available-by-date`, {
-    date,
-    filmId,
-    page,
-    limit,
-  });
+export const getAvailableFilmByDate = async (date) => {
+  return await axios.get(`/film-shows/available-film-by-date/${date}`);
 };
 
 export const getAllFilms = async () => {
@@ -168,4 +159,8 @@ export const getRoomById = async (id) => {
 
 export const getAllRooms = async () => {
   return await axios.get(`/rooms`);
+};
+
+export const getAllItems = async () => {
+  return await axios.get(`/additional-items`);
 };

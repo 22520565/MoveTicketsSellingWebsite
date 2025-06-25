@@ -70,7 +70,7 @@ export default function CinemaScheduleList({ cinemasData }) {
           <h2 className="text-2xl font-extrabold text-yellow-400 mb-2">
             {cinema.name}
           </h2>
-          <p className="mb-4 text-lg">{cinema.address}</p>
+          <p className="mb-4 text-lg">{cinema.city}</p>
 
           {Object.entries(cinema.schedules).every(
             ([_, times]) => times.length === 0

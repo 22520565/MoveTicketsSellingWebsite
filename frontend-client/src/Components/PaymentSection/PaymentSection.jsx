@@ -4,7 +4,7 @@ const calculateTotalAfterDiscount = (
   pointUsage,
   param
 ) => {
-  if (!param) return 0;
+  if (!param) return totalPrice;
 
   let discountedPrice = Math.floor(
     totalPrice - (totalPrice * totalDiscount) / 100
@@ -48,13 +48,13 @@ const PaymentSection = ({
 
   const additionalItems = selectedFood.map((food) => {
     return {
-      _id: food._id,
+      _id: food.id,
       quantity: food.quantity,
     };
   });
 
   // Lấy danh sách ID từ selectedPromotions
-  const promotionIds = selectedPromotions.map((promo) => promo._id);
+  const promotionIds = selectedPromotions.map((promo) => promo.id);
 
   const handleCreatePayment = async () => {
     setIsLoading(true); // Bật trạng thái loading khi bắt đầu gửi yêu cầu
@@ -205,13 +205,21 @@ const PaymentSection = ({
                   <p className="text-xl font-bold">{+totalDiscount} %</p>
                   <p className="text-lg">Điểm tích được</p>
                   <p className="text-xl font-bold">
-                    {
+                    {/* {
                       +Math.floor(
                         (totalAfterDiscount *
                           param?.loyalPoint_OrderToPointRatio) /
                           100
                       )
-                    }
+                    } */}
+
+                    {param?.loyalPoint_OrderToPointRatio
+                      ? +Math.floor(
+                          (totalAfterDiscount *
+                            param.loyalPoint_OrderToPointRatio) /
+                            100
+                        )
+                      : 0}
                   </p>
                 </div>
               </div>

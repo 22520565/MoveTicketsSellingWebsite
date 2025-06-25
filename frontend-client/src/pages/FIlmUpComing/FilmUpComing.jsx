@@ -1,24 +1,48 @@
 import { useEffect, useState } from "react";
 import FilmCard from "../../Components/filmCard/index";
 import axios from "axios";
-import { getUpcommingFilms } from "../../config/api";
+import { getAllFilms, getShowingFilms } from "../../config/api";
 
 const FilmUpcoming = () => {
   const [filmShowing, setFilmShowing] = useState([]);
 
   useEffect(() => {
-    document.title = "Phim sắp chiếu";
-    const fetchFilmShowing = async () => {
-      try {
-        const response = await getUpcommingFilms();
-        if (response) {
-          setFilmShowing(response._embedded.filmResponseDtoList);
-        }
-      } catch {
-        throw new Error("There is an error while getting film detail");
+    // Khi component mounted, reset scroll về đầu
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  const fetchFilmData = async () => {
+    try {
+      const [allRes, showingRes] = await Promise.all([
+        getAllFilms(),
+        getShowingFilms(),
+      ]);
+
+      const allFilms = allRes._embedded.filmResponseDtoList || [];
+      const showingFilms = showingRes?._embedded?.filmResponseDtoList || [];
+
+      let upcoming = [];
+
+      if (showingFilms.length === 0) {
+        // Nếu không có phim đang chiếu → upcoming = tất cả
+        upcoming = allFilms;
+      } else {
+        // Ngược lại → lọc ra những phim chưa chiếu
+        const showingIds = new Set(showingFilms.map((film) => film.id));
+        upcoming = allFilms.filter((film) => !showingIds.has(film.id));
       }
-    };
-    fetchFilmShowing();
+
+      setFilmShowing(upcoming);
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu phim:", error);
+      throw new Error("Có lỗi xảy ra khi lấy dữ liệu phim.");
+    }
+  };
+
+  useEffect(() => {
+    document.title = "Phim sắp chiếu";
+
+    fetchFilmData();
   }, []);
 
   if (!filmShowing || filmShowing.length === 0) {

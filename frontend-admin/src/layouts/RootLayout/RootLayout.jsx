@@ -48,16 +48,6 @@ const serveTicketTab = {
   path: "/admin/ticket-management/serve-list",
   icon: <FiPackage className="w-6 h-6" />,
 };
-const dailyReportTab = {
-  name: "Báo cáo hằng ngày",
-  path: "/admin/thong-ke/ngay",
-  icon: <FiFile className="w-6 h-6" />,
-};
-const revenueOverviewTab = {
-  name: "Doanh thu hằng năm",
-  path: "/admin/thong-ke/nam",
-  icon: <FiBarChart2 className="w-6 h-6" />,
-};
 
 const roomTab = {
   name: "Quản lý phòng",
@@ -102,8 +92,7 @@ const allTabs = [
   offlineTicketTab,
   printTicketTab,
   serveTicketTab,
-  dailyReportTab,
-  revenueOverviewTab,
+
   roomTab,
   statisticTab,
   otherProductTab,
