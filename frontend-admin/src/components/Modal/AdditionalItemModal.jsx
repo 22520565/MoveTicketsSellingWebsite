@@ -19,12 +19,14 @@ const AdditionalItemModal = ({ isOpen, onClose, item, onSave, mode }) => {
   });
 
   const isFormValid = useMemo(() => {
-    const requiredFields = ["name", "price", "thumbnailUrl"];
+    const requiredFields = ["name", "price", "thumbnailUrl", "loyalPointRate"];
 
     return requiredFields.every((field) => !!formData[field]); // Chuyển đổi giá trị thành Boolean
   }, [formData]);
 
   const handleSubmit = () => {
+    console.log("Submitting form data:", formData);
+
     onSave(formData);
   };
 
@@ -84,24 +86,7 @@ const AdditionalItemModal = ({ isOpen, onClose, item, onSave, mode }) => {
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      loyalPointRate: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Link ảnh
-                </label>
-                <input
-                  type="text"
-                  name="thumbnailUrl"
-                  value={formData.thumbnailUrl}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      thumbnailUrl: e.target.value,
+                      loyalPointRate: Number(e.target.value),
                     }))
                   }
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

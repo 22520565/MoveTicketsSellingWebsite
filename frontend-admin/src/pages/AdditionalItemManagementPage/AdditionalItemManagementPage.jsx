@@ -45,7 +45,7 @@ const AdditionalItemManagementPage = () => {
     try {
       setLoading(true);
       const [activeRes, deletedRes] = await Promise.all([
-        getAllItems(),
+        getAllItems(0, 50),
         getAllItemsDeleted(),
       ]);
       const activeItems =
@@ -179,7 +179,6 @@ const AdditionalItemManagementPage = () => {
       } else if (actionType === "edit") {
         const res = await updateItem(selectedItem.id, selectedItem);
       } else if (actionType === "add") {
-        console.log("haha: ", selectedItem);
         await addItem(selectedItem);
       } else if (actionType === "restore") {
         await undeleteItem(selectedItem.id);
@@ -219,6 +218,11 @@ const AdditionalItemManagementPage = () => {
       header: "Giá",
       key: "price",
       render: (_, row) => row.price.toLocaleString(),
+    },
+    {
+      header: "Điểm tích lũy (%)",
+      key: "loyalPointRate",
+      render: (_, row) => row.loyalPointRate.toLocaleString(),
     },
     {
       header: "Hành động",

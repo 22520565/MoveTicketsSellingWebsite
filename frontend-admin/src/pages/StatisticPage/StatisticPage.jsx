@@ -10,9 +10,12 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import LineChartComponent from "../../components/Statistic/ColumnChart";
 import PieCharts from "../../components/Statistic/PieChart";
+import { getCinemas } from "../../config/api";
 import axios from "axios";
 
 const StatisticPage = () => {
+  const [selectedCinemaId, setSelectedCinemaId] = useState(""); // rạp đang chọn
+  const [cinemas, setCinemas] = useState([]); // danh sách rạp
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0] // Định dạng yyyy-mm-dd
   );
@@ -29,6 +32,23 @@ const StatisticPage = () => {
     totalTicketRevenue: 0,
     totalOtherItemsRevenue: 0,
   });
+
+  useEffect(() => {
+    const fetchCinemas = async () => {
+      try {
+        const res = await getCinemas(); // hoặc endpoint tương ứng
+
+        setCinemas(res.data._embedded.theaterResponseDtoList);
+        setSelectedCinemaId(
+          res.data._embedded.theaterResponseDtoList[0]?.id || ""
+        );
+      } catch (err) {
+        console.error("Lỗi lấy danh sách rạp:", err);
+      }
+    };
+
+    fetchCinemas();
+  }, []);
 
   //biểu đồ loại vé
   const fetchticketType = async (day) => {
@@ -234,7 +254,19 @@ const StatisticPage = () => {
     <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Báo cáo hằng ngày</h1>
+
         <div className="flex items-center space-x-4">
+          <select
+            value={selectedCinemaId}
+            onChange={(e) => setSelectedCinemaId(e.target.value)}
+            className="p-2 border rounded-md"
+          >
+            {cinemas.map((cinema) => (
+              <option key={cinema.id} value={cinema.id}>
+                {cinema.name}
+              </option>
+            ))}
+          </select>
           <input
             type="date"
             value={selectedDate}
@@ -294,7 +326,6 @@ const StatisticPage = () => {
                 {Number(
                   statistics.totalEffectiveRevenue.toFixed(0)
                 ).toLocaleString("vi-VN")}
-              
               </p>
             </div>
           </div>

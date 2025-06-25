@@ -98,8 +98,13 @@ export const uploadThumbnail = async (id, formData) => {
   });
 };
 
-export const getAllItems = async () => {
-  return await api.get(`/additional-items`);
+export const getAllItems = async (page = 0, size = 20) => {
+  return await api.get(`/additional-items`, {
+    params: {
+      page,
+      size,
+    },
+  });
 };
 
 export const getAllItemsDeleted = async () => {
@@ -107,11 +112,71 @@ export const getAllItemsDeleted = async () => {
 };
 
 export const addItem = async (data) => {
-  return await api.post(`/additional-items`, data);
+  let { file, ...finalData } = data;
+
+  try {
+    // B1: Tạo item trước
+    const createRes = await api.post(`/additional-items`, finalData);
+    const createdItem = createRes.data;
+    const itemId = createdItem.id;
+
+    // B2: Nếu có file thì upload
+    if (file && itemId) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const image = await api.patch(
+        `/additional-items/${itemId}/thumbnail`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      return {
+        ...createdItem,
+        thumbnailUrl: image.data.url, // giả sử API trả về { url: '...' }
+      };
+    }
+
+    return createdItem;
+  } catch (err) {
+    console.error("Lỗi tạo item hoặc upload ảnh:", err);
+    throw err;
+  }
 };
 
 export const updateItem = async (id, data) => {
-  return await api.put(`/additional-items/${id}`, data);
+  let { file, ...finalData } = data;
+
+  try {
+    // B1: Nếu có file mới thì upload thumbnail trước
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const image = await api.patch(
+        `/additional-items/${id}/thumbnail`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return {
+        ...finalData,
+        thumbnailUrl: image.data.url, // giả sử API trả về { url: '...' }
+      };
+    }
+
+    console.log("Không có file mới, chỉ cập nhật dữ liệu:", finalData);
+
+    // B2: Gửi phần còn lại của dữ liệu (JSON)
+    return await api.put(`/additional-items/${id}`, finalData);
+  } catch (err) {
+    console.error("Lỗi cập nhật sản phẩm hoặc ảnh:", err);
+    throw err;
+  }
 };
 
 export const deleteItem = async (id) => {
@@ -248,5 +313,5 @@ export const undeleteItem = async (id) => {
 // };
 
 export const getCinemas = async () => {
-  return await axios.get(`/theaters`);
+  return await api.get(`/theaters`);
 };
