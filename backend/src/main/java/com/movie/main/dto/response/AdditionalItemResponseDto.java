@@ -4,5 +4,5 @@ public record AdditionalItemResponseDto(
         int id,
         String name,
         int price,
-        String thumbnailUrl) {
-}
+        int loyalPointRate,
+        String thumbnailUrl) {}

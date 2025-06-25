@@ -173,6 +173,7 @@ public class AdditionalItemController {
                 additionalItem.getId(),
                 additionalItem.getName(),
                 additionalItem.getPrice(),
+                additionalItem.getLoyalPointRate(),
                 additionalItem.getThumbnailUrl());
     }
 }

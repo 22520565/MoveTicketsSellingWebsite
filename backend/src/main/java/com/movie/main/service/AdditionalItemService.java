@@ -84,6 +84,7 @@ public class AdditionalItemService {
         final var newAdditionalItem = new AdditionalItem(
                 requestDto.name(),
                 requestDto.price(),
+                requestDto.loyalPointRate(),
                 requestDto.thumbnailUrl());
 
         try {

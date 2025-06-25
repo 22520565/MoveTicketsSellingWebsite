@@ -1,5 +1,7 @@
 package com.movie.main.entity;
 
+import org.hibernate.validator.constraints.Range;
+
 import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,6 +25,8 @@ public class AdditionalItem {
     public static final int MaxLengthName = 50;
     public static final int MaxLengthThumbnailUrl = 512;
     public static final int MaxLengthThumbnailPublicId = 256;
+    public static final int MinLoyalPointRate = 0;
+    public static final int MaxLoyalPointRate = 100;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,6 +43,10 @@ public class AdditionalItem {
     @Min(0)
     private int price = 0;
 
+    @Column(nullable = false)
+    @Range(min = MinLoyalPointRate, max = MaxLoyalPointRate)
+    private int loyalPointRate = 0;
+
     @Column(length = MaxLengthThumbnailUrl)
     @Nullable
     private String thumbnailUrl = null;
@@ -53,9 +61,11 @@ public class AdditionalItem {
     public AdditionalItem(
             final String name,
             final int price,
+            final int loyalPointRate,
             final String thumbnailUrl) {
         this.name = name;
         this.price = price;
+        this.loyalPointRate = loyalPointRate;
         this.thumbnailUrl = thumbnailUrl;
     }
 }
