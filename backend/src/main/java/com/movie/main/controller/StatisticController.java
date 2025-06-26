@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.movie.main.auth.RequirePermission;
 import com.movie.main.config.OpenApiConfig;
 import com.movie.main.dto.response.BestSellingItemResponseDto;
-import com.movie.main.dto.response.CustomerResponseDto;
 import com.movie.main.dto.response.DailyStatisticResponseDto;
 import com.movie.main.dto.response.FilmStatisticsResponseDto;
 import com.movie.main.dto.response.HotFilmResponseDto;
@@ -19,7 +18,6 @@ import com.movie.main.entity.Employee.Permission;
 import com.movie.main.service.StatisticService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.annotation.security.PermitAll;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
