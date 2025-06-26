@@ -1,4 +1,4 @@
-package com.movie.main.dto.request;
+package com.movie.main.dto.response;
 
 import java.util.Set;
 
@@ -12,7 +12,10 @@ import lombok.experimental.FieldNameConstants.Include;
 @Data
 @AllArgsConstructor
 @FieldNameConstants
-public class CreateOrderRequestDto {
+public class CreateOrderResponseDto {
+    @Include
+    private final int id;
+
     @Include
     private final int totalPrice;
 
@@ -24,7 +27,7 @@ public class CreateOrderRequestDto {
 
     @Include
     @NotNull
-    private final Set<@NotNull TicketRequestDto> tickets;
+    private final Set<@NotNull TicketResponseDto> tickets;
 
     @Include
     @NotNull
@@ -32,7 +35,7 @@ public class CreateOrderRequestDto {
 
     @Include
     @NotNull
-    private final Set<@NotNull ItemRequestDto> items;
+    private final Set<@NotNull ItemResponseDto> items;
 
     @Include
     @NotNull
@@ -45,7 +48,7 @@ public class CreateOrderRequestDto {
     @Data
     @AllArgsConstructor
     @FieldNameConstants
-    public static class TicketRequestDto {
+    public static class TicketResponseDto {
         @Include
         private final int typeId;
 
@@ -56,7 +59,7 @@ public class CreateOrderRequestDto {
     @Data
     @AllArgsConstructor
     @FieldNameConstants
-    public static class ItemRequestDto {
+    public static class ItemResponseDto {
         @Include
         private final int id;
 
