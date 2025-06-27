@@ -4,4 +4,5 @@ public record TicketTypeResponseDto(
         int id,
         String title,
         int price,
-        boolean isPair) {}
+        boolean isPair,
+        int loyalPointRate) {}
