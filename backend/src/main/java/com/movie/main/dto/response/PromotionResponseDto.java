@@ -7,6 +7,6 @@ public record PromotionResponseDto(
         String name,
         String thumbnailUrl,
         int discountRate,
+        boolean paused,
         LocalDate beginDate,
-        LocalDate endDate) {
-}
+        LocalDate endDate) {}

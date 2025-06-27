@@ -189,6 +189,7 @@ public class PromotionController {
                 promotion.getName(),
                 promotion.getThumbnailUrl(),
                 promotion.getDiscountRate(),
+                promotion.isPaused(),
                 promotion.getBeginDate(),
                 promotion.getEndDate());
     }
