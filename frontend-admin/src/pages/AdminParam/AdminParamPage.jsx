@@ -10,6 +10,18 @@ import FailedDialog from "../../components/Dialog/FailedDialog";
 import TicketTypeModal from "../../components/Modal/TicketTypeModal";
 import EmployeeAccount from "../../components/Modal/EmployeeAcountModal";
 import TagModal from "../../components/Modal/TagModal";
+import {
+  getAllTicketType,
+  updateTicketType,
+  addTicketType,
+  deleteTicketTypeById,
+  getAllTags,
+  addTag,
+  deleteTagById,
+  getParam,
+  updateParam,
+} from "../../config/api";
+import { add, get } from "lodash";
 
 const AdminParamPage = () => {
   const [tags, setTags] = useState([]);
@@ -54,10 +66,8 @@ const AdminParamPage = () => {
   const fetchTicketTypes = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        "http://localhost:8000/api/param/ticket-type"
-      );
-      setTicketTypes(response.data.data);
+      const response = await getAllTicketType();
+      setTicketTypes(response?.data?._embedded?.ticketTypeResponseDtoList);
     } catch (error) {
       console.error("Error fetching items:", error);
     } finally {
@@ -102,8 +112,9 @@ const AdminParamPage = () => {
 
   const fetchTags = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/tags");
-      setTags(response.data.data);
+      const response = await getAllTags();
+
+      setTags(response?.data?._embedded?.tagResponseDtoList);
     } catch (error) {
       console.error("Error fetching items:", error);
     }
@@ -128,42 +139,43 @@ const AdminParamPage = () => {
       ),
     },
   ];
-  const fetchAccount = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:8000/api/user/employee/all-account"
-      );
-      setAccounts(response.data.data);
-    } catch (error) {
-      console.error("Error fetching items:", error);
-    }
-  };
+  // const fetchAccount = async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       "http://localhost:8000/api/user/employee/all-account"
+  //     );
+  //     setAccounts(response.data.data);
+  //   } catch (error) {
+  //     console.error("Error fetching items:", error);
+  //   }
+  // };
 
-  const Accountcolumns = [
-    { header: "Tên nhân viên", key: "name" },
-    { header: "Công việc", key: "jobTitle" },
-    { header: "Số điện thoại", key: "phone" },
-    {
-      header: "Hành động",
-      key: "actions",
-      render: (_, row) => (
-        <div className="flex space-x-3">
-          <button
-            className="text-red-600 hover:text-red-800"
-            onClick={() => handleDeleteAccount(row)}
-          >
-            <FiTrash2 className="w-4 h-4" />
-          </button>
-        </div>
-      ),
-    },
-  ];
+  // const Accountcolumns = [
+  //   { header: "Tên nhân viên", key: "name" },
+  //   { header: "Công việc", key: "jobTitle" },
+  //   { header: "Số điện thoại", key: "phone" },
+  //   {
+  //     header: "Hành động",
+  //     key: "actions",
+  //     render: (_, row) => (
+  //       <div className="flex space-x-3">
+  //         <button
+  //           className="text-red-600 hover:text-red-800"
+  //           onClick={() => handleDeleteAccount(row)}
+  //         >
+  //           <FiTrash2 className="w-4 h-4" />
+  //         </button>
+  //       </div>
+  //     ),
+  //   },
+  // ];
 
   const fetchParam = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/param");
-      setParams(response.data.data);
-      setOriginalPrices(response.data.data);
+      const response = await getParam();
+
+      setParams(response.data);
+      setOriginalPrices(response.data);
     } catch (error) {
       console.error("Error fetching items:", error);
     }
@@ -173,7 +185,7 @@ const AdminParamPage = () => {
     setLoading(true);
     fetchTags();
     fetchTicketTypes();
-    fetchAccount();
+
     fetchParam();
     setTimeout(() => {
       setLoading(false);
@@ -183,7 +195,7 @@ const AdminParamPage = () => {
   useEffect(() => {
     fetchTags();
     fetchTicketTypes();
-    fetchAccount();
+
     fetchParam();
   }, []);
   const [activeModal, setActiveModal] = useState(""); // Xác định modal đang mở
@@ -232,18 +244,6 @@ const AdminParamPage = () => {
     setIsConfirmModalOpen(true); // Hiển thị modal xác nhận
   };
 
-  //Xóa tìa khoản
-  const handleDeleteAccount = async (data) => {
-    setSelectedItem(data);
-    setActiveModal("Xóa tài khoản");
-    setMode("delete"); // Chế độ xóa
-    setDialogData({
-      title: "Xóa tài khoản",
-      message: "Bạn có chắc chắn muốn xóa tài khoản này?",
-    });
-    setIsConfirmModalOpen(true); // Hiển thị modal xác nhận
-  };
-
   // Xử lý lưu dữ liệu cho từng modal
   const handleConfirmClick = async () => {
     setIsConfirmModalOpen(false);
@@ -252,15 +252,19 @@ const AdminParamPage = () => {
         // Nếu là thao tác lưu quy định
         //setIsUpdatingConfig(true); // Đánh dấu thao tác lưu quy định
         // Logic lưu quy định
-        const response = await axios.put(
-          "http://localhost:8000/api/param",
-          params
-        );
-        if (response.status === 200) {
+        console.log("params: ", params);
+
+        const response = await updateParam(params);
+        console.log("response: ", response);
+
+        if (response) {
           setOriginalPrices((prevPrices) => ({
             ...prevPrices,
             [type]: params[type],
           }));
+
+          const refreshedParams = await getParam(); // gọi API lấy lại toàn bộ
+          setParams(refreshedParams.data);
         }
 
         setDialogData({
@@ -271,11 +275,8 @@ const AdminParamPage = () => {
       } else {
         if (activeModal === "Loại vé") {
           if (mode === "edit") {
-            await axios.patch(
-              `http://localhost:8000/api/param/ticket-type/${selectedItem._id}`,
-              selectedItem
-            );
             console.log("data: ", selectedItem);
+            await updateTicketType(selectedItem.id, selectedItem);
 
             setDialogData({
               title: "Cập nhật thành công",
@@ -283,56 +284,30 @@ const AdminParamPage = () => {
             });
           } else {
             const itemToSend = { ...selectedItem };
-            delete itemToSend._id; // Loại bỏ _id nếu có
+            delete itemToSend.id; // Loại bỏ _id nếu có
             // Logic cho "add"
-            await axios.post(
-              "http://localhost:8000/api/param/ticket-type",
-              itemToSend
-            );
+            await addTicketType(itemToSend);
             setDialogData({
               title: "Thêm mới thành công",
               message: `Loại vé mới đã được thêm thành công.`,
             });
           }
         } else if (activeModal === "Thể loại phim") {
-          await axios.post("http://localhost:8000/api/tags", selectedItem);
+          await addTag(selectedItem);
           // Logic cho "add" thể loại phim
           setDialogData({
             title: "Thêm mới thành công",
             message: `Thể loại phim mới đã được thêm thành công.`,
           });
-        } else if (activeModal === "Tài khoản") {
-          {
-            console.log(selectedItem);
-            const id = selectedItem.name;
-            const requestData = {
-              account: selectedItem.username,
-              password: selectedItem.password,
-            };
-
-            // Gửi yêu cầu đến API
-            await axios.post(
-              `http://localhost:8000/api/user/employee/update-account/${id}`, // name được truyền vào param
-              requestData // Dữ liệu body
-            );
-
-            // Logic cho "add" tài khoản
-            setDialogData({
-              title: "Thêm mới thành công",
-              message: `Tài khoản mới đã được thêm thành công.`,
-            });
-          }
         } else if (activeModal === "Xóa loại vé") {
-          await axios.delete(
-            `http://localhost:8000/api/param/ticket-type/${selectedItem._id}`
-          );
+          await deleteTicketTypeById(selectedItem.id);
           setDialogData({
             title: "Thành công",
             message: "Xóa loại vé thành công",
           });
           setTicketTypes((prev) => {
             const updatedList = prev.filter(
-              (item) => item._id !== selectedItem._id
+              (item) => item.id !== selectedItem.id
             );
 
             // Kiểm tra nếu hiện tại không có đủ item cho trang hiện tại
@@ -348,16 +323,14 @@ const AdminParamPage = () => {
             return updatedList;
           });
         } else if (activeModal === "Xóa thể loại phim") {
-          await axios.delete(
-            `http://localhost:8000/api/tags/${selectedItem._id}`
-          );
+          await deleteTagById(selectedItem.id);
           setDialogData({
             title: "Thành công",
             message: "Xóa thể loại phim thành công",
           });
           setTags((prev) => {
             const updatedList = prev.filter(
-              (item) => item._id !== selectedItem._id
+              (item) => item.id !== selectedItem.id
             );
 
             const totalPages = Math.ceil(updatedList.length / itemsPerPage);
@@ -367,31 +340,6 @@ const AdminParamPage = () => {
             } else if (updatedList.length === 0) {
               // Nếu không còn dữ liệu, quay lại trang 1
               setCurrentPage((prev) => ({ ...prev, tags: 1 }));
-            }
-
-            return updatedList;
-          });
-        } else if (activeModal === "Xóa tài khoản") {
-          await axios.delete(
-            `http://localhost:8000/api/user/employee/delete-account/${selectedItem._id}`
-          );
-          setDialogData({
-            title: "Thành công",
-            message: "Xóa tài khoản thành công",
-          });
-          setTags((prev) => {
-            const updatedList = prev.filter(
-              (item) => item._id !== selectedItem._id
-            );
-
-            // Kiểm tra nếu hiện tại không có đủ item cho trang hiện tại
-            const totalPages = Math.ceil(updatedList.length / itemsPerPage);
-            if (currentPage.accounts > totalPages && totalPages > 0) {
-              // Nếu trang hiện tại không có dữ liệu, lùi lại 1 trang
-              setCurrentPage((prev) => ({ ...prev, accounts: totalPages }));
-            } else if (updatedList.length === 0) {
-              // Nếu không còn dữ liệu, quay lại trang 1
-              setCurrentPage((prev) => ({ ...prev, accounts: 1 }));
             }
 
             return updatedList;
@@ -441,15 +389,16 @@ const AdminParamPage = () => {
             ? "Bạn có chắc chắn muốn chỉnh sửa thể loại phim này?"
             : "Bạn có muốn thêm thể loại phim mới?",
       });
-    } else if (tableName === "Tài khoản") {
-      setDialogData({
-        title: mode === "edit" ? "Chỉnh sửa tài khoản" : "Thêm mới tài khoản",
-        message:
-          mode === "edit"
-            ? "Bạn có chắc chắn muốn chỉnh sửa tài khoản này?"
-            : "Bạn có muốn thêm tài khoản mới?",
-      });
     }
+    // } else if (tableName === "Tài khoản") {
+    //   setDialogData({
+    //     title: mode === "edit" ? "Chỉnh sửa tài khoản" : "Thêm mới tài khoản",
+    //     message:
+    //       mode === "edit"
+    //         ? "Bạn có chắc chắn muốn chỉnh sửa tài khoản này?"
+    //         : "Bạn có muốn thêm tài khoản mới?",
+    //   });
+    // }
 
     // Gọi dialog xác nhận với loại hành động tương ứng
     setIsConfirmModalOpen(true);
@@ -460,8 +409,6 @@ const AdminParamPage = () => {
   };
 
   //xử lí giá vé chi lưu khi thay đổi giá
-
-  console.log(originalPrices);
 
   // Hàm cập nhật giá trị khi nhập liệu
   const handleChange = (type, value) => {
@@ -519,50 +466,36 @@ const AdminParamPage = () => {
         </div>
       </div>
       <div className="flex flex-col gap-6">
-        {ticketTypes.length > 0 ? (
-          <RuleTable
-            title="Loại vé"
-            data={ticketTypes}
-            columns={ticketTypeColumns}
-            onAddNew={handleAddNew}
-            currentPage={currentPage.ticketTypes}
-            setCurrentPage={(pageNumber) =>
-              handlePageChange("ticketTypes", pageNumber)
-            }
-          />
-        ) : (
-          <p className="text-center text-gray-500 py-4">Không có dữ liệu</p>
-        )}
+        <RuleTable
+          title="Loại vé"
+          data={ticketTypes}
+          columns={ticketTypeColumns}
+          onAddNew={handleAddNew}
+          currentPage={currentPage.ticketTypes}
+          setCurrentPage={(pageNumber) =>
+            handlePageChange("ticketTypes", pageNumber)
+          }
+        />
 
-        {tags.length > 0 ? (
-          <RuleTable
-            title="Thể loại phim"
-            data={tags}
-            columns={typeColumns}
-            onAddNew={handleAddNew}
-            currentPage={currentPage.tags}
-            setCurrentPage={(pageNumber) =>
-              handlePageChange("tags", pageNumber)
-            }
-          />
-        ) : (
-          <p className="text-center text-gray-500 py-4">Không có dữ liệu</p>
-        )}
+        <RuleTable
+          title="Thể loại phim"
+          data={tags}
+          columns={typeColumns}
+          onAddNew={handleAddNew}
+          currentPage={currentPage.tags}
+          setCurrentPage={(pageNumber) => handlePageChange("tags", pageNumber)}
+        />
 
-        {accounts.length > 0 ? (
-          <RuleTable
-            title="Tài khoản"
-            data={accounts}
-            columns={Accountcolumns}
-            onAddNew={handleAddNew}
-            currentPage={currentPage.accounts}
-            setCurrentPage={(pageNumber) =>
-              handlePageChange("accounts", pageNumber)
-            }
-          />
-        ) : (
-          <p className="text-center text-gray-500 py-4">Không có dữ liệu</p>
-        )}
+        {/* <RuleTable
+          title="Tài khoản"
+          data={accounts}
+          columns={Accountcolumns}
+          onAddNew={handleAddNew}
+          currentPage={currentPage.accounts}
+          setCurrentPage={(pageNumber) =>
+            handlePageChange("accounts", pageNumber)
+          }
+        /> */}
       </div>
 
       <div className="p-6 bg-white rounded-lg  max-w-4xl">
@@ -576,7 +509,7 @@ const AdminParamPage = () => {
             {[
               {
                 label: "Giá vé thêm cho ghế VIP:",
-                key: "addedPriceForVIPSeat",
+                key: "addedPriceForVipSeat",
                 unit: "VNĐ",
               },
               {
@@ -586,22 +519,22 @@ const AdminParamPage = () => {
               },
               {
                 label: "Điểm sử dụng tối đa trong 1 lần:",
-                key: "loyalPoint_MaxiumPointUseInOneGo",
+                key: "loyalPointMaximumPointUseInOneGo",
                 unit: "",
               },
               {
                 label: "Giá trị hóa đơn tối thiểu để sử dụng điểm:",
-                key: "loyalPoint_MiniumValueToUseLoyalPoint",
+                key: "loyalPointMinimumValueToUseLoyalPoint",
                 unit: "VNĐ",
               },
               {
                 label: "Tỷ lệ quy đổi từ điểm sang giảm hóa đơn:",
-                key: "loyalPoint_PointToReducedPriceRatio",
+                key: "loyalPointPointToReducedPriceRatio",
                 unit: "%",
               },
               {
                 label: "Tỷ lệ quy đổi từ giá trị hóa đơn sang điểm:",
-                key: "loyalPoint_OrderToPointRatio",
+                key: "loyalPointOrderToPointRatio",
                 unit: "%",
               },
             ].map((item, index) => (
@@ -660,7 +593,7 @@ const AdminParamPage = () => {
           onSave={handleEditConfirm}
         />
       )}
-      {activeModal === "Tài khoản" && (
+      {/* {activeModal === "Tài khoản" && (
         <EmployeeAccount
           isOpen={true}
           onClose={handleCloseModal}
@@ -668,7 +601,7 @@ const AdminParamPage = () => {
           type={selectedItem}
           mode={mode}
         />
-      )}
+      )} */}
       <Dialog
         isOpen={isConfirmModalOpen}
         title={dialogData.title}

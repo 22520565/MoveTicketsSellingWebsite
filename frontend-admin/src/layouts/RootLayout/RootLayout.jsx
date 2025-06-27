@@ -33,11 +33,7 @@ const filmShowChartTab = {
   path: "/admin/film-show-management/chart",
   icon: <FiCalendar className="w-6 h-6" />,
 };
-const offlineTicketTab = {
-  name: "Tạo vé trực tiếp",
-  path: "/create-offline-ticket",
-  icon: <RxDashboard className="w-6 h-6" />,
-};
+
 const printTicketTab = {
   name: "Duyệt vé",
   path: "/admin/ticket-management/print-list",
@@ -89,7 +85,7 @@ const allTabs = [
   filmTab,
   filmShowListTab,
   filmShowChartTab,
-  offlineTicketTab,
+
   printTicketTab,
   serveTicketTab,
 
@@ -98,7 +94,7 @@ const allTabs = [
   otherProductTab,
   accountTab,
   otherRuleTab,
-  employeeTab,
+  // employeeTab,
   promotionTab,
 ];
 

@@ -82,14 +82,6 @@ export const getRoomById = async (id) => {
   return await api.get(`/rooms/${id}`);
 };
 
-export const getAllTags = async () => {
-  return await api.get(`/tags`);
-};
-
-export const getTagById = async (id) => {
-  return await api.get(`/tags/${id}`);
-};
-
 export const uploadThumbnail = async (id, formData) => {
   return await api.patch(`/films/${id}/thumbnail`, formData, {
     headers: {
@@ -98,6 +90,7 @@ export const uploadThumbnail = async (id, formData) => {
   });
 };
 
+//Additional Items
 export const getAllItems = async (page = 0, size = 20) => {
   return await api.get(`/additional-items`, {
     params: {
@@ -186,6 +179,161 @@ export const deleteItem = async (id) => {
 export const undeleteItem = async (id) => {
   return await api.patch(`/additional-items/undelete/${id}`);
 };
+
+//Promotions
+export const getAllPromotions = async (page = 0, size = 20) => {
+  return await api.get(`/promotions`, {
+    params: {
+      page,
+      size,
+    },
+  });
+};
+
+export const getAllProsExpired = async (page = 0, size = 20) => {
+  return await api.get(`/promotions/expired`, {
+    params: {
+      page,
+      size,
+    },
+  });
+};
+
+export const getAllProsInactive = async (page = 0, size = 20) => {
+  return await api.get(`/promotions/inactive`, {
+    params: {
+      page,
+      size,
+    },
+  });
+};
+
+export const addPromotion = async (data) => {
+  let { file, ...finalData } = data;
+
+  try {
+    // B1: Tạo item trước
+    const createRes = await api.post(`/promotions`, finalData);
+    const createdItem = createRes.data;
+    const itemId = createdItem.id;
+
+    // B2: Nếu có file thì upload
+    if (file && itemId) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const image = await api.patch(
+        `/promotions/${itemId}/thumbnail`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      return {
+        ...createdItem,
+        thumbnailUrl: image.data.url, // giả sử API trả về { url: '...' }
+      };
+    }
+
+    return createdItem;
+  } catch (err) {
+    console.error("Lỗi tạo item hoặc upload ảnh:", err);
+    throw err;
+  }
+};
+
+export const updatePromotion = async (id, data) => {
+  let { file, ...finalData } = data;
+
+  try {
+    // B1: Nếu có file mới thì upload thumbnail trước
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const image = await api.patch(`/promotions/${id}/thumbnail`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return {
+        ...finalData,
+        thumbnailUrl: image.data.url, // giả sử API trả về { url: '...' }
+      };
+    }
+
+    console.log("Không có file mới, chỉ cập nhật dữ liệu:", finalData);
+
+    // B2: Gửi phần còn lại của dữ liệu (JSON)
+    return await api.put(`/promotions/${id}`, finalData);
+  } catch (err) {
+    console.error("Lỗi cập nhật sản phẩm hoặc ảnh:", err);
+    throw err;
+  }
+};
+
+export const deletePromotion = async (id) => {
+  return await api.delete(`/promotions/${id}`);
+};
+
+export const pausePromotion = async (id) => {
+  return await api.patch(`/promotions/pause/${id}`);
+};
+
+export const resumePromotion = async (id) => {
+  return await api.patch(`/promotions/resume/${id}`);
+};
+
+//Param Page
+export const getAllTicketType = async (page = 0, size = 20) => {
+  return await api.get(`/ticket-types`, {
+    params: {
+      page,
+      size,
+    },
+  });
+};
+
+export const getTicketTypeById = async (id) => {
+  return await api.get(`/ticket-types/${id}`);
+};
+export const deleteTicketTypeById = async (id) => {
+  return await api.delete(`/ticket-types/${id}`);
+};
+export const addTicketType = async (data) => {
+  return await api.post(`/ticket-types`, data);
+};
+export const updateTicketType = async (id, data) => {
+  return await api.put(`/ticket-types/${id}`, data);
+};
+
+export const getAllTags = async (page = 0, size = 20) => {
+  return await api.get(`/tags`, {
+    params: {
+      page,
+      size,
+    },
+  });
+};
+
+export const getTagById = async (id) => {
+  return await api.get(`/tags/${id}`);
+};
+export const deleteTagById = async (id) => {
+  return await api.delete(`/tags/${id}`);
+};
+export const addTag = async (data) => {
+  return await api.post(`/tags`, data);
+};
+
+export const getParam = async () => {
+  return await api.get(`/params`);
+};
+
+export const updateParam = async (data) => {
+  return await api.put(`/params`, data);
+};
+
 //............
 // export const callSignUp = async (data) => {
 //   return axios.post("/auth/user/sign-up", { ...data });
