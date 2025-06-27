@@ -2,6 +2,7 @@ package com.movie.main.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.movie.main.dto.request.StripePaymentCreateIntentRequestDto;
 import com.movie.main.dto.response.StripePaymentCreateIntentResponseDto;
 import com.movie.main.entity.StripePayment;
+import com.movie.main.entity.User;
 import com.movie.main.resource.ResourceStrings;
 import com.movie.main.service.StripePaymentService;
 import com.stripe.exception.SignatureVerificationException;
@@ -30,8 +32,14 @@ public class StripePaymentController {
 
     @PostMapping("/create-intent")
     public ResponseEntity<StripePaymentCreateIntentResponseDto> createIntent(
-            @Valid @RequestBody final StripePaymentCreateIntentRequestDto requestDto) {
-        final var result = this.service.createPaymentIntent(requestDto.amount(), requestDto.description());
+            @Valid @RequestBody final StripePaymentCreateIntentRequestDto requestDto,
+            @AuthenticationPrincipal final User user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        final var result = this.service.createPaymentIntent(requestDto.amount(), requestDto.description(),
+                user.getId());
 
         final var clientSecret = result.getValue();
         if (clientSecret != null) {

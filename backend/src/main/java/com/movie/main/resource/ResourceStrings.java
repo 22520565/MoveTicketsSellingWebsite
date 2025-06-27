@@ -1,5 +1,7 @@
 package com.movie.main.resource;
 
+import com.stripe.Stripe;
+
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.experimental.FieldNameConstants;
 import lombok.experimental.FieldNameConstants.Include;
@@ -41,6 +43,8 @@ public final class ResourceStrings {
         STRIPE_SECRET_KEY = dotenv.get(ResourceStrings.Fields.STRIPE_SECRET_KEY);
         STRIPE_WEBHOOK_SECRET = dotenv.get(ResourceStrings.Fields.STRIPE_WEBHOOK_SECRET);
         STRIPE_CURRENCY = dotenv.get(ResourceStrings.Fields.STRIPE_CURRENCY);
+
+        Stripe.apiKey = ResourceStrings.STRIPE_SECRET_KEY;
     }
 
     private ResourceStrings() {}

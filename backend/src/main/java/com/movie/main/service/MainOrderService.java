@@ -3,6 +3,7 @@ package com.movie.main.service;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
@@ -44,7 +45,6 @@ import com.movie.main.repository.StripePaymentRepository;
 import com.movie.main.repository.TicketTypeRepository;
 import com.movie.main.resource.ResourceStrings;
 import com.movie.main.ulti.Expected;
-import com.stripe.Stripe;
 import com.stripe.exception.ApiConnectionException;
 import com.stripe.exception.ApiException;
 import com.stripe.exception.AuthenticationException;
@@ -55,8 +55,10 @@ import com.stripe.exception.PermissionException;
 import com.stripe.exception.RateLimitException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
+import com.stripe.net.Webhook;
 import com.stripe.param.PaymentIntentCreateParams;
 
+import jakarta.annotation.Nullable;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
@@ -73,7 +75,13 @@ public class MainOrderService {
         RATE_LIMIT,
         IDEMPOTENCY,
         PERMISSION_DENIED,
+        ENTITY_NOT_EXISTS,
         INTERNAL_ERROR,
+        UNSPECIFIED,
+    }
+
+    public enum HandleWebhookError {
+        PAYMENT_REQUIRED,
         UNSPECIFIED,
     }
 
@@ -156,9 +164,14 @@ public class MainOrderService {
         this.stripePaymentRepository = stripePaymentRepository;
     }
 
-    public Expected<String, PaymentError> createPaymentIntent(final CreateOrderRequestDto requestDto) {
+    public Expected<String, PaymentError> createPaymentIntent(
+            final CreateOrderRequestDto requestDto,
+            final int customerId) {
         try {
-            Stripe.apiKey = ResourceStrings.STRIPE_SECRET_KEY;
+            final var customer = this.customerRepository.findById(customerId).orElse(null);
+            if (customer == null) {
+                return Expected.failure(PaymentError.ENTITY_NOT_EXISTS);
+            }
 
             final var mapper = new ObjectMapper();
             final var metaData = Map.ofEntries(
@@ -189,8 +202,12 @@ public class MainOrderService {
                     .build();
 
             final var intent = PaymentIntent.create(params);
-            final var stripePayment = new StripePayment(intent.getId(), StripePayment.Status.from(intent.getStatus()),
-                    requestDto.getTotalPriceAfterDiscount(), Instant.now());
+            final var stripePayment = new StripePayment(
+                    intent.getId(),
+                    customer,
+                    StripePayment.Status.from(intent.getStatus()),
+                    requestDto.getTotalPriceAfterDiscount(),
+                    Instant.now());
 
             this.stripePaymentRepository.save(stripePayment);
             return Expected.success(intent.getClientSecret());
@@ -242,6 +259,86 @@ public class MainOrderService {
         }
     }
 
+    public Expected<CreateOrderResponseDto, HandleWebhookError> handleStripeWebhook(String sigHeader, String payload) {
+        try {
+            final var event = Webhook.constructEvent(payload, sigHeader, ResourceStrings.STRIPE_WEBHOOK_SECRET);
+            switch (event.getType()) {
+                case "payment_intent.succeeded": {
+                    final var intent = (PaymentIntent) event.getDataObjectDeserializer().getObject().orElseThrow();
+                    final var responseDto = this.handleStripeWebhookPaymentIntentSucceeded(intent);
+                    if (responseDto != null) {
+                        return Expected.success(responseDto);
+                    }
+                    return Expected.failure(HandleWebhookError.UNSPECIFIED);
+                }
+
+                case "payment_intent.payment_failed": {
+                    return Expected.failure(HandleWebhookError.PAYMENT_REQUIRED);
+                }
+
+                default: {
+                    return Expected.failure(HandleWebhookError.UNSPECIFIED);
+                }
+            }
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return Expected.failure(HandleWebhookError.UNSPECIFIED);
+        }
+    }
+
+    @Nullable
+    private CreateOrderResponseDto handleStripeWebhookPaymentIntentSucceeded(final PaymentIntent intent) {
+        final var stripePayment = this.stripePaymentRepository.findByPaymentIntentId(intent.getId()).orElse(null);
+        if (stripePayment == null) {
+            return null;
+        }
+
+        final var customerId = stripePayment.getCustomer().getId();
+        final var requestDto = this.parseCreateOrderRequestDtoFromMetaData(intent.getMetadata());
+
+        return this.createOrder(requestDto, customerId).getValue();
+    }
+
+    @Nullable
+    public CreateOrderRequestDto parseCreateOrderRequestDtoFromMetaData(final Map<String, String> metaData) {
+        try {
+            final var filmShowId = Integer.parseInt(metaData.get(CreateOrderRequestDto.Fields.filmShowId));
+            final var totalPrice = Integer.parseInt(metaData.get(CreateOrderRequestDto.Fields.totalPrice));
+            final var totalPriceAfterDiscount = Integer.parseInt(
+                    metaData.get(CreateOrderRequestDto.Fields.totalPriceAfterDiscount));
+            final var pointUsage = Integer.parseInt(metaData.get(CreateOrderRequestDto.Fields.pointUsage));
+
+            final var seatIds = Arrays.stream(metaData.get(CreateOrderRequestDto.Fields.seatIds).split(","))
+                    .filter(s -> !s.isBlank()).map(Integer::parseInt).collect(Collectors.toSet());
+
+            final var promotionIds = Arrays.stream(metaData.get(CreateOrderRequestDto.Fields.promotionIds)
+                    .split(",")).filter((s -> !s.isBlank())).map(Integer::parseInt).collect(Collectors.toSet());
+
+            final var mapper = new ObjectMapper();
+            final var ticketDtos = new HashSet<>(Arrays.asList(mapper.readValue(
+                    metaData.get(CreateOrderRequestDto.Fields.tickets),
+                    CreateOrderRequestDto.TicketRequestDto[].class)));
+            final var itemDtos = new HashSet<>(Arrays.asList(mapper.readValue(
+                    metaData.get(CreateOrderRequestDto.Fields.items), CreateOrderRequestDto.ItemRequestDto[].class)));
+
+            return new CreateOrderRequestDto(
+                    totalPrice,
+                    totalPriceAfterDiscount,
+                    filmShowId,
+                    ticketDtos,
+                    seatIds,
+                    itemDtos,
+                    promotionIds,
+                    pointUsage);
+        }
+        catch (final Exception exception) {
+            log.error(exception.getMessage());
+            return null;
+        }
+    }
+
+    @Nullable
     public CreateOrderResponseDto getOrder(final int id) {
         final var customerOrder = this.customerOrderRepository.findById(id).orElse(null);
         if (customerOrder == null) {
