@@ -35,6 +35,7 @@ public class StripePaymentService {
         RATE_LIMIT,
         IDEMPOTENCY,
         PERMISSION_DENIED,
+        ENTITY_NOT_EXISTS,
         INTERNAL_ERROR,
         UNSPECIFIED,
     }
@@ -47,12 +48,26 @@ public class StripePaymentService {
     @NotNull
     private final StripePaymentRepository repository;
 
-    public StripePaymentService(@NotNull final StripePaymentRepository repository) {
+    @NotNull
+    private final CustomerService customerService;
+
+    public StripePaymentService(
+            @NotNull final StripePaymentRepository repository,
+            @NotNull final CustomerService customerService) {
         this.repository = repository;
+        this.customerService = customerService;
     }
 
-    public Expected<String, PaymentError> createPaymentIntent(final int amount, final String description) {
+    public Expected<String, PaymentError> createPaymentIntent(
+            final int amount,
+            final String description,
+            final int customerId) {
         try {
+            final var customer = this.customerService.findById(customerId);
+            if (customer == null) {
+                return Expected.failure(PaymentError.ENTITY_NOT_EXISTS);
+            }
+
             final var params = PaymentIntentCreateParams.builder()
                     .setAmount(Long.valueOf(amount))
                     .setCurrency(ResourceStrings.STRIPE_CURRENCY)
@@ -61,7 +76,10 @@ public class StripePaymentService {
 
             final var intent = PaymentIntent.create(params);
 
-            final var stripePayment = new StripePayment(intent.getId(), StripePayment.Status.from(intent.getStatus()),
+            final var stripePayment = new StripePayment(
+                    intent.getId(),
+                    customer,
+                    StripePayment.Status.from(intent.getStatus()),
                     amount, Instant.now());
             this.repository.save(stripePayment);
 
