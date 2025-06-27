@@ -3,13 +3,17 @@ package com.movie.main.entity;
 import java.time.Instant;
 
 import jakarta.annotation.Nullable;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -29,8 +33,13 @@ public class StripePayment {
     public static final int MinAnount = 1;
 
     public enum Status {
-        REQUIRES_PAYMENT_METHOD("requires_payment_method"), REQUIRES_ACTION("requires_action"), PROCESSING(
-                "processing"), REQUIRES_CAPTURE("requires_capture"), SUCCEEDED("succeeded"), CANCELED("canceled");
+        REQUIRES_PAYMENT_METHOD("requires_payment_method"),
+        REQUIRES_ACTION("requires_action"),
+        PROCESSING(
+                "processing"),
+        REQUIRES_CAPTURE("requires_capture"),
+        SUCCEEDED("succeeded"),
+        CANCELED("canceled");
 
         @Nullable
         private final String stripeValue;
@@ -68,6 +77,13 @@ public class StripePayment {
     @NotBlank
     private String paymentIntentId = "";
 
+    @ManyToOne(cascade = {
+            CascadeType.PERSIST, CascadeType.MERGE
+    }, fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(nullable = false)
+    @NotNull
+    private Customer customer = null;
+
     @Nullable
     @Enumerated(EnumType.STRING)
     private Status status = null;
@@ -82,10 +98,12 @@ public class StripePayment {
 
     public StripePayment(
             final String paymentIntentId,
+            final Customer customer,
             final Status status,
             final int amount,
             final Instant createdAt) {
         this.paymentIntentId = paymentIntentId;
+        this.customer = customer;
         this.status = status;
         this.amount = amount;
         this.createdAt = createdAt;

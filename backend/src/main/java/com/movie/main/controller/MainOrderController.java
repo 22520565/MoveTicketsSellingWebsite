@@ -6,11 +6,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.movie.main.dto.request.CreateOrderRequestDto;
 import com.movie.main.dto.response.CreateOrderResponseDto;
+import com.movie.main.dto.response.StripePaymentCreateIntentResponseDto;
 import com.movie.main.entity.User;
 import com.movie.main.service.MainOrderService;
 
@@ -32,13 +34,33 @@ public class MainOrderController {
         this.service = service;
     }
 
-    @PostMapping("/order/stripe-intent")
-    public ResponseEntity<String> createStripePaymentIntent(@RequestBody CreateOrderRequestDto requestDto) {
-        final var result = this.service.createPaymentIntent(requestDto);
+    @PostMapping("stripe-intent")
+    public ResponseEntity<StripePaymentCreateIntentResponseDto> createStripePaymentIntent(
+            @RequestBody CreateOrderRequestDto requestDto,
+            @AuthenticationPrincipal final User user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
-        final var paymentIntent = result.getValue();
-        if (paymentIntent != null) {
-            return ResponseEntity.ok(paymentIntent);
+        final var result = this.service.createPaymentIntent(requestDto, user.getId());
+
+        final var clientSecret = result.getValue();
+        if (clientSecret != null) {
+            return ResponseEntity.ok(new StripePaymentCreateIntentResponseDto(clientSecret));
+        }
+
+        return ResponseEntity.internalServerError().build();
+    }
+
+    @PostMapping("stripe-webhook")
+    public ResponseEntity<CreateOrderResponseDto> handleStripeWebhook(
+            @RequestHeader("Stripe-Signature") String sigHeader,
+            @RequestBody String payload) {
+        final var result = this.service.handleStripeWebhook(sigHeader, payload);
+
+        final var responseDto = result.getValue();
+        if (responseDto != null) {
+            return ResponseEntity.ok(responseDto);
         }
 
         return ResponseEntity.internalServerError().build();
