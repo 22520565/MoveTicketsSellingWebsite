@@ -117,6 +117,7 @@ public class TicketTypeController {
                 ticketType.getId(),
                 ticketType.getTitle(),
                 ticketType.getPrice(),
-                ticketType.isPair());
+                ticketType.isPair(),
+                ticketType.getLoyalPointRate());
     }
 }

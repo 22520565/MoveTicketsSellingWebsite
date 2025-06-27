@@ -1,5 +1,7 @@
 package com.movie.main.entity;
 
+import org.hibernate.validator.constraints.Range;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -19,6 +21,8 @@ import lombok.experimental.FieldNameConstants;
 @FieldNameConstants
 public class TicketType {
     public static final int MaxLengthName = 30;
+    public static final int MinLoyalPointRate = 0;
+    public static final int MaxLoyalPointRate = 100;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,9 +41,18 @@ public class TicketType {
     @Column(nullable = false)
     private boolean isPair = false;
 
-    public TicketType(final String title, final int price, final boolean isPair) {
+    @Column(nullable = false)
+    @Range(min = MinLoyalPointRate, max = MaxLoyalPointRate)
+    private int loyalPointRate = 0;
+
+    public TicketType(
+            final String title,
+            final int price,
+            final boolean isPair,
+            final int loyalPointRate) {
         this.title = title;
         this.price = price;
         this.isPair = isPair;
+        this.loyalPointRate = loyalPointRate;
     }
 }

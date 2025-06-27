@@ -47,7 +47,11 @@ public class TicketTypeService {
     @NotNull
     public Expected<TicketType, CreationError> create(
             @NotNull final TicketTypeRequestDto requestDto) {
-        final var newTicketType = new TicketType(requestDto.title(), requestDto.price(), requestDto.isPair());
+        final var newTicketType = new TicketType(
+                requestDto.title(),
+                requestDto.price(),
+                requestDto.isPair(),
+                requestDto.loyalPointRate());
 
         try {
             return Expected.success(this.repository.save(newTicketType));
@@ -70,6 +74,7 @@ public class TicketTypeService {
         ticketType.setTitle(requestDto.title());
         ticketType.setPrice(requestDto.price());
         ticketType.setPair(requestDto.isPair());
+        ticketType.setLoyalPointRate(requestDto.loyalPointRate());
 
         try {
             return Expected.success(this.repository.save(ticketType));
