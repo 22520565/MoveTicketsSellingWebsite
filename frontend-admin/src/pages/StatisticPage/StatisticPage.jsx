@@ -10,8 +10,19 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import LineChartComponent from "../../components/Statistic/ColumnChart";
 import PieCharts from "../../components/Statistic/PieChart";
-import { getCinemas } from "../../config/api";
+import {
+  getCinemas,
+  getTiketServeRate,
+  getTiketCategoryRate,
+  getMonthlyStatisticsByTheater,
+  getHotFilmStatistics,
+  getFilmStatistics,
+  getDailyStatisticsByTheater,
+  getBestSellingItem,
+  getAdditionalItemsRate,
+} from "../../config/api";
 import axios from "axios";
+import { Theater } from "lucide-react";
 
 const StatisticPage = () => {
   const [selectedCinemaId, setSelectedCinemaId] = useState(""); // rạp đang chọn
@@ -53,18 +64,21 @@ const StatisticPage = () => {
   //biểu đồ loại vé
   const fetchticketType = async (day) => {
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/statistics/ticket-category-rate?selectedDate=${day}`
-      );
+      const response = await getTiketCategoryRate({
+        date: day,
+        theaterId: selectedCinemaId,
+      });
+      console.log("fetchticketType", response);
 
-      const data = response.data;
-      const transformedData = data.map((item) => ({
+      const data =
+        response?.data?._embedded?.ticketCategoryRevenueResponseDtoList;
+      const transformedData = data?.map((item) => ({
         name: item.name,
         value: item.totalRevenue,
       }));
       setTicketTypeData(transformedData);
     } catch (error) {
-      alert("Thao tác thất bại, lỗi: " + error.response.data.msg);
+      console.log(error);
     }
   };
 
@@ -90,37 +104,37 @@ const StatisticPage = () => {
   //biểu đồ snar phẩm kahcs
   const fetchadditionalItem = async (day) => {
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/statistics/additional-items-rate?selectedDate=${day}`
-      );
+      const response = await getAdditionalItemsRate({
+        date: day,
+        theaterId: selectedCinemaId,
+      });
 
-      const data = response.data;
-      const transformedData = data.map((item) => ({
+      const data = response?.data?._embedded?.itemRevenueResponseDtoList;
+
+      const transformedData = data?.map((item) => ({
         name: item.name,
         value: item.totalRevenue,
       }));
       setItemData(transformedData);
     } catch (error) {
-      alert("Thao tác thất bại, lỗi: " + error.response.data.msg);
+      console.log(error);
     }
   };
 
   const fetchView = async (day) => {
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/statistics/daily-statistic?selectedDate=${day}`
-      );
+      const response = await getDailyStatisticsByTheater(day, selectedCinemaId);
 
-      const data = response.data;
+      const data = response?.data;
       setStatistics((prev) => ({
         ...prev, // Giữ lại các giá trị cũ
-        totalNetRevenue: data.totalNetRevenue,
-        totalEffectiveRevenue: data.totalEffectiveRevenue,
-        totalTicketRevenue: data.totalTicketRevenue,
-        totalOtherItemsRevenue: data.totalOtherItemsRevenue,
+        totalNetRevenue: data?.totalNetRevenue,
+        totalEffectiveRevenue: data?.totalEffectiveRevenue,
+        totalTicketRevenue: data?.totalTicketRevenue,
+        totalOtherItemsRevenue: data?.totalOtherItemsRevenue,
       }));
     } catch (error) {
-      alert("Thao tác thất bại, lỗi: " + error.response.data.msg);
+      console.log(error);
     }
   };
 
@@ -129,17 +143,19 @@ const StatisticPage = () => {
     try {
       console.log(day);
 
-      const response = await axios.get(
-        `http://localhost:8000/api/statistics/ticket-serve-rate?selectedDate=${day}`
-      );
+      const response = await getTiketServeRate({
+        date: day,
+        theaterId: selectedCinemaId,
+      });
 
-      const data = response.data;
+      const data = response?.data;
       setStatistics((prev) => ({
         ...prev, // Giữ lại các giá trị cũ
-        totalTicket: data.totalTickets,
+        totalTicket: data?.totalTickets,
+        sservedTickets: data?.servedTickets,
       }));
     } catch (error) {
-      alert("Thao tác thất bại, lỗi: " + error.response.data.msg);
+      console.log(error);
     }
   };
 
@@ -148,18 +164,19 @@ const StatisticPage = () => {
     try {
       console.log(day);
 
-      const response = await axios.get(
-        `http://localhost:8000/api/statistics/hot-movie?selectedDate=${day}`
-      );
+      const response = await getHotFilmStatistics({
+        date: day,
+        theaterId: selectedCinemaId,
+      });
 
-      const data = response.data;
+      const data = response?.data;
       setStatistics((prev) => ({
         ...prev, // Giữ lại các giá trị cũ
-        hotFilmName: data.filmName,
-        hotFilmTotalSeat: data.totalSeats,
+        hotFilmName: data?.filmName,
+        hotFilmTotalSeat: data?.totalSeats,
       }));
     } catch (error) {
-      alert("Thao tác thất bại, lỗi: " + error.response.data.msg);
+      console.log(error);
     }
   };
 
@@ -168,15 +185,16 @@ const StatisticPage = () => {
     try {
       console.log(day);
 
-      const response = await axios.get(
-        `http://localhost:8000/api/statistics/best-seller?selectedDate=${day}`
-      );
+      const response = await getBestSellingItem({
+        date: day,
+        theaterId: selectedCinemaId,
+      });
 
-      const data = response.data;
+      const data = response?.data;
       setStatistics((prev) => ({
         ...prev, // Giữ lại các giá trị cũ
-        bestSellerName: data.productName,
-        bestSellerTotal: data.totalQuantity,
+        bestSellerName: data?.productName,
+        bestSellerTotal: data?.totalQuantity,
       }));
     } catch (error) {
       alert("Thao tác thất bại, lỗi: " + error.response.data.msg);
@@ -185,11 +203,12 @@ const StatisticPage = () => {
 
   const fetchData = async (year) => {
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/statistics/monthly-statistic?year=${year}`
-      );
+      const response = await getMonthlyStatisticsByTheater({
+        date: day,
+        theaterId: selectedCinemaId,
+      });
       const transformedData = transformApiDataToRevenueData(
-        response.data,
+        response?.data,
         year
       );
       setRevenueDataByYear((prev) => ({
@@ -197,7 +216,7 @@ const StatisticPage = () => {
         [year]: transformedData,
       }));
     } catch (error) {
-      alert("Thao tác thất bại, lỗi: " + error.response.data.msg);
+      console.log(error);
     }
   };
 
@@ -295,7 +314,7 @@ const StatisticPage = () => {
                 Số vé đã bán ra
               </h3>
               <p className="text-3xl font-bold text-blue-600">
-                {statistics.totalTicket}
+                {statistics?.totalTicket}
               </p>
             </div>
           </div>
@@ -308,7 +327,7 @@ const StatisticPage = () => {
                 Tổng doanh thu ngày (thuần)
               </h3>
               <p className="text-3xl font-bold text-yellow-600">
-                {Number(statistics.totalNetRevenue.toFixed(0)).toLocaleString(
+                {Number(statistics?.totalNetRevenue.toFixed(0)).toLocaleString(
                   "vi-VN"
                 )}
               </p>
@@ -324,7 +343,7 @@ const StatisticPage = () => {
               </h3>
               <p className="text-3xl font-bold text-yellow-600">
                 {Number(
-                  statistics.totalEffectiveRevenue.toFixed(0)
+                  statistics?.totalEffectiveRevenue.toFixed(0)
                 ).toLocaleString("vi-VN")}
               </p>
             </div>
@@ -339,7 +358,7 @@ const StatisticPage = () => {
               </h3>
               <p className="text-3xl font-bold text-green-600">
                 {Number(
-                  statistics.totalTicketRevenue.toFixed(0)
+                  statistics?.totalTicketRevenue.toFixed(0)
                 ).toLocaleString("vi-VN")}
               </p>
             </div>
@@ -354,7 +373,7 @@ const StatisticPage = () => {
               </h3>
               <p className="text-3xl font-bold text-purple-600">
                 {Number(
-                  statistics.totalOtherItemsRevenue.toFixed(0)
+                  statistics?.totalOtherItemsRevenue.toFixed(0)
                 ).toLocaleString("vi-VN")}
               </p>
             </div>
@@ -364,13 +383,13 @@ const StatisticPage = () => {
       <div className="my-4 text-lg font-medium text-gray-800">
         <p>
           Phim <span className="text-red-600 font-bold">hot</span> nhất ngày:
-          <span className="font-bold"> {statistics.hotFilmName}</span> -
-          <span> {statistics.hotFilmTotalSeat} ghế đặt.</span>
+          <span className="font-bold"> {statistics?.hotFilmName}</span> -
+          <span> {statistics?.hotFilmTotalSeat} ghế đặt.</span>
         </p>
         <p>
           Sản phẩm bán chạy:
-          <span className="font-bold"> {statistics.bestSellerName}</span> -
-          <span> {statistics.bestSellerTotal} bán ra.</span>
+          <span className="font-bold"> {statistics?.bestSellerName}</span> -
+          <span> {statistics?.bestSellerTotal} bán ra.</span>
         </p>
       </div>
 
