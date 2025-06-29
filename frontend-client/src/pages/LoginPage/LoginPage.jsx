@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import LoginComponent from "../../Components/LoginComponent";
 import SignUpComponent from "../../Components/SignUpComponent";
 import { useAuth } from "../../Context/AuthContext";
-import { callLogin, callSignUp } from "../../config/api";
+import { callLogin, callSignUp, callAccount } from "../../config/api";
 import { toast } from "react-toastify";
 
 function ParentForm() {
@@ -64,38 +64,74 @@ function LoginForm() {
     password: "",
   });
 
-  const handleLogin = async (formValues) => {
-    const response = await callLogin(formValues);
-    if (response.success) {
-      const { accesssToken } = response.data.tokens;
-      setUser(response.data);
-      localStorage.setItem("accessToken", accesssToken);
-      toast.success("Đăng nhập thành công!");
-      navigate("/");
+  const handleLogin = async (formValues, isChecked) => {
+    if (isChecked) {
+      localStorage.setItem("rememberedUsername", formValues.username);
+      localStorage.setItem("rememberedPassword", formValues.password);
     } else {
-      toast.error("Đăng nhập thất bại!");
+      localStorage.removeItem("rememberedUsername");
+      localStorage.removeItem("rememberedPassword");
+    }
+    try {
+      const response = await callLogin(formValues);
+      if (response?.accessToken && response?.refreshToken) {
+        localStorage.setItem("accessToken", response.accessToken);
+        localStorage.setItem("refreshToken", response.refreshToken);
+
+        const userRes = await callAccount();
+        console.log("User Response:", userRes);
+
+        if (userRes && userRes.id) {
+          setUser(userRes);
+          localStorage.setItem("user", JSON.stringify(userRes));
+          toast.success("Đăng nhập thành công!");
+          navigate("/");
+        } else {
+          toast.error("Không lấy được thông tin người dùng!");
+        }
+      } else {
+        toast.error("Đăng nhập thất bại!");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      toast.error("Đã có lỗi xảy ra khi đăng nhập!");
     }
   };
 
   const fields = [
     {
-      for: "identifier",
+      for: "username",
       text: "Tài khoản, Email hoặc số điện thoại ",
       type: "text",
       required: true,
     },
     {
-      for: "userPass",
+      for: "password",
       text: "Mật khẩu ",
       type: "password",
       required: true,
     },
   ];
 
+  useEffect(() => {
+    const savedUsername = localStorage.getItem("rememberedUsername");
+    const savedPassword = localStorage.getItem("rememberedPassword");
+
+    if (savedUsername && savedPassword) {
+      setFormValues({
+        username: savedUsername,
+        password: savedPassword,
+      });
+    }
+    console.log("Saved Username:", savedUsername);
+    console.log("Saved Password:", savedPassword);
+  }, []);
+
   return (
     <div className="text-xl">
       <LoginComponent
         fields={fields}
+        defaultValues={formValues}
         isTickRequired={true}
         tickLabel="Lưu mật khẩu đăng nhập"
         links={[{ text: "Quên mật khẩu?", path: "/auth/forgot-password" }]}
@@ -108,8 +144,13 @@ function LoginForm() {
 
 function SignUpForm({ switchToLogin, setDisplay }) {
   const handleRegister = async (formValues, isChecked) => {
+    const { confirmPassword, ...submittedValues } = formValues;
+    console.log("Form Values:", submittedValues);
+
     const response = await callSignUp(formValues);
-    if (response.success === true) {
+    console.log("Response:", response);
+
+    if (response.id) {
       toast.success("Đăng kí thành công");
       setDisplay(true);
     } else {
@@ -130,13 +171,13 @@ function SignUpForm({ switchToLogin, setDisplay }) {
       required: true,
     },
     {
-      for: "phone",
+      for: "phoneNumber",
       text: "Số điện thoại ",
       type: "text",
       required: true,
     },
     {
-      for: "account",
+      for: "username",
       text: "Tên đăng nhập ",
       type: "text",
       required: true,

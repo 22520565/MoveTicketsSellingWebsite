@@ -7,7 +7,7 @@ const instance = axios.create({
 
 const NO_RETRY_HEADER = "x-no-retry";
 
-// ✅ Request interceptor: thêm Authorization header
+//  Request interceptor: thêm Authorization header
 instance.interceptors.request.use(
   function (config) {
     const accessToken = localStorage.getItem("accessToken");
@@ -27,7 +27,7 @@ instance.interceptors.request.use(
   }
 );
 
-// ✅ Response interceptor: handle refresh token nếu accessToken hết hạn
+//  Response interceptor: handle refresh token nếu accessToken hết hạn
 instance.interceptors.response.use(
   function (response) {
     return response.data;
@@ -50,12 +50,14 @@ instance.interceptors.response.use(
         }
 
         const res = await axios.post(
-          "http://localhost:8080/api/auth/refresh-token",
-          { refreshToken }
+          "http://localhost:8080/api/auth/customer/refresh-token",
+          { token: refreshToken }
         );
 
-        const newAccessToken = res.data.accessToken;
+        const newAccessToken = res.accessToken;
         localStorage.setItem("accessToken", newAccessToken);
+        const newRefreshToken = res.refreshToken;
+        localStorage.setItem("refreshToken", newRefreshToken);
 
         // Gán accessToken mới cho request gốc
         originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;

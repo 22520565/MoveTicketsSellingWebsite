@@ -2,27 +2,27 @@ import api from "./axios_custom";
 import axios from "./axios_private";
 
 export const callLogin = async (data) => {
-  return axios.post("/auth/user/sign-in", { ...data });
+  return axios.post("/auth/customer/login", { ...data });
 };
 
 export const callSignUp = async (data) => {
-  return axios.post("/auth/user/sign-up", { ...data });
+  return axios.post("/auth/customer/register", { ...data });
 };
 
 export const callAccount = async () => {
-  return axios.get("/auth/user/account");
+  return axios.get("/self/customer");
 };
 
 export const callSignOut = async (data) => {
-  return axios.get("/auth/user/sign-out", { ...data });
+  return axios.post("/auth/customer/logout", { ...data });
 };
 
-export const updateUser = async (id, updateData) => {
-  return axios.put(`/user/user/${id}`, { ...updateData });
+export const updateUser = async (updateData) => {
+  return axios.put(`/self/customer`, { ...updateData });
 };
 
-export const changePasword = async (id, updateData) => {
-  return axios.post(`/user/user/change-password/${id}`, { ...updateData });
+export const changePasword = async (updateData) => {
+  return axios.patch(`/self/customer/reset-password`, { ...updateData });
 };
 
 export const searchFilm = async ({ keyword, page = 0, size = 10 }) => {

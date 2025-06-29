@@ -17,8 +17,17 @@ const Header = () => {
 
   const handleLogout = async () => {
     const response = await callSignOut();
-    if (response.success) {
-      localStorage.clear();
+    if (response) {
+      const rememberedUsername = localStorage.getItem("rememberedUsername");
+      const rememberedPassword = localStorage.getItem("rememberedPassword");
+
+      localStorage.clear(); // Xóa hết
+
+      // Ghi lại thông tin ghi nhớ (nếu có)
+      if (rememberedUsername && rememberedPassword) {
+        localStorage.setItem("rememberedUsername", rememberedUsername);
+        localStorage.setItem("rememberedPassword", rememberedPassword);
+      }
       setUser(null);
       toast.success("Đăng xuất thành công");
       navigate("/auth");

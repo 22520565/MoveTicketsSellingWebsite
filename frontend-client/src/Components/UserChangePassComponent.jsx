@@ -26,23 +26,16 @@ const UserChangePassComponent = ({ title, fields, buttontitle, onSubmit }) => {
     }));
   };
 
-  const handleSubmit = async () => {
-    const response = await changePasword(user.id, { ...formValues });
-    if (response.success) {
-      setFormValues(initialValues);
-      toast.success("Cập nhật mật khẩu thành công");
-    } else {
-      toast.error(response.msg);
-    }
-  };
-
   return (
-    <div className="flex w-full"> 
+    <div className="flex w-full">
       <div className="bg-white  text-black p-5 rounded shadow-lg w-full ">
         <h1 className="text-center mb-5 text-2xl font-bold">{title}</h1>
 
         {/* Render fields dynamically */}
-        <div style={{display:"flex",flexDirection:"column",gap:"20px"}}className="">
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "20px" }}
+          className=""
+        >
           {fields.map((field, index) => (
             <div key={index} className="flex flex-col">
               <label htmlFor={field.for} className="block mb-1 font-bold">
@@ -70,10 +63,9 @@ const UserChangePassComponent = ({ title, fields, buttontitle, onSubmit }) => {
           gradientTo="#3366CC" /* Gradient end color */
           textColor="#000000" /* Text color */
           hoverTextColor="#FFFFFF" /* Text color on hover */
-          
           text="Đổi mật khẩu"
-          onClick={handleSubmit}          
-          className={"w-full mt-4"}  
+          onClick={() => onSubmit(formValues)}
+          className={"w-full mt-4"}
         />
       </div>
     </div>
