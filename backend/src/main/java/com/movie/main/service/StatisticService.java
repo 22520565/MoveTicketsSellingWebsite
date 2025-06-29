@@ -209,7 +209,7 @@ public class StatisticService {
             final LocalDate date,
             final int theaterId,
             final Pageable pageable) {
-        final var filmShows = filmShowRepository.findByShowDateAndDeletedFalse(date, pageable);
+        final var filmShows = filmShowRepository.findByShowDateAndTheaterIdAndDeletedFalse(date, theaterId, pageable);
         final var filmShowsSize = filmShows.getSize();
 
         final HashSet<String> roomNames = HashSet.newHashSet(filmShowsSize);
