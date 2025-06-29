@@ -4,11 +4,14 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.movie.main.dto.request.RoomSeatRequestDto;
 import com.movie.main.dto.response.RoomSeatResponseDto;
+import com.movie.main.dto.response.RoomSeatWithUsableStatusResponseDto;
 import com.movie.main.entity.RoomSeat;
+import com.movie.main.repository.OrderDataFilmRepository;
 import com.movie.main.repository.RoomSeatRepository;
 import com.movie.main.ulti.Expected;
 
@@ -44,11 +47,16 @@ public class RoomSeatService {
     @NotNull
     private final RoomService roomService;
 
+    @NotNull
+    private final OrderDataFilmRepository orderDataFilmRepository;
+
     public RoomSeatService(
             @NotNull final RoomSeatRepository repository,
-            @NotNull final RoomService roomService) {
+            @NotNull final RoomService roomService,
+            @NotNull final OrderDataFilmRepository orderDataFilmRepository) {
         this.repository = repository;
         this.roomService = roomService;
+        this.orderDataFilmRepository = orderDataFilmRepository;
     }
 
     @NotNull
@@ -99,6 +107,22 @@ public class RoomSeatService {
             log.error(exception.getMessage());
             return Expected.failure(FetchError.UNSPECIFIED);
         }
+    }
+
+    @NotNull
+    public Page<RoomSeatWithUsableStatusResponseDto> findByFilmShowIdAndDeletedFalse(
+            final int filmShowId,
+            final Pageable pageable) {
+        return this.repository.findAllByFilmShowId(filmShowId, pageable).map(
+                (final var roomSeat) -> {
+                    final var roomSeatId = roomSeat.getId();
+                    return new RoomSeatWithUsableStatusResponseDto(
+                            roomSeatId,
+                            roomSeat.getName(),
+                            roomSeat.getType(),
+                            roomSeat.getRoom().getId(),
+                            this.orderDataFilmRepository.isRoomSeatUsableByFilmShowId(roomSeatId, filmShowId));
+                });
     }
 
     @NotNull

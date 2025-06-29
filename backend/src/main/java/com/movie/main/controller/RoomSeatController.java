@@ -25,6 +25,7 @@ import com.movie.main.auth.RequirePermission;
 import com.movie.main.config.OpenApiConfig;
 import com.movie.main.dto.request.RoomSeatRequestDto;
 import com.movie.main.dto.response.RoomSeatResponseDto;
+import com.movie.main.dto.response.RoomSeatWithUsableStatusResponseDto;
 import com.movie.main.entity.Employee.Permission;
 import com.movie.main.entity.RoomSeat;
 import com.movie.main.service.RoomSeatService;
@@ -82,13 +83,30 @@ public class RoomSeatController {
 
             for (var j = 0; j < numCols; ++j) {
                 final var roomSeat = roomSeatsRow.get(j);
-                roomSeatDtosRow.add(RoomSeatController.getResponseDtoFrom(roomSeat));
+
+                if (roomSeat == null) {
+                    roomSeatDtosRow.add(null);
+                }
+                else {
+                    roomSeatDtosRow.add(RoomSeatController.getResponseDtoFrom(roomSeat));
+                }
             }
 
             roomSeatDtos.add(roomSeatDtosRow);
         }
 
         return ResponseEntity.ok(roomSeatDtos);
+    }
+
+    @GetMapping("by-film-show/{filmShowId}")
+    @PermitAll
+    public ResponseEntity<PagedModel<EntityModel<RoomSeatWithUsableStatusResponseDto>>> findByFilmShowIdAndDeletedFalse(
+            @PathVariable final int filmShowId,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
+            final PagedResourcesAssembler<RoomSeatWithUsableStatusResponseDto> assembler) {
+        final var result = this.service.findByFilmShowIdAndDeletedFalse(filmShowId, PageRequest.of(page, size));
+        return ResponseEntity.ok(assembler.toModel(result));
     }
 
     @GetMapping("{id}")
