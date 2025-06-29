@@ -20,6 +20,7 @@ import com.movie.main.dto.response.HotFilmResponseDto;
 import com.movie.main.dto.response.ItemRevenueResponseDto;
 import com.movie.main.dto.response.MonthlyStatisticResponseDto;
 import com.movie.main.dto.response.TicketCategoryRevenueResponseDto;
+import com.movie.main.dto.response.TicketRateOfFilmResponseDto;
 import com.movie.main.dto.response.TicketServeRateResponseDto;
 import com.movie.main.entity.Tag;
 import com.movie.main.repository.CustomerOrderRepository;
@@ -305,5 +306,18 @@ public class StatisticService {
             final int theaterId,
             @NotNull final Pageable pageable) {
         return this.customerOrderRepository.getAdditionalItemsRevenueByDateAndTheaterId(date, theaterId, pageable);
+    }
+
+    public Page<TicketRateOfFilmResponseDto> getTicketRateOfFilmByDate(
+            final LocalDate date,
+            @NotNull final Pageable pageable) {
+        return this.customerOrderRepository.getTicketRateOfFilmByDate(date, pageable);
+    }
+
+    public Page<TicketRateOfFilmResponseDto> getTicketRateOfFilmByDateAndTheaterId(
+            final LocalDate date,
+            final int theaterId,
+            @NotNull final Pageable pageable) {
+        return this.customerOrderRepository.getTicketRateOfFilmByDateAndTheaterId(date, theaterId, pageable);
     }
 }
