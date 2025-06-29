@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import CustomButton from "./button";
 const UserInforComponent = ({ title, fields, buttontitle, onSubmit }) => {
   const [formValues, setFormValues] = useState({});
-  const { user, handleAccount } = useAuth();
+  const { setUser, user, handleAccount } = useAuth();
 
   useEffect(() => {
     // Cập nhật formValues khi fields thay đổi
@@ -27,15 +27,24 @@ const UserInforComponent = ({ title, fields, buttontitle, onSubmit }) => {
   };
 
   const handleSubmit = async () => {
-    const response = await updateUser(user.id, formValues);
-    if (response.success) {
+    console.log("Submitting form with values:", formValues);
+
+    const response = await updateUser(formValues);
+
+    if (response.id) {
+      console.log("Update successful:", response);
+
       await handleAccount();
+
+      setUser(response);
+      localStorage.setItem("user", JSON.stringify(response));
+
       toast.success("Cập nhật thành công");
     }
   };
 
   return (
-    <div className="flex items-center w-full">    
+    <div className="flex items-center w-full">
       <div className="bg-white  text-black p-5 rounded w-full shadow-lg">
         <h1 className="text-center mb-5 text-2xl font-bold">{title}</h1>
 
@@ -68,10 +77,9 @@ const UserInforComponent = ({ title, fields, buttontitle, onSubmit }) => {
           gradientTo="#3366CC" /* Gradient end color */
           textColor="#000000" /* Text color */
           hoverTextColor="#FFFFFF" /* Text color on hover */
-          
           text="Cập nhật thông tin"
-          onClick={handleSubmit}          
-          className={"w-full mt-4"}  
+          onClick={handleSubmit}
+          className={"w-full mt-4"}
         />
       </div>
     </div>

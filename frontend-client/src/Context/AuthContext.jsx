@@ -14,12 +14,18 @@ export const AuthProvider = ({ children }) => {
     const hasBackend = false; // Đổi thành "true" khi có backend
     if (!hasBackend) {
       console.log("Skipping API call because backend is not available.");
+      const storedUser = localStorage.getItem("user");
+
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+
       setLoading(false);
       return;
     }
 
     const response = await callAccount();
-    if (response.success) {
+    if (response) {
       setUser(response.data);
       localStorage.setItem("user", JSON.stringify(response.data));
     } else {

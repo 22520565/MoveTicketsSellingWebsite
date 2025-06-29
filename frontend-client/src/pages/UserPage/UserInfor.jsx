@@ -20,6 +20,13 @@ const UserInfoPage = () => {
     const updateFields = () => {
       const updatedFields = [
         {
+          for: "username",
+          text: "Tên đăng nhập",
+          type: "text",
+          value: user.username || "",
+          required: true,
+        },
+        {
           for: "name",
           text: "Họ và tên",
           type: "text",
@@ -41,10 +48,10 @@ const UserInfoPage = () => {
           required: true,
         },
         {
-          for: "phone",
+          for: "phoneNumber",
           text: "Số điện thoại",
           type: "text",
-          value: user.phone || "",
+          value: user.phoneNumber || "",
           required: true,
         },
       ];

@@ -2,19 +2,20 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { getCurrentPoint } from "../config/api";
+import { useAuth } from "../Context/AuthContext";
 
 const Sidebar = ({ userName, menuItems }) => {
   const location = useLocation();
+  const { user } = useAuth();
   const [loyalPoint, setLoyalPoint] = useState(0);
-  console.log("🚀 ~ Sidebar ~ loyalPoint:", loyalPoint)
+
+  console.log("🚀 ~ Sidebar ~ loyalPoint:", loyalPoint);
   useEffect(() => {
-    const fetchLoyalPoint = async () => {
-      const response = await getCurrentPoint();
-      console.log(response)
-      setLoyalPoint(response.data.currentLoyalPoint);
-    };
-    fetchLoyalPoint();
-  }, []);
+    if (user?.loyalPoint !== undefined) {
+      setLoyalPoint(user.loyalPoint);
+    }
+  }, [user]);
+
   return (
     <div
       style={{ fontSize: "18px" }}
