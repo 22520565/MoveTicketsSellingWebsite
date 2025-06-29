@@ -66,4 +66,26 @@ public interface OrderDataFilmRepository extends JpaRepository<OrderDataFilm, In
     HotFilmResponseDto getHotFilmOfDayByTheaterId(
             @Param("date") final LocalDate date,
             @Param("theaterId") final int theaterId);
+
+    @Query("""
+            SELECT COUNT(rs) > 0
+            FROM OrderDataFilm odf
+                JOIN odf.roomSeats rs
+            WHERE (odf.filmShow.id = :filmShowId)
+                AND (rs.id = :roomSeatId)
+            """)
+    boolean isRoomSeatTakenByFilmShowId(
+            @Param("roomSeatId") final int roomSeatId,
+            @Param("filmShowId") final int filmShowId);
+
+    @Query("""
+            SELECT COUNT(rs) <= 0
+            FROM OrderDataFilm odf
+                JOIN odf.roomSeats rs
+            WHERE (odf.filmShow.id = :filmShowId)
+                AND (rs.id = :roomSeatId)
+            """)
+    boolean isRoomSeatUsableByFilmShowId(
+            @Param("roomSeatId") final int roomSeatId,
+            @Param("filmShowId") final int filmShowId);
 }
