@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import com.movie.main.dto.internal.RevenueByMonth;
 import com.movie.main.dto.response.ItemRevenueResponseDto;
 import com.movie.main.dto.response.TicketCategoryRevenueResponseDto;
+import com.movie.main.dto.response.TicketRateOfFilmResponseDto;
 import com.movie.main.dto.response.TicketServeRateResponseDto;
 import com.movie.main.entity.CustomerOrder;
 
@@ -227,6 +228,40 @@ public interface CustomerOrderRepository extends JpaRepository<CustomerOrder, In
             GROUP BY oi.id
             """)
     Page<ItemRevenueResponseDto> getAdditionalItemsRevenueByDateAndTheaterId(
+            @Param("date") final LocalDate date,
+            @Param("theaterId") final int theaterId,
+            @NonNull final Pageable pageable);
+
+    @Query("""
+            SELECT new com.movie.main.dto.response.TicketRateOfFilmResponseDto(
+                f.name,
+                SUM(ot.quantity)
+            )
+            FROM CustomerOrder co
+                INNER JOIN OrderDataFilm odf ON (co.id = odf.id)
+                JOIN odf.filmShow.film f
+                JOIN odf.orderTickets ot
+            WHERE co.date = :date
+            GROUP BY f.id
+            """)
+    Page<TicketRateOfFilmResponseDto> getTicketRateOfFilmByDate(
+            @Param("date") final LocalDate date,
+            @NonNull final Pageable pageable);
+
+    @Query("""
+            SELECT new com.movie.main.dto.response.TicketRateOfFilmResponseDto(
+                f.name,
+                SUM(ot.quantity)
+            )
+            FROM CustomerOrder co
+                INNER JOIN OrderDataFilm odf ON (co.id = odf.id)
+                JOIN odf.filmShow.film f
+                JOIN odf.orderTickets ot
+            WHERE co.date = :date
+                AND (odf.filmShow.room.theater.id = :theaterId)
+            GROUP BY f.id
+            """)
+    Page<TicketRateOfFilmResponseDto> getTicketRateOfFilmByDateAndTheaterId(
             @Param("date") final LocalDate date,
             @Param("theaterId") final int theaterId,
             @NonNull final Pageable pageable);

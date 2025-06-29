@@ -13,6 +13,7 @@ import com.movie.main.dto.response.HotFilmResponseDto;
 import com.movie.main.dto.response.ItemRevenueResponseDto;
 import com.movie.main.dto.response.MonthlyStatisticResponseDto;
 import com.movie.main.dto.response.TicketCategoryRevenueResponseDto;
+import com.movie.main.dto.response.TicketRateOfFilmResponseDto;
 import com.movie.main.dto.response.TicketServeRateResponseDto;
 import com.movie.main.entity.Employee.Permission;
 import com.movie.main.service.StatisticService;
@@ -153,6 +154,23 @@ public class StatisticController {
         }
 
         final var result = this.service.getAdditionalItemsRevenueByDateAndTheaterId(
+                date, theaterId, PageRequest.of(page, size));
+        return ResponseEntity.ok(assembler.toModel(result));
+    }
+
+    @GetMapping("ticket-rate-of-film")
+    public ResponseEntity<PagedModel<EntityModel<TicketRateOfFilmResponseDto>>> getTicketRateOfFilmByDateAndTheaterId(
+            @RequestParam final LocalDate date,
+            @RequestParam(required = false) final Integer theaterId,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
+            final PagedResourcesAssembler<TicketRateOfFilmResponseDto> assembler) {
+        if (theaterId == null) {
+            final var result = this.service.getTicketRateOfFilmByDate(date, PageRequest.of(page, size));
+            return ResponseEntity.ok(assembler.toModel(result));
+        }
+
+        final var result = this.service.getTicketRateOfFilmByDateAndTheaterId(
                 date, theaterId, PageRequest.of(page, size));
         return ResponseEntity.ok(assembler.toModel(result));
     }
