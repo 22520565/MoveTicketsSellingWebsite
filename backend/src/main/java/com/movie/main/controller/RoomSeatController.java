@@ -1,5 +1,9 @@
 package com.movie.main.controller;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.hibernate.validator.constraints.Range;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -51,6 +55,40 @@ public class RoomSeatController {
             final PagedResourcesAssembler<RoomSeatResponseDto> assembler) {
         final var result = this.service.findAll(PageRequest.of(page, size)).map(RoomSeatController::getResponseDtoFrom);
         return ResponseEntity.ok(assembler.toModel(result));
+    }
+
+    @GetMapping("by-room/{roomId}")
+    @PermitAll
+    public ResponseEntity<List<List<RoomSeatResponseDto>>> getListRoomSeatsByRoomId(
+            @PathVariable final int roomId) {
+        final var result = this.service.getListRoomSeatsByRoomId(roomId);
+
+        final var roomSeats = result.getValue();
+        if (roomSeats == null) {
+            return switch (result.getError()) {
+                case ENTITY_NOT_EXISTS -> ResponseEntity.notFound().build();
+                case ROOM_SEAT_OUT_OF_RANGE, UNSPECIFIED -> ResponseEntity.internalServerError().build();
+                default -> ResponseEntity.internalServerError().build();
+            };
+        }
+
+        final List<List<RoomSeatResponseDto>> roomSeatDtos = new ArrayList<>();
+        final int numRows = roomSeats.size();
+
+        for (var i = 0; i < numRows; ++i) {
+            final var roomSeatsRow = roomSeats.get(i);
+            final var numCols = roomSeatsRow.size();
+            final List<RoomSeatResponseDto> roomSeatDtosRow = new ArrayList<>(numCols);
+
+            for (var j = 0; j < numCols; ++j) {
+                final var roomSeat = roomSeatsRow.get(j);
+                roomSeatDtosRow.add(RoomSeatController.getResponseDtoFrom(roomSeat));
+            }
+
+            roomSeatDtos.add(roomSeatDtosRow);
+        }
+
+        return ResponseEntity.ok(roomSeatDtos);
     }
 
     @GetMapping("{id}")
