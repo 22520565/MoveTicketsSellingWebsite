@@ -19,28 +19,19 @@ const PromotionModal = ({ isOpen, onClose, promotion, onSave, mode }) => {
   };
 
   const [formData, setFormData] = useState({
-    _id: promotion?._id || "",
+    _id: promotion?.id || "",
     name: promotion?.name || "",
     discountRate: promotion?.discountRate,
     beginDate: formatDate(promotion?.beginDate) || "",
     endDate: formatDate(promotion?.endDate) || "",
-    thumbnailURL: promotion?.thumbnailURL || "",
-    thumbnailFile: null,
+    thumbnailUrl: promotion?.thumbnailUrl || "",
     file: null,
   });
 
   const isFormValid = useMemo(() => {
-    const requiredFields = [
-      "name",
-      "discountRate",
-      "beginDate",
-      "endDate",
-    ];
+    const requiredFields = ["name", "discountRate", "beginDate", "endDate"];
 
-    return (
-      requiredFields.every((field) => !!formData[field]) &&
-      (formData.thumbnailFile || formData.thumbnailURL)
-    ); // Chuyển đổi giá trị thành Boolean
+    return requiredFields.every((field) => !!formData[field]); // Chuyển đổi giá trị thành Boolean
   }, [formData]);
 
   const handleSubmit = () => {
@@ -134,13 +125,9 @@ const PromotionModal = ({ isOpen, onClose, promotion, onSave, mode }) => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Ảnh
               </label>
-              {(formData.thumbnailFile || formData.thumbnailURL) && (
+              {formData.thumbnailUrl && (
                 <img
-                  src={
-                    formData.thumbnailFile
-                      ? URL.createObjectURL(formData.thumbnailFile)
-                      : formData.thumbnailURL
-                  }
+                  src={formData.thumbnailUrl}
                   alt="Film"
                   className="w-full h-4/5 object-cover rounded-lg mb-2"
                 />
@@ -152,11 +139,12 @@ const PromotionModal = ({ isOpen, onClose, promotion, onSave, mode }) => {
                 onChange={(e) => {
                   const file = e.target.files[0];
                   if (file) {
+                    const imageUrl = URL.createObjectURL(file);
                     // Tạo URL tạm thời từ file và cập nhật formData.image
                     setFormData((prev) => ({
                       ...prev,
                       file: file,
-                      thumbnailFile: file,
+                      thumbnailUrl: imageUrl,
                     }));
                   }
                   console.log("File selected:", e.target.files[0]);

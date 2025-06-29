@@ -30,9 +30,16 @@ const FilmShowChartPage = () => {
       setRooms(roomRes.data._embedded.roomResponseDtoList);
 
       const response = await getAllFilmShows();
+
       const data = response.data._embedded.filmShowResponseDtoList;
 
-      const filteredShows = data.filter((show) => show.showDate === date);
+      const formattedDate = (typeof date === "string" ? new Date(date) : date)
+        ?.toISOString()
+        .split("T")[0];
+
+      const filteredShows = data.filter(
+        (show) => show.showDate === formattedDate
+      );
 
       const processedData = await Promise.all(
         filteredShows.map(async (event) => {
@@ -67,6 +74,10 @@ const FilmShowChartPage = () => {
       console.error("Lỗi khi tải dữ liệu:", error);
     }
   };
+
+  useEffect(() => {
+    console.log("Events:", events);
+  }, [events]);
 
   // Gọi API mỗi khi selectedDate thay đổi
   useEffect(() => {
@@ -189,9 +200,6 @@ const FilmShowChartPage = () => {
     return false;
   });
 
-  useEffect(() => {
-    console.log(filteredEvents), [filteredEvents];
-  });
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
       <h1 className="text-3xl font-bold mb-8 text-gray-800">

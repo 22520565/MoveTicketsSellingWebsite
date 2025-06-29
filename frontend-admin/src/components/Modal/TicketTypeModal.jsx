@@ -10,7 +10,7 @@ const TicketTypeModal = ({ isOpen, onClose, type, onSave, mode }) => {
   console.log(type);
 
   const [formData, setFormData] = useState({
-    _id: type?._id || "",
+    id: type?.id || "",
     title: type?.title || "",
     price: type?.price || "",
     loyalPointRate: type?.loyalPointRate || "",
@@ -19,7 +19,7 @@ const TicketTypeModal = ({ isOpen, onClose, type, onSave, mode }) => {
   useEffect(() => {
     if (!isEditMode) {
       setFormData({
-        _id: "",
+        id: "",
         title: "",
         price: "",
         loyalPointRate: "",
@@ -28,7 +28,7 @@ const TicketTypeModal = ({ isOpen, onClose, type, onSave, mode }) => {
     } else {
       // Nếu ở chế độ chỉnh sửa, thì giữ giá trị hiện tại của 'type'
       setFormData({
-        _id: type?._id || "",
+        id: type?.id || "",
         title: type?.title || "",
         price: type?.price || "",
         loyalPointRate: type?.loyalPointRate || "",

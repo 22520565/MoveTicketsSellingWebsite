@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
+import { parse, format } from "date-fns";
 import Table from "../../components/Table";
 import { FiSearch } from "react-icons/fi";
 import { TbCancel } from "react-icons/tb";
+import { IoIosRefresh } from "react-icons/io";
 import { BsSortDown } from "react-icons/bs";
 import FilmShowModal from "../../components/Modal/FilmShowModal";
 import ViewModal from "../../components/Modal/FilmShow_FilmDetailModal";
@@ -18,6 +20,8 @@ import {
   getAllRooms,
   getTheaterById,
   getAllFilmShowsDeleted,
+  deleteFilmShow,
+  undeleteFilmShow,
 } from "../../config/api";
 
 const FilmShowListPage = () => {
@@ -93,7 +97,6 @@ const FilmShowListPage = () => {
           // Lấy tên phòng
 
           const roomRes = await getRoomById(show.roomId);
-          console.log("hhi: ", roomRes);
 
           const roomName = roomRes.data.name;
 
@@ -130,7 +133,7 @@ const FilmShowListPage = () => {
           return {
             ...show,
             film: filmName,
-            showDate: new Date(show.showDate).toLocaleDateString(),
+            showDate: format(new Date(show.showDate), "dd/MM/yyyy"),
             room: roomName,
             theater: theaterName,
             status: status,
@@ -182,25 +185,39 @@ const FilmShowListPage = () => {
     setIsConfirmModalOpen(true);
   };
 
+  const handleRestore = (item) => {
+    setSelectedItem(item);
+    setDialogData({
+      title: "Xác nhận khôi phục",
+      message: "Bạn chắc chắn muốn khôi phục suất phim này chứ?",
+    });
+    setIsConfirmModalOpen(true);
+  };
+
   const handleConfirmClick = async () => {
     setLoading(true);
-    console.log(selectedItem);
+    console.log("filmshow xóa: ", selectedItem);
 
     try {
-      await axios.post(
-        `http://localhost:8000/api/film-show/cancel-filmShow/${selectedItem._id}`
-      );
-
+      if (selectedItem.isDeleted) {
+        await undeleteFilmShow(selectedItem.id);
+        setDialogData({
+          title: "Thành công",
+          message: "Khôi phục suất phim thành công!",
+        });
+      } else {
+        await deleteFilmShow(selectedItem.id);
+        setDialogData({
+          title: "Thành công",
+          message: "Xóa suất phim thành công!",
+        });
+      }
       await handleRefresh(); // Làm mới dữ liệu sau khi thành công
       // Hiển thị thông báo thành công
-      setDialogData({
-        title: "Thành công",
-        message: "Xóa suất phim thành công!",
-      });
+
       setIsSuccessModalOpen(true);
     } catch (error) {
       console.error("Error:", error);
-      alert("Thao tác thất bại, lỗi: " + error.response.data.msg);
     } finally {
       setTimeout(() => {
         setLoading(false);
@@ -208,6 +225,8 @@ const FilmShowListPage = () => {
       setIsConfirmModalOpen(false);
     }
   };
+
+  console.log("Film Shows:", filmshows);
 
   const handleAddClick = () => {
     setSelectedItem(null);
@@ -268,18 +287,31 @@ const FilmShowListPage = () => {
       key: "actions",
       render: (_, row) => (
         <div className="flex space-x-3">
+          {/* Xem chi tiết */}
           <button
             className="text-blue-600 hover:text-blue-800"
             onClick={() => handleViewClick(row)}
           >
             <FiSearch className="w-4 h-4" />
           </button>
-          {!row.cancelled && (
+
+          {/* Nút xoá nếu chưa huỷ */}
+          {!row.isDeleted && (
             <button
               className="text-red-600 hover:text-red-800"
               onClick={() => handleDelete(row)}
             >
               <TbCancel className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Nút hoàn tác nếu đã huỷ */}
+          {row.isDeleted && (
+            <button
+              className="text-green-600 hover:text-green-800"
+              onClick={() => handleRestore(row)}
+            >
+              <IoIosRefresh className="w-4 h-4" />
             </button>
           )}
         </div>

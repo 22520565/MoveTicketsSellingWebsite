@@ -12,6 +12,13 @@ import SuccessDialog from "../../components/Dialog/SuccessDialog";
 import RefreshLoader from "../../components/Loading";
 import FailedDialog from "../../components/Dialog/FailedDialog";
 import PromotionModal from "../../components/Modal/PromotionModal";
+import {
+  getAllPromotions,
+  addPromotion,
+  updatePromotion,
+  resumePromotion,
+  pausePromotion,
+} from "../../config/api";
 
 const PromotionManagementPage = () => {
   const [promotions, setPromotions] = useState([]);
@@ -43,11 +50,14 @@ const PromotionManagementPage = () => {
   const fetchPromotion = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:8000/api/promotion");
-      const processedData = response.data.data.map((item) => ({
-        ...item,
-        status: getStatus(item.paused, item.beginDate, item.endDate), // Tính trạng thái
-      }));
+      const response = await getAllPromotions(); // Gọi API lấy dữ liệu sự kiện
+      console.log("response: ", response);
+
+      const processedData =
+        response?.data?._embedded?.promotionResponseDtoList.map((item) => ({
+          ...item,
+          status: getStatus(item.paused, item.beginDate, item.endDate), // Tính trạng thái
+        }));
       setPromotions(processedData); // Lưu dữ liệu vào state
     } catch (error) {
       console.error("Error fetching films:", error);
@@ -126,37 +136,27 @@ const PromotionManagementPage = () => {
 
   const handleConfirmClick = async () => {
     setLoading(true);
+    console.log("selectedPromotion: ", selectedPromotion);
 
     try {
       if (actionType === "delete") {
         if (selectedPromotion.paused) {
           // Nếu sự kiện đã tạm ngưng, thực hiện tiếp tục sự kiện
-          await axios.patch(
-            `http://localhost:8000/api/promotion/${selectedPromotion._id}/resume`
-          );
+          await resumePromotion(selectedPromotion.id);
         } else {
           // Nếu sự kiện chưa tạm ngưng, thực hiện xóa
-          await axios.patch(
-            `http://localhost:8000/api/promotion/${selectedPromotion._id}/pause`
-          );
+          await pausePromotion(selectedPromotion.id);
         }
       } else if (actionType === "edit") {
-        const res = await axios.put(
-          `http://localhost:8000/api/promotion/${selectedPromotion._id}`,
+        const res = await updatePromotion(
+          selectedPromotion.id,
           selectedPromotion
-        );
+        ); // Gọi API cập nhật sự kiện
       } else if (actionType === "add") {
-        console.log("haha: ", selectedPromotion);
-        const formData = new FormData();
-        formData.append("name", selectedPromotion.name);
-        formData.append("discountRate", selectedPromotion.discountRate);
-        formData.append("beginDate", selectedPromotion.beginDate);
-        formData.append("endDate", selectedPromotion.endDate);
-        formData.append("thumbnailFile", selectedPromotion.thumbnailFile);
-        formData.append("thumbnailURL", selectedPromotion.thumbnailURL || "");
         console.log(selectedPromotion);
-        await axios.post("http://localhost:8000/api/promotion", formData);
+        await addPromotion(selectedPromotion); // Gọi API thêm mới sự kiện
       }
+
       await handleRefresh(); // Làm mới dữ liệu sau khi thành công
       // Hiển thị thông báo thành công
       setDialogData({
@@ -297,7 +297,7 @@ const PromotionManagementPage = () => {
 
   const filteredData = useMemo(() => {
     // Lọc dữ liệu theo tên và chức vụ
-    let filtered = promotions.filter((item) => {
+    let filtered = promotions?.filter((item) => {
       const matchesName = NameQuery
         ? item.name
             .toLowerCase()
@@ -345,9 +345,9 @@ const PromotionManagementPage = () => {
     return filtered;
   }, [promotions, NameQuery, selectedDate, statusQuery, sortOption]);
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredData?.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = filteredData.slice(
+  const paginatedData = filteredData?.slice(
     startIndex,
     startIndex + itemsPerPage
   );
@@ -450,7 +450,7 @@ const PromotionManagementPage = () => {
       <div className="bg-white rounded-lg shadow-sm overflow-x-auto">
         <Table columns={columns} data={paginatedData} />
 
-        {filteredData.length > 0 && (
+        {filteredData?.length > 0 && (
           <div className="flex items-center justify-between px-6 py-4 bg-gray-50">
             <button
               onClick={() => setCurrentPage(currentPage - 1)}

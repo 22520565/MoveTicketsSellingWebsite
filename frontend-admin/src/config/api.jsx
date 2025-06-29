@@ -35,15 +35,63 @@ export const getAllFilmsDeleted = async () => {
 };
 
 export const addNewFilm = async (data) => {
-  return await api.post(`/films`, data, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  let { file, ...finalData } = data;
+
+  try {
+    // B1: Tạo item trước
+    const createRes = await api.post(`/films`, finalData);
+    const createdItem = createRes.data;
+    const itemId = createdItem.id;
+
+    // B2: Nếu có file thì upload
+    if (file && itemId) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const image = await api.patch(`/films/${itemId}/thumbnail`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return {
+        ...createdItem,
+        thumbnailUrl: image.data.url, // giả sử API trả về { url: '...' }
+      };
+    }
+
+    return createdItem;
+  } catch (err) {
+    console.error("Lỗi tạo item hoặc upload ảnh:", err);
+    throw err;
+  }
 };
 
 export const updateFilm = async (id, data) => {
-  return await api.put(`/films/${id}`, data);
+  let { file, ...finalData } = data;
+
+  try {
+    // B1: Nếu có file mới thì upload thumbnail trước
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const image = await api.patch(`/films/${id}/thumbnail`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return {
+        ...finalData,
+        thumbnailUrl: image.data.url, // giả sử API trả về { url: '...' }
+      };
+    }
+
+    console.log("Không có file mới, chỉ cập nhật dữ liệu:", finalData);
+
+    // B2: Gửi phần còn lại của dữ liệu (JSON)
+    return await api.put(`/films/${id}`, finalData);
+  } catch (err) {
+    console.error("Lỗi cập nhật sản phẩm hoặc ảnh:", err);
+    throw err;
+  }
 };
 
 export const deleteFilm = async (id) => {
@@ -66,6 +114,14 @@ export const getAllFilmShowsDeleted = async () => {
   return await api.get(`/film-shows/deleted`);
 };
 
+export const deleteFilmShow = async (id) => {
+  return await api.patch(`/film-shows/delete/${id}`);
+};
+
+export const undeleteFilmShow = async (id) => {
+  return await api.patch(`/film-shows/undelete/${id}`);
+};
+
 export const addFilmShows = async (data) => {
   return await api.post(`/film-shows`, { ...data });
 };
@@ -82,14 +138,6 @@ export const getRoomById = async (id) => {
   return await api.get(`/rooms/${id}`);
 };
 
-export const getAllTags = async () => {
-  return await api.get(`/tags`);
-};
-
-export const getTagById = async (id) => {
-  return await api.get(`/tags/${id}`);
-};
-
 export const uploadThumbnail = async (id, formData) => {
   return await api.patch(`/films/${id}/thumbnail`, formData, {
     headers: {
@@ -98,8 +146,14 @@ export const uploadThumbnail = async (id, formData) => {
   });
 };
 
-export const getAllItems = async () => {
-  return await api.get(`/additional-items`);
+//Additional Items
+export const getAllItems = async (page = 0, size = 20) => {
+  return await api.get(`/additional-items`, {
+    params: {
+      page,
+      size,
+    },
+  });
 };
 
 export const getAllItemsDeleted = async () => {
@@ -107,11 +161,71 @@ export const getAllItemsDeleted = async () => {
 };
 
 export const addItem = async (data) => {
-  return await api.post(`/additional-items`, data);
+  let { file, ...finalData } = data;
+
+  try {
+    // B1: Tạo item trước
+    const createRes = await api.post(`/additional-items`, finalData);
+    const createdItem = createRes.data;
+    const itemId = createdItem.id;
+
+    // B2: Nếu có file thì upload
+    if (file && itemId) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const image = await api.patch(
+        `/additional-items/${itemId}/thumbnail`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      return {
+        ...createdItem,
+        thumbnailUrl: image.data.url, // giả sử API trả về { url: '...' }
+      };
+    }
+
+    return createdItem;
+  } catch (err) {
+    console.error("Lỗi tạo item hoặc upload ảnh:", err);
+    throw err;
+  }
 };
 
 export const updateItem = async (id, data) => {
-  return await api.put(`/additional-items/${id}`, data);
+  let { file, ...finalData } = data;
+
+  try {
+    // B1: Nếu có file mới thì upload thumbnail trước
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const image = await api.patch(
+        `/additional-items/${id}/thumbnail`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return {
+        ...finalData,
+        thumbnailUrl: image.data.url, // giả sử API trả về { url: '...' }
+      };
+    }
+
+    console.log("Không có file mới, chỉ cập nhật dữ liệu:", finalData);
+
+    // B2: Gửi phần còn lại của dữ liệu (JSON)
+    return await api.put(`/additional-items/${id}`, finalData);
+  } catch (err) {
+    console.error("Lỗi cập nhật sản phẩm hoặc ảnh:", err);
+    throw err;
+  }
 };
 
 export const deleteItem = async (id) => {
@@ -121,6 +235,238 @@ export const deleteItem = async (id) => {
 export const undeleteItem = async (id) => {
   return await api.patch(`/additional-items/undelete/${id}`);
 };
+
+//Promotions
+export const getAllPromotions = async (page = 0, size = 20) => {
+  return await api.get(`/promotions`, {
+    params: {
+      page,
+      size,
+    },
+  });
+};
+
+export const getAllProsExpired = async (page = 0, size = 20) => {
+  return await api.get(`/promotions/expired`, {
+    params: {
+      page,
+      size,
+    },
+  });
+};
+
+export const getAllProsInactive = async (page = 0, size = 20) => {
+  return await api.get(`/promotions/inactive`, {
+    params: {
+      page,
+      size,
+    },
+  });
+};
+
+export const addPromotion = async (data) => {
+  let { file, ...finalData } = data;
+
+  try {
+    // B1: Tạo item trước
+    const createRes = await api.post(`/promotions`, finalData);
+    const createdItem = createRes.data;
+    const itemId = createdItem.id;
+
+    // B2: Nếu có file thì upload
+    if (file && itemId) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const image = await api.patch(
+        `/promotions/${itemId}/thumbnail`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      return {
+        ...createdItem,
+        thumbnailUrl: image.data.url, // giả sử API trả về { url: '...' }
+      };
+    }
+
+    return createdItem;
+  } catch (err) {
+    console.error("Lỗi tạo item hoặc upload ảnh:", err);
+    throw err;
+  }
+};
+
+export const updatePromotion = async (id, data) => {
+  let { file, ...finalData } = data;
+
+  try {
+    // B1: Nếu có file mới thì upload thumbnail trước
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const image = await api.patch(`/promotions/${id}/thumbnail`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return {
+        ...finalData,
+        thumbnailUrl: image.data.url, // giả sử API trả về { url: '...' }
+      };
+    }
+
+    console.log("Không có file mới, chỉ cập nhật dữ liệu:", finalData);
+
+    // B2: Gửi phần còn lại của dữ liệu (JSON)
+    return await api.put(`/promotions/${id}`, finalData);
+  } catch (err) {
+    console.error("Lỗi cập nhật sản phẩm hoặc ảnh:", err);
+    throw err;
+  }
+};
+
+export const deletePromotion = async (id) => {
+  return await api.delete(`/promotions/${id}`);
+};
+
+export const pausePromotion = async (id) => {
+  return await api.patch(`/promotions/pause/${id}`);
+};
+
+export const resumePromotion = async (id) => {
+  return await api.patch(`/promotions/resume/${id}`);
+};
+
+//Param Page
+export const getAllTicketType = async (page = 0, size = 20) => {
+  return await api.get(`/ticket-types`, {
+    params: {
+      page,
+      size,
+    },
+  });
+};
+
+export const getTicketTypeById = async (id) => {
+  return await api.get(`/ticket-types/${id}`);
+};
+export const deleteTicketTypeById = async (id) => {
+  return await api.delete(`/ticket-types/${id}`);
+};
+export const addTicketType = async (data) => {
+  return await api.post(`/ticket-types`, data);
+};
+export const updateTicketType = async (id, data) => {
+  return await api.put(`/ticket-types/${id}`, data);
+};
+
+export const getAllTags = async (page = 0, size = 20) => {
+  return await api.get(`/tags`, {
+    params: {
+      page,
+      size,
+    },
+  });
+};
+
+export const getTagById = async (id) => {
+  return await api.get(`/tags/${id}`);
+};
+export const deleteTagById = async (id) => {
+  return await api.delete(`/tags/${id}`);
+};
+export const addTag = async (data) => {
+  return await api.post(`/tags`, data);
+};
+
+export const getParam = async () => {
+  return await api.get(`/params`);
+};
+
+export const updateParam = async (data) => {
+  return await api.put(`/params`, data);
+};
+
+//Statistics page
+export const getTiketServeRate = async (data) => {
+  return await api.get("/statistics/ticket-serve-rate", {
+    params: {
+      date: data.date, // bắt buộc
+      theaterId: data.theaterId, // optional
+    },
+  });
+};
+
+export const getTiketCategoryRate = async (data) => {
+  return await api.get("/statistics/ticket-category-rate", {
+    params: {
+      date: data.date, // bắt buộc
+      theaterId: data.theaterId, // optional
+      page: params.page || 0, // mặc định
+      size: params.size || 20, // mặc định
+    },
+  });
+};
+
+export const getMonthlyStatistics = async (year) => {
+  return await api.get(`/statistics/monthly/${year}`);
+};
+
+export const getMonthlyStatisticsByTheater = async (year, theaterId) => {
+  return await api.get(`/statistics/monthly/${year}/theater/${theaterId}`);
+};
+
+export const getHotFilmStatistics = async (params) => {
+  return await api.get("/statistics/hot-film", {
+    params: {
+      date: params.date, // bắt buộc
+      theaterId: params.theaterId, // optional
+    },
+  });
+};
+
+export const getFilmStatistics = async (params) => {
+  return await api.get("/statistics/film", {
+    params: {
+      date: params.date, // bắt buộc
+      theaterId: params.theaterId, // tùy chọn
+      page: params.page || 0,
+      size: params.size || 10,
+    },
+  });
+};
+
+export const getDailyStatistics = async (date) => {
+  return await api.get(`/statistics/daily/${date}`);
+};
+
+export const getDailyStatisticsByTheater = async (date, theaterId) => {
+  return await api.get(`/statistics/daily/${date}/theater/${theaterId}`);
+};
+
+export const getBestSellingItem = async (params) => {
+  return await api.get("/statistics/best-selling-item", {
+    params: {
+      date: params.date, // bắt buộc
+      theaterId: params.theaterId, // tùy chọn
+    },
+  });
+};
+
+export const getAdditionalItemsRate = async (params) => {
+  return await api.get("/statistics/additional-items-rate", {
+    params: {
+      date: params.date,
+      theaterId: params.theaterId,
+      page: params.page || 0,
+      size: params.size || 10,
+    },
+  });
+};
+
 //............
 // export const callSignUp = async (data) => {
 //   return axios.post("/auth/user/sign-up", { ...data });
@@ -248,5 +594,5 @@ export const undeleteItem = async (id) => {
 // };
 
 export const getCinemas = async () => {
-  return await axios.get(`/theaters`);
+  return await api.get(`/theaters`);
 };

@@ -20,6 +20,8 @@ import RefreshLoader from "../Loading";
 
 const FilmModal = ({ isOpen, onClose, film, mode }) => {
   if (!isOpen) return null;
+  console.log(film);
+
   const isEditMode = mode === "edit";
   const title = isEditMode ? "Cập nhật nội dung phim" : "Thêm mới phim";
 
@@ -130,8 +132,8 @@ const FilmModal = ({ isOpen, onClose, film, mode }) => {
     name: film?.name || "",
     trailerURL: film?.trailerUrl || "",
 
-    thumbnailURL: film?.thumbnailUrl,
-    thumbnailFile: null,
+    thumbnailUrl: film?.thumbnailUrl,
+    file: null,
 
     tags: film?.tagIds || [],
     filmDuration: film?.duration || "",
@@ -160,6 +162,7 @@ const FilmModal = ({ isOpen, onClose, film, mode }) => {
       "name",
       "trailerURL",
       "tags",
+      "thumbnailUrl",
       "filmDuration",
       "ageRestriction",
       "voice",
@@ -197,7 +200,7 @@ const FilmModal = ({ isOpen, onClose, film, mode }) => {
       const payload = {
         name: formData.name,
         trailerUrl: formData.trailerURL,
-        thumbnailUrl: formData.thumbnailURL || "",
+        thumbnailUrl: formData.thumbnailUrl || "",
         tagIds: formData.tags, // [{ id, name }]
         duration: Number(formData.filmDuration),
         ageRestriction: formData.ageRestriction,
@@ -207,6 +210,7 @@ const FilmModal = ({ isOpen, onClose, film, mode }) => {
         description: formData.filmDescription,
         content: formData.filmContent,
         beginDate: formData.beginDate,
+        file: formData.file,
       };
 
       let response;
@@ -228,7 +232,7 @@ const FilmModal = ({ isOpen, onClose, film, mode }) => {
           message: "Thêm phim thành công",
         });
       }
-      if (response.status === 200 || response.status === 201) {
+      if (response) {
         setIsLoading(false); // Tắt trạng thái loading
         setIsConfirmDialogOpen(false); // Đóng dialog xác nhận
         setIsSuccessDialogOpen(true); // Hiển thị dialog thành công
@@ -237,22 +241,6 @@ const FilmModal = ({ isOpen, onClose, film, mode }) => {
       alert("Thao tác thất bại, lỗi: " + error);
       setIsConfirmDialogOpen(false);
       setIsLoading(false); // Tắt trạng thái loading
-    }
-  };
-
-  const handleUploadThumbnail = async (filmId, file) => {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await uploadThumbnail(filmId, formData);
-      console.log(response);
-
-      // giả sử response.data.thumbnailUrl là chuỗi trả về
-      return response.data.url;
-    } catch (error) {
-      console.error("Upload thumbnail failed:", error);
-      throw error;
     }
   };
 
@@ -487,46 +475,32 @@ const FilmModal = ({ isOpen, onClose, film, mode }) => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Hình ảnh phim
               </label>
-              {(formData.thumbnailFile || formData.thumbnailURL) && (
+              {formData.thumbnailUrl && (
                 <img
-                  src={
-                    formData.thumbnailFile
-                      ? URL.createObjectURL(formData.thumbnailFile)
-                      : formData.thumbnailURL
-                  }
+                  src={formData.thumbnailUrl}
                   alt="Film"
                   className="w-full h-4/5 object-cover rounded-lg mb-2"
                 />
               )}
-              {mode === "edit" && (
-                <input
-                  type="file"
-                  className="w-full"
-                  accept="image/*"
-                  multiple={false}
-                  onChange={async (e) => {
-                    const file = e.target.files[0];
-                    console.log(file);
 
-                    if (file) {
-                      try {
-                        const thumbnailUrl = await handleUploadThumbnail(
-                          film.id,
-                          file
-                        );
-                        setFormData((prev) => ({
-                          ...prev,
-                          thumbnailFile: file,
-                          thumbnailURL: thumbnailUrl,
-                        }));
-                      } catch (err) {
-                        console.error("Upload thumbnail error:", err);
-                        alert("Lỗi khi upload ảnh!");
-                      }
-                    }
-                  }}
-                />
-              )}
+              <input
+                type="file"
+                className="w-full"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    // Tạo URL tạm thời từ file và cập nhật formData.image
+                    const imageUrl = URL.createObjectURL(file);
+                    setFormData((prev) => ({
+                      ...prev,
+                      file: file,
+                      thumbnailUrl: imageUrl,
+                    }));
+                  }
+                  console.log("File selected:", e.target.files[0]);
+                }}
+              />
             </div>
           </div>
           <div>
@@ -541,24 +515,6 @@ const FilmModal = ({ isOpen, onClose, film, mode }) => {
                 setFormData((prev) => ({
                   ...prev,
                   trailerURL: e.target.value,
-                }))
-              }
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 mt-4">
-              Thumbnail Link
-            </label>
-            <input
-              type="text"
-              name="thumbnailUrl"
-              value={formData.thumbnailURL}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  thumbnailURL: e.target.value,
                 }))
               }
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
