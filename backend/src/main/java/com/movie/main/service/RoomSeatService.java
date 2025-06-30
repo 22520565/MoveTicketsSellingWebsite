@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.movie.main.dto.request.RoomSeatRequestDto;
-import com.movie.main.dto.response.RoomSeatResponseDto;
 import com.movie.main.dto.response.RoomSeatWithUsableStatusResponseDto;
 import com.movie.main.entity.RoomSeat;
 import com.movie.main.repository.OrderDataFilmRepository;
@@ -86,15 +85,22 @@ public class RoomSeatService {
             }
 
             final var roomSeats = this.repository.getListRoomSeatsByRoomId(roomId);
+
+            var lastRowIdx = 0;
+            var colIdx = 0;
             for (final var seat : roomSeats) {
                 final var name = seat.getName();
                 final var rowChar = name.charAt(0);
                 final var rowIdx = rowChar - 'A';
 
-                final var colIdx = Integer.parseInt(name.substring(1)) - 1;
+                if (lastRowIdx != rowIdx) {
+                    lastRowIdx = rowIdx;
+                    colIdx = 0;
+                }
 
                 if (rowIdx >= 0 && rowIdx < numRows && colIdx >= 0 && colIdx < numCols) {
                     seatMatrix.get(rowIdx).set(colIdx, seat);
+                    ++colIdx;
                 }
                 else {
                     return Expected.failure(FetchError.ROOM_SEAT_OUT_OF_RANGE);
