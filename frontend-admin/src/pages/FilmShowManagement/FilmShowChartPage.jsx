@@ -8,9 +8,14 @@ import {
   getRoomById,
   getAllRooms,
   getAllTags,
+  getCinemas,
+  getFilmStatistics,
 } from "../../config/api";
 
 const FilmShowChartPage = () => {
+  const [selectedCinemaId, setSelectedCinemaId] = useState(""); // rạp đang chọn
+  const [cinemas, setCinemas] = useState([]); // danh sách rạp
+
   const [rooms, setRooms] = useState([]); // State cho rooms
   const [allTags, setAllTags] = useState([]);
   const [events, setEvents] = useState([]); // State cho events
@@ -21,68 +26,107 @@ const FilmShowChartPage = () => {
     new Date().toISOString().split("T")[0]
   );
 
-  const fetchData = async (date) => {
-    try {
-      const tagRes = await getAllTags();
-      setAllTags(tagRes.data._embedded.tagResponseDtoList);
-
-      const roomRes = await getAllRooms();
-      setRooms(roomRes.data._embedded.roomResponseDtoList);
-
-      const response = await getAllFilmShows();
-
-      const data = response.data._embedded.filmShowResponseDtoList;
-
-      const formattedDate = (typeof date === "string" ? new Date(date) : date)
-        ?.toISOString()
-        .split("T")[0];
-
-      const filteredShows = data.filter(
-        (show) => show.showDate === formattedDate
-      );
-
-      const processedData = await Promise.all(
-        filteredShows.map(async (event) => {
-          // Gọi API lấy thông tin phim theo filmId
-          const filmRes = await getFilmById(event.filmId);
-          const filmData = filmRes.data;
-
-          // Gọi API lấy thông tin phòng
-          const roomRes = await getRoomById(event.roomId);
-          const roomData = roomRes.data;
-
-          console.log(filmData);
-
-          const categoryNames = filmData.tagIds
-            .map((id) => allTags.find((tag) => tag.id === id)?.name)
-            .filter(Boolean);
-
-          return {
-            ...event,
-
-            room: roomData.name,
-            film: filmData.name,
-            duration: filmData.duration,
-            category: categoryNames.join(", "),
-            description: filmData.description,
-          };
-        })
-      );
-
-      setEvents(processedData); // hoặc xử lý tiếp
-    } catch (error) {
-      console.error("Lỗi khi tải dữ liệu:", error);
-    }
-  };
-
   useEffect(() => {
-    console.log("Events:", events);
-  }, [events]);
+    const fetchCinemas = async () => {
+      try {
+        const res = await getCinemas(); // hoặc endpoint tương ứng
 
+        setCinemas(res.data._embedded.theaterResponseDtoList);
+        setSelectedCinemaId(
+          res.data._embedded.theaterResponseDtoList[0]?.id || ""
+        );
+      } catch (err) {
+        console.error("Lỗi lấy danh sách rạp:", err);
+      }
+    };
+
+    fetchCinemas();
+  }, []);
+
+  // const fetchData = async (date) => {
+  //   try {
+  //     const tagRes = await getAllTags();
+  //     setAllTags(tagRes.data._embedded.tagResponseDtoList);
+
+  //     const roomRes = await getAllRooms();
+  //     setRooms(roomRes.data._embedded.roomResponseDtoList);
+
+  //     const response = await getAllFilmShows();
+
+  //     const data = response.data._embedded.filmShowResponseDtoList;
+
+  //     const formattedDate = (typeof date === "string" ? new Date(date) : date)
+  //       ?.toISOString()
+  //       .split("T")[0];
+
+  //     const filteredShows = data.filter(
+  //       (show) => show.showDate === formattedDate
+  //     );
+
+  //     const processedData = await Promise.all(
+  //       filteredShows.map(async (event) => {
+  //         // Gọi API lấy thông tin phim theo filmId
+  //         const filmRes = await getFilmById(event.filmId);
+  //         const filmData = filmRes.data;
+
+  //         // Gọi API lấy thông tin phòng
+  //         const roomRes = await getRoomById(event.roomId);
+  //         const roomData = roomRes.data;
+
+  //         console.log(filmData);
+
+  //         const categoryNames = filmData.tagIds
+  //           .map((id) => allTags.find((tag) => tag.id === id)?.name)
+  //           .filter(Boolean);
+
+  //         return {
+  //           ...event,
+
+  //           room: roomData.name,
+  //           film: filmData.name,
+  //           duration: filmData.duration,
+  //           category: categoryNames.join(", "),
+  //           description: filmData.description,
+  //         };
+  //       })
+  //     );
+
+  //     setEvents(processedData); // hoặc xử lý tiếp
+  //   } catch (error) {
+  //     console.error("Lỗi khi tải dữ liệu:", error);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   console.log("Events:", events);
+  // }, [events]);
+
+  //fetch Event
+  useEffect(() => {
+    const fetchCinemas = async () => {
+      if (!startDate || !selectedCinemaId) {
+        console.warn(" startDate hoặc selectedCinemaId chưa sẵn sàng");
+        return;
+      }
+      try {
+        const res = await getFilmStatistics({
+          date: startDate,
+          theaterId: selectedCinemaId,
+        }); // hoặc endpoint tương ứng
+
+        setEvents(res.data.events || []);
+        setRooms(res.data.roomNames || []);
+      } catch (err) {
+        console.error("Lỗi lấy danh sách rạp:", err);
+      }
+    };
+
+    fetchCinemas();
+  }, [startDate, selectedCinemaId]);
   // Gọi API mỗi khi selectedDate thay đổi
-  useEffect(() => {
-    fetchData(startDate);
-  }, [startDate]);
+  // useEffect(() => {
+  //   fetchData(startDate);
+  // }, [startDate]);
 
   const getEventStyle = (startTime, duration, isSpanningEvent) => {
     const slotWidth = 50;
@@ -181,14 +225,12 @@ const FilmShowChartPage = () => {
   };
 
   const filteredEvents = events.filter((event) => {
-    const eventDate = new Date(event.showDate);
+    const eventDate = new Date(event.date);
     const startDateObj = new Date(startDate);
-
     if (eventDate.getTime() === startDateObj.getTime()) {
       // Same day event
       return true;
     }
-
     // Event started the previous day and continues into the current day
     if (
       eventDate.getTime() === startDateObj.getTime() - 86400000 &&
@@ -196,10 +238,22 @@ const FilmShowChartPage = () => {
     ) {
       return true;
     }
-
     return false;
   });
 
+  useEffect(() => {
+    console.log("🔍 Rooms changed:", rooms);
+  }, [rooms]);
+
+  useEffect(() => {
+    if (filteredEvents.length > 0) {
+      console.log("🎬 Filtered Events changed:", filteredEvents);
+    }
+
+    if (events.length > 0) console.log("🎬 All Events changed:", events);
+  }, [filteredEvents]);
+
+  // const filteredEvents = data.events;
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
       <h1 className="text-3xl font-bold mb-8 text-gray-800">
@@ -223,6 +277,17 @@ const FilmShowChartPage = () => {
             className="text-center border rounded-md p-2 w-[150px]"
           />
         </div>
+        <select
+          value={selectedCinemaId}
+          onChange={(e) => setSelectedCinemaId(e.target.value)}
+          className="p-2 border rounded-md"
+        >
+          {cinemas.map((cinema) => (
+            <option key={cinema.id} value={cinema.id}>
+              {cinema.name}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4">{formatDate(startDate)}</h2>
@@ -246,18 +311,18 @@ const FilmShowChartPage = () => {
                 className="relative bg-white" // Thêm nền trắng
                 style={{ minWidth: "2540px" }}
               >
-                {rooms.map((room) => {
+                {rooms.map((roomName) => {
                   const filteredRoomEvents = filteredEvents.filter(
-                    (event) => event.room === room.name
+                    (event) => event.roomName === roomName
                   );
 
                   return (
                     <div
-                      key={`${room.id}-${startDate}`}
+                      key={`${roomName}-${startDate}`}
                       className="flex items-center h-20 border-t border-gray-300"
                     >
                       <div className="w-40 flex-shrink-0 font-medium text-gray-700 pr-4 pl-2">
-                        {room.name}
+                        {roomName}
                       </div>
 
                       {/* Cột timeline */}
@@ -270,19 +335,9 @@ const FilmShowChartPage = () => {
 
                         {filteredRoomEvents.map((event) => {
                           const eventStartMinutes = getMinutesFromTime(
-                            event.showTime
+                            event.startTime
                           );
-                          // const isSpanningEvent =
-                          //   new Date(event.showDate).getTime() <
-                          //   new Date(startDate).getTime();
 
-                          // const adjustedStartTime = isSpanningEvent
-                          //   ? 0
-                          //   : eventStartMinutes;
-
-                          // const adjustedDuration = isSpanningEvent
-                          //   ? eventStartMinutes + event.duration - 24
-                          //   : event.duration;
                           const isSpanningEvent =
                             new Date(event.date).getTime() <
                             new Date(startDate).getTime();
@@ -307,7 +362,9 @@ const FilmShowChartPage = () => {
                             >
                               <div className="p-2 text-sm flex items-center h-full">
                                 <FaPlay className="mr-2" />
-                                <span className="truncate">{event.film}</span>
+                                <span className="truncate">
+                                  {event.filmName}
+                                </span>
                               </div>
                             </div>
                           );
@@ -327,7 +384,7 @@ const FilmShowChartPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg max-w-md w-full">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold">{selectedEvent.film}</h2>
+              <h2 className="text-2xl font-bold">{selectedEvent.filmName}</h2>
               <button
                 onClick={() => setShowModal(false)}
                 className="text-gray-500 hover:text-gray-700"
@@ -346,12 +403,12 @@ const FilmShowChartPage = () => {
               </p>
             </div>
             <div className=" text-gray-500">
-              <p>Phòng: {selectedEvent.room}</p>
-              <p>Ngày: {selectedEvent.showDate}</p>
+              <p>Phòng: {selectedEvent.roomName}</p>
+              <p>Ngày: {selectedEvent.date}</p>
               <p>
-                Time: {formatTime(selectedEvent.showTime)} -{" "}
+                Time: {formatTime(selectedEvent.startTime)} -{" "}
                 {formatTime(
-                  getMinutesFromTime(selectedEvent.showTime) +
+                  getMinutesFromTime(selectedEvent.startTime) +
                     selectedEvent.duration
                 )}
               </p>

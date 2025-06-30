@@ -175,6 +175,8 @@ const AdminParamPage = () => {
       const response = await getParam();
 
       setParams(response.data);
+      console.log("params: ", response.data);
+
       setOriginalPrices(response.data);
     } catch (error) {
       console.error("Error fetching items:", error);

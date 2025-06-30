@@ -1,44 +1,11 @@
 import React, { useState } from "react";
 
-const allCinemas = [
-  {
-    city: "TP.HCM",
-    name: "Cinestar Satra Quận 6 (TP.HCM)",
-
-    schedules: {
-      Standard: [
-        "08:20",
-        "09:50",
-        "10:50",
-        "13:20",
-        "14:15",
-        "16:40",
-        "19:30",
-        "21:00",
-        "23:30",
-      ],
-    },
-  },
-  {
-    city: "TP.HCM",
-    name: "Cinestar Quận 1 (TP.HCM)",
-
-    schedules: {
-      Standard: ["09:15", "11:45", "14:10", "19:30"],
-    },
-  },
-  {
-    city: "Hà Nội",
-    name: "CGV Times City",
-
-    schedules: {
-      Standard: ["10:00", "13:00", "16:00", "20:00"],
-    },
-  },
-];
-
-export default function CinemaScheduleList({ cinemasData }) {
-  const [selectedCity, setSelectedCity] = useState("Quốc Thanh, TP.HCM");
+export default function CinemaScheduleList({
+  cinemasData,
+  onSelectShowtime,
+  selectedShowtime,
+}) {
+  const [selectedCity, setSelectedCity] = useState("Hồ Chí Minh");
 
   const cities = [...new Set(cinemasData.map((cinema) => cinema.city))];
   const cinemas = cinemasData.filter((cinema) => cinema.city === selectedCity);
@@ -70,7 +37,7 @@ export default function CinemaScheduleList({ cinemasData }) {
           <h2 className="text-2xl font-extrabold text-yellow-400 mb-2">
             {cinema.name}
           </h2>
-          <p className="mb-4 text-lg">{cinema.city}</p>
+          <p className="mb-4 text-lg">{cinema.address}</p>
 
           {Object.entries(cinema.schedules).every(
             ([_, times]) => times.length === 0
@@ -85,12 +52,20 @@ export default function CinemaScheduleList({ cinemasData }) {
                   {roomType}
                 </h3>
                 <div className="flex flex-wrap gap-3">
-                  {times.map((time, idx) => (
+                  {times.map((show, idx) => (
                     <button
                       key={idx}
-                      className="border border-white px-4 py-2 rounded text-base font-semibold hover:bg-yellow-400 hover:text-black transition"
+                      className={`border px-4 py-2 rounded text-base font-semibold transition ${
+                        selectedShowtime === show.showTime
+                          ? "bg-yellow-400 text-black border-yellow-400"
+                          : "border-white hover:bg-yellow-400 hover:text-black"
+                      }`}
+                      onClick={() => {
+                        onSelectShowtime &&
+                          onSelectShowtime(show.showTime, show.filmShowId);
+                      }}
                     >
-                      {time}
+                      {show.showTime}
                     </button>
                   ))}
                 </div>

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
-import { callSignOut } from "../config/api";
+import { callSignOut, searchFilm } from "../config/api";
 import { toast } from "react-toastify";
 
 import { LuCalendar, LuPopcorn } from "react-icons/lu";
@@ -9,6 +9,8 @@ import { FaRegUserCircle } from "react-icons/fa";
 import { IoMdHelpCircleOutline } from "react-icons/io";
 
 const Header = () => {
+  //Tim phim
+
   const [isMenuOpen, setIsMenuOpen] = useState(false); // Trạng thái hiển thị menu
   const [keyWord, setKeyWord] = useState("");
 

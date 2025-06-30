@@ -104,7 +104,7 @@ export const getAllOrderByUserId = async () => {
 };
 
 export const getAllPromotion = async () => {
-  return await axios.get(`/promotion/active`);
+  return await axios.get(`/promotions/active`);
 };
 
 // point
@@ -114,7 +114,7 @@ export const getCurrentPoint = async () => {
 };
 
 export const getParam = async () => {
-  return await axios.get(`/param`);
+  return await axios.get(`/params`);
 };
 
 export const getCinemas = async () => {
@@ -135,6 +135,10 @@ export const getAllTags = async () => {
 
 export const getFilmByTheaterId = async (id) => {
   return await axios.get(`/films/by-theater/${id}`);
+};
+
+export const getTheaterByFilmId = async (id) => {
+  return await axios.get(`/theaters/by-film/${id}`);
 };
 
 export const getFilmById = async (id) => {
@@ -163,4 +167,30 @@ export const getAllRooms = async () => {
 
 export const getAllItems = async () => {
   return await axios.get(`/additional-items`);
+};
+
+//filmdetail
+export const getAllTicketType = async () => {
+  return await axios.get(`/ticket-types`);
+};
+
+export const getFilmShowById = async (id) => {
+  return await axios.get(`/film-shows/${id}`);
+};
+
+export const getRoomSeatByRoomId = async (id) => {
+  return await axios.get(`/room-seats/by-room/${id}`);
+};
+
+export const getRoomSeatLockByFilmshowId = async ({
+  id,
+  page = 0,
+  size = 250,
+}) => {
+  return await axios.get(`/room-seats/by-film-show/${id}`, {
+    params: {
+      page,
+      size,
+    },
+  });
 };

@@ -1,5 +1,5 @@
 import QuantitySelectorV2 from "../QuantitySelectorV2";
-import './style.css'
+import "./style.css";
 const FoodCard = ({ food, quantity, onIncrement, onDecrement }) => {
   return (
     <div>
@@ -7,7 +7,7 @@ const FoodCard = ({ food, quantity, onIncrement, onDecrement }) => {
         <div className="md:col-span-1 w-full">
           <img
             className="w-[240px] h-[240px] object-cover rounded-md"
-            src={food.thumbnailURL}
+            src={food.thumbnailUrl}
             alt={food.name || "Food Thumbnail"}
           />
         </div>
