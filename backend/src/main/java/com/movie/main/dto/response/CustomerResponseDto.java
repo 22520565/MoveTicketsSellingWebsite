@@ -9,4 +9,6 @@ public record CustomerResponseDto(
         String email,
         String phoneNumber,
         String username,
-        int loyalPoint) {}
+        int loyalPoint,
+        boolean blocked,
+        boolean deleted) {}

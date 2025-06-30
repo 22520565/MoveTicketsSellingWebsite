@@ -211,6 +211,8 @@ public class EmployeeController {
                 employee.getShiftStart(),
                 employee.getShiftEnd(),
                 employee.getBeginWorkingDate(),
-                employee.getPermissions());
+                employee.getPermissions(),
+                employee.isBlocked(),
+                employee.isDeleted());
     }
 }
