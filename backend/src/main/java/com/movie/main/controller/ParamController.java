@@ -16,6 +16,7 @@ import com.movie.main.entity.Param;
 import com.movie.main.service.ParamService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.annotation.security.PermitAll;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
@@ -31,6 +32,7 @@ public class ParamController {
     }
 
     @GetMapping
+    @PermitAll
     public ResponseEntity<ParamResponseDto> getParam() {
         final var result = this.service.getParam();
         if (result != null) {
