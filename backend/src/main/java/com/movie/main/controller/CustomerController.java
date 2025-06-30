@@ -207,6 +207,8 @@ public class CustomerController {
                 customer.getEmail(),
                 customer.getPhoneNumber(),
                 customer.getUsername(),
-                customer.getLoyalPoint());
+                customer.getLoyalPoint(),
+                customer.isBlocked(),
+                customer.isDeleted());
     }
 }

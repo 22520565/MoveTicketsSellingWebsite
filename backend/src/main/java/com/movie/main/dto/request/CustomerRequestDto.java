@@ -15,5 +15,4 @@ public record CustomerRequestDto(
         @NotBlank @Email String email,
         @Size(min = User.MinLengthPhoneNumber, max = User.MaxLengthPhoneNumber) String phoneNumber,
         @NotBlank @Size(min = User.MinLengthUsername, max = User.MaxLengthUsername) String username,
-        @NotBlank String password) {
-}
+        @NotBlank String password) {}
