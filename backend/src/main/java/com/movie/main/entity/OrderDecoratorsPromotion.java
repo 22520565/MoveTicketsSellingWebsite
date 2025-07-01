@@ -45,13 +45,11 @@ public class OrderDecoratorsPromotion {
     public OrderDecoratorsPromotion(
             final CustomerOrder customerOrder,
             final Set<@NotNull Promotion> promotions) {
-        this.id = customerOrder.getId();
         this.customerOrder = customerOrder;
         this.promotions = new HashSet<>(promotions);
     }
 
     public void setCustomerOrder(@NotNull final CustomerOrder customerOrder) {
-        this.id = customerOrder.getId();
         this.customerOrder = customerOrder;
     }
 

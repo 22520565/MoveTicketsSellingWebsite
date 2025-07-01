@@ -75,7 +75,6 @@ public class OrderDataFilm {
             final FilmShow filmShow,
             final Set<@NotBlank RoomSeat> roomSeats,
             final Set<@NotNull OrderTicket> orderTickets) {
-        this.id = customerOrder.getId();
         this.customerOrder = customerOrder;
         this.date = date;
         this.time = time;
@@ -85,7 +84,6 @@ public class OrderDataFilm {
     }
 
     public void setCustomerOrder(@NotNull final CustomerOrder customerOrder) {
-        this.id = customerOrder.getId();
         this.customerOrder = customerOrder;
     }
 

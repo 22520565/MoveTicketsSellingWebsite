@@ -42,14 +42,12 @@ public class OrderDecoratorsPointUsage {
             final CustomerOrder customerOrder,
             final int pointUsed,
             final int pointToMoneyRatio) {
-        this.id = customerOrder.getId();
         this.customerOrder = customerOrder;
         this.pointUsed = pointUsed;
         this.pointToMoneyRatio = pointToMoneyRatio;
     }
 
     public void setCustomerOrder(@NotNull final CustomerOrder customerOrder) {
-        this.id = customerOrder.getId();
         this.customerOrder = customerOrder;
     }
 }

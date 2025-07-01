@@ -50,7 +50,6 @@ public class OrderDecoratorsOfflineService {
             final boolean served,
             final String invalidReasonPrinted,
             final String invalidReasonServed) {
-        this.id = customerOrder.getId();
         this.customerOrder = customerOrder;
         this.printed = printed;
         this.served = served;
@@ -59,7 +58,6 @@ public class OrderDecoratorsOfflineService {
     }
 
     public void setCustomerOrder(@NotNull final CustomerOrder customerOrder) {
-        this.id = customerOrder.getId();
         this.customerOrder = customerOrder;
     }
 }

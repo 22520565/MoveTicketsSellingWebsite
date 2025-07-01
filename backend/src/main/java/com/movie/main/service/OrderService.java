@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,6 +47,8 @@ import com.movie.main.repository.OrderDataItemRepository;
 import com.movie.main.repository.OrderDecoratorsOfflineServiceRepository;
 import com.movie.main.repository.OrderDecoratorsPointUsageRepository;
 import com.movie.main.repository.OrderDecoratorsPromotionRepository;
+import com.movie.main.repository.OrderItemRepository;
+import com.movie.main.repository.OrderTicketRepository;
 import com.movie.main.repository.PromotionRepository;
 import com.movie.main.repository.RoomSeatRepository;
 import com.movie.main.repository.StripePaymentRepository;
@@ -61,24 +64,17 @@ import com.stripe.exception.InvalidRequestException;
 import com.stripe.exception.PermissionException;
 import com.stripe.exception.RateLimitException;
 import com.stripe.exception.StripeException;
-import com.stripe.model.PaymentIntent;
 import com.stripe.model.checkout.Session;
-import com.stripe.net.RequestOptions;
 import com.stripe.net.Webhook;
-import com.stripe.param.PaymentIntentCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 
 import jakarta.annotation.Nullable;
-import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class OrderService {
-
-    private final RequirePermissionAspect requirePermissionAspect;
-
     public enum CreationError {
         ENTITY_NOT_EXISTS,
         INSUFFICIENT_LOYAL_POINT,
@@ -144,6 +140,12 @@ public class OrderService {
     private final OrderDecoratorsPromotionRepository orderDecoratorsPromotionRepository;
 
     @NotNull
+    private final OrderTicketRepository orderTicketRepository;
+
+    @NotNull
+    private final OrderItemRepository orderItemRepository;
+
+    @NotNull
     private final StripePaymentRepository stripePaymentRepository;
 
     public OrderService(
@@ -160,8 +162,9 @@ public class OrderService {
             @NotNull final OrderDecoratorsOfflineServiceRepository orderDecoratorsOfflineServiceRepository,
             @NotNull final OrderDecoratorsPointUsageRepository orderDecoratorsPointUsageRepository,
             @NotNull final OrderDecoratorsPromotionRepository orderDecoratorsPromotionRepository,
-            @NotNull final StripePaymentRepository stripePaymentRepository,
-            RequirePermissionAspect requirePermissionAspect) {
+            @NotNull final OrderTicketRepository orderTicketRepository,
+            @NotNull final OrderItemRepository orderItemRepository,
+            @NotNull final StripePaymentRepository stripePaymentRepository) {
         this.customerRepository = customerRepository;
         this.filmShowRepository = filmShowRepository;
         this.ticketTypeRepository = ticketTypeRepository;
@@ -175,8 +178,9 @@ public class OrderService {
         this.orderDecoratorsOfflineServiceRepository = orderDecoratorsOfflineServiceRepository;
         this.orderDecoratorsPointUsageRepository = orderDecoratorsPointUsageRepository;
         this.orderDecoratorsPromotionRepository = orderDecoratorsPromotionRepository;
+        this.orderTicketRepository = orderTicketRepository;
+        this.orderItemRepository = orderItemRepository;
         this.stripePaymentRepository = stripePaymentRepository;
-        this.requirePermissionAspect = requirePermissionAspect;
     }
 
     @NotNull
@@ -306,7 +310,7 @@ public class OrderService {
     }
 
     @Transactional
-    public synchronized Expected<OrderResponseDto, CreationError> create(
+    public Expected<OrderResponseDto, CreationError> create(
             @NotNull final OrderRequestDto requestDto,
             final int customerId) {
         final var param = this.paramService.getParam();
@@ -340,7 +344,13 @@ public class OrderService {
                 return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
             }
 
-            orderTickets.add(new OrderTicket(ticketType.getTitle(), ticket.getQuantity(), ticketType.getPrice()));
+            final var orderTicket = this.orderTicketRepository.save(
+                    new OrderTicket(
+                            ticketType.getTitle(),
+                            ticket.getQuantity(),
+                            ticketType.getPrice()));
+
+            orderTickets.add(orderTicket);
         }
 
         final var seatIds = requestDto.getSeatIds();
@@ -364,7 +374,13 @@ public class OrderService {
                 return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
             }
 
-            orderItems.add(new OrderItem(additionalItem.getName(), item.getQuantity(), additionalItem.getPrice()));
+            final var orderItem = this.orderItemRepository.save(
+                    new OrderItem(
+                            additionalItem.getName(),
+                            item.getQuantity(),
+                            additionalItem.getPrice()));
+
+            orderItems.add(orderItem);
         }
 
         final var promotionIds = requestDto.getPromotionIds();
@@ -431,8 +447,8 @@ public class OrderService {
                             orderDecoratorsPromotion));
         }
         catch (final Exception exception) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             log.error(exception.getMessage());
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return Expected.failure(CreationError.UNSPECIFIED);
         }
     }

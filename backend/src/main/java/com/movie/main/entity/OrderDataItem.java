@@ -46,13 +46,11 @@ public class OrderDataItem {
     public OrderDataItem(
             final CustomerOrder customerOrder,
             final Set<@NotNull OrderItem> orderItems) {
-        this.id = this.customerOrder.getId();
         this.customerOrder = customerOrder;
         this.orderItems = new HashSet<>(orderItems);
     }
 
     public void setCustomerOrder(@NotNull final CustomerOrder customerOrder) {
-        this.id = customerOrder.getId();
         this.customerOrder = customerOrder;
     }
 
