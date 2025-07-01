@@ -400,13 +400,22 @@ export const getTiketServeRate = async (data) => {
   });
 };
 
+export const getTiketRateByFilm = async (data) => {
+  return await api.get("/statistics/ticket-rate-of-film", {
+    params: {
+      date: data.date, // bắt buộc
+      theaterId: data.theaterId, // optional
+    },
+  });
+};
+
 export const getTiketCategoryRate = async (data) => {
   return await api.get("/statistics/ticket-category-rate", {
     params: {
       date: data.date, // bắt buộc
       theaterId: data.theaterId, // optional
-      page: params.page || 0, // mặc định
-      size: params.size || 20, // mặc định
+      page: data.page || 0, // mặc định
+      size: data.size || 20, // mặc định
     },
   });
 };
@@ -465,6 +474,10 @@ export const getAdditionalItemsRate = async (params) => {
       size: params.size || 10,
     },
   });
+};
+
+export const getOrders = async () => {
+  return await api.get("/orders");
 };
 
 //............

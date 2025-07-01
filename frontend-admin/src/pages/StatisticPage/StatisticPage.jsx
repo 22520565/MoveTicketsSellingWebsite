@@ -20,9 +20,12 @@ import {
   getDailyStatisticsByTheater,
   getBestSellingItem,
   getAdditionalItemsRate,
+  getTiketRateByFilm,
 } from "../../config/api";
 import axios from "axios";
 import { Theater } from "lucide-react";
+import { get } from "lodash";
+import { use } from "react";
 
 const StatisticPage = () => {
   const [selectedCinemaId, setSelectedCinemaId] = useState(""); // rạp đang chọn
@@ -68,14 +71,24 @@ const StatisticPage = () => {
         date: day,
         theaterId: selectedCinemaId,
       });
-      console.log("fetchticketType", response);
 
       const data =
         response?.data?._embedded?.ticketCategoryRevenueResponseDtoList;
-      const transformedData = data?.map((item) => ({
-        name: item.name,
-        value: item.totalRevenue,
-      }));
+      const transformedData = [];
+
+      const groupedData = data?.reduce((acc, item) => {
+        if (acc[item.name]) {
+          acc[item.name] += item.totalRevenue;
+        } else {
+          acc[item.name] = item.totalRevenue;
+        }
+        return acc;
+      }, {});
+
+      for (const [name, value] of Object.entries(groupedData)) {
+        transformedData.push({ name, value });
+      }
+
       setTicketTypeData(transformedData);
     } catch (error) {
       console.log(error);
@@ -85,14 +98,15 @@ const StatisticPage = () => {
   //biểu đồ phim
   const fetchticketMovie = async (day) => {
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/statistics/ticket-rate-by-film?selectedDate=${day}`
-      );
+      const response = await getTiketRateByFilm({
+        date: day,
+        theaterId: selectedCinemaId,
+      });
 
-      const data = response.data;
+      const data = response?.data?._embedded?.ticketRateOfFilmResponseDtoList;
       const transformedData = data.map((item) => ({
         name: item.filmName,
-        value: item.totalTickets,
+        value: item.totalTicket,
       }));
 
       setTicketMovieData(transformedData);
@@ -131,7 +145,7 @@ const StatisticPage = () => {
         totalNetRevenue: data?.totalNetRevenue,
         totalEffectiveRevenue: data?.totalEffectiveRevenue,
         totalTicketRevenue: data?.totalTicketRevenue,
-        totalOtherItemsRevenue: data?.totalOtherItemsRevenue,
+        totalOtherItemsRevenue: data?.totalItemRevenue,
       }));
     } catch (error) {
       console.log(error);
@@ -204,8 +218,8 @@ const StatisticPage = () => {
   const fetchData = async (year) => {
     try {
       const response = await getMonthlyStatisticsByTheater({
-        date: day,
-        theaterId: selectedCinemaId,
+        year,
+        selectedCinemaId,
       });
       const transformedData = transformApiDataToRevenueData(
         response?.data,
@@ -229,7 +243,7 @@ const StatisticPage = () => {
     fetchHotFilm(selectedDate);
     fetchBestSeller(selectedDate);
     fetchData(selectedYear);
-  }, [selectedDate, selectedYear]);
+  }, [selectedDate, selectedYear, selectedCinemaId]);
 
   const transformApiDataToRevenueData = (apiData, year) => {
     return apiData.map((item) => {

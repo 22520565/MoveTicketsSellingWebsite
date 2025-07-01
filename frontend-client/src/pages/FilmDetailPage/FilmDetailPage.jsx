@@ -1235,7 +1235,7 @@ function BottomBar({
         tickets: ticketSelections
           .filter((t) => t.quantity > 0)
           .map((t) => ({
-            typeId: t.did,
+            typeId: t.id,
             quantity: t.quantity,
           })),
         seatIds: seatSelections

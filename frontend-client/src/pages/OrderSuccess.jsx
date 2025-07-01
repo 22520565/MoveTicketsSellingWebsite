@@ -1,11 +1,42 @@
 import React from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createOrder } from "../config/api";
 
 const OrderSuccessPage = () => {
   const navigate = useNavigate();
-  const payload = JSON.parse(localStorage.getItem("checkoutPayload"));
-  console.log("Order Success Payload:", payload);
+  useEffect(() => {
+    document.title = "Đặt hàng thành công";
+  }, []);
+  useEffect(() => {
+    const payload = JSON.parse(localStorage.getItem("checkoutPayload"));
+    console.log("Order Success Payload:", payload);
+
+    // if (!payload) {
+    //   alert("Không tìm thấy thông tin đơn hàng.");
+    //   navigate("/");
+    //   return;
+    // }
+
+    // const createOrderInDb = async () => {
+    //   try {
+    //     const response = await createOrder(payload);
+    //     console.log("Đơn hàng đã lưu thành công:", response);
+
+    //     if (response.id) {
+    //       // Xoá localStorage sau khi lưu thành công
+    //       localStorage.removeItem("checkoutPayload");
+    //     }
+
+    //     // Có thể hiển thị thông báo hoặc điều hướng
+    //   } catch (error) {
+    //     console.error("Lỗi khi lưu đơn hàng:", error);
+    //     alert("Lưu đơn hàng thất bại.");
+    //   }
+    // };
+
+    // createOrderInDb();
+  }, [navigate]);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
@@ -13,10 +44,7 @@ const OrderSuccessPage = () => {
         <h2 className="text-3xl font-semibold text-green-500">
           Đơn hàng thành công!
         </h2>
-        <p className="text-xl text-gray-600 mt-4">
-          Cảm ơn bạn đã đặt hàng! Vui lòng kiểm tra email của bạn để xem hóa
-          đơn.
-        </p>
+        <p className="text-xl text-gray-600 mt-4">Cảm ơn bạn đã đặt hàng!</p>
         <div className="mt-8">
           <button
             onClick={() => navigate("/")}

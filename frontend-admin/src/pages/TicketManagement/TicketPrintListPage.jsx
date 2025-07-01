@@ -15,6 +15,7 @@ import SuccessDialog from "../../components/Dialog/SuccessDialog";
 import RefreshLoader from "../../components/Loading";
 import formatCurrencyNumber from "../../ulitilities/formatCurrencyNumber";
 import { useReactToPrint } from "react-to-print";
+import { getOrders } from "../../config/api";
 
 const TicketPrintListPage = () => {
   const [orders, setOrders] = useState([]);
@@ -208,9 +209,10 @@ const TicketPrintListPage = () => {
   const fetchOrder = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:8000/api/orders");
+      const response = await getOrders(); // Gọi API lấy danh sách order
+
       // Lọc những order có printed === false
-      setOrders(response.data.data);
+      setOrders(response?.data?._embedded?.orderResponseDtoList);
     } catch (error) {
       alert("Thao tác thất bại, lỗi: " + error.response.data.msg);
     } finally {
