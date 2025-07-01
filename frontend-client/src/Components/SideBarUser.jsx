@@ -8,13 +8,13 @@ const Sidebar = ({ userName, menuItems }) => {
   const location = useLocation();
   const { user } = useAuth();
   const [loyalPoint, setLoyalPoint] = useState(0);
-
+  const currentUser = JSON.parse(localStorage.getItem("user"));
   console.log("🚀 ~ Sidebar ~ loyalPoint:", loyalPoint);
   useEffect(() => {
-    if (user?.loyalPoint !== undefined) {
-      setLoyalPoint(user.loyalPoint);
+    if (currentUser?.loyalPoint !== undefined) {
+      setLoyalPoint(currentUser.loyalPoint);
     }
-  }, [user]);
+  }, [currentUser]);
 
   return (
     <div
