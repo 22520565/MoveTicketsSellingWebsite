@@ -481,8 +481,8 @@ public class OrderService {
                     .addAllLineItem(lineItems)
                     .setMode(SessionCreateParams.Mode.PAYMENT)
                     .putAllMetadata(metaData)
-                    .setSuccessUrl("https://localhost:5173/payment-success")
-                    .setCancelUrl("https://localhost:5173/payment-cancel")
+                    .setSuccessUrl("http://localhost:5173/order-success")
+                    .setCancelUrl("http://localhost:5173/order-failed")
                     .build();
 
             final var session = Session.create(params);

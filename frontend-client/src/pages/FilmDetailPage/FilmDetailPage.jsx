@@ -13,7 +13,6 @@ import TrailerModal from "../../Components/TrailerModal";
 import axios from "axios";
 import ScheduleChooseBox from "../../Components/ScheduleChooseBox";
 import ShowtimeChooseBox from "../../Components/ShowtimeChooseBox";
-import { loadStripe } from "@stripe/stripe-js";
 import TicketType from "../../Components/TicketType";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
@@ -52,7 +51,7 @@ import {
 } from "../../config/api";
 import { FileImage } from "lucide-react";
 import CinemaScheduleList from "../../Components/CinemaList";
-import CheckoutForm from "./CheckoutForm";
+import { loadStripe } from "@stripe/stripe-js";
 
 const seatWidth = 50;
 const seatHeight = 40;
@@ -1257,13 +1256,19 @@ function BottomBar({
 
       // const response = await createPaymentStripe(payload);
       localStorage.setItem("checkoutPayload", JSON.stringify(payload));
-      navigate("/checkout");
+      const response = await createPaymentStripe(payload);
+      const sessionId = response?.clientSecret;
 
-      // if (response.clientSecret) {
-      //   navigate("/checkout", {
-      //     state: { clientSecret: response.clientSecret, payload: payload },
-      //   });
-      // }
+      if (!sessionId) {
+        alert("Không thể tạo phiên thanh toán. Vui lòng thử lại.");
+        return;
+      }
+
+      const stripe = await loadStripe(
+        "pk_test_51RSroiFLS9qgPWZTC329aaYLG3kpwxs5dB7cICsPSiZqk58x3DU3X2oYHE4DmiqoeT1g9Sx48CThnIgH9fQ9bEwS00YI7hWxoQ"
+      );
+
+      await stripe.redirectToCheckout({ sessionId });
     } catch (error) {
       console.error("Lỗi khi tạo thanh toán:", error);
       alert("Có lỗi xảy ra. Vui lòng thử lại.");
@@ -1610,11 +1615,6 @@ function BottomBar({
             text={"Đặt ngay"} // Hiển thị text thay đổi khi đang xử lý
           />
         </div>
-        {clientSecret && (
-          <Elements stripe={stripePromise}>
-            <CheckoutForm clientSecret={clientSecret} />
-          </Elements>
-        )}
       </div>
     </div>
   );

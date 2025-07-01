@@ -1,8 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { createOrder } from "../config/api";
 
 const OrderSuccessPage = () => {
   const navigate = useNavigate();
+  const payload = JSON.parse(localStorage.getItem("checkoutPayload"));
+  console.log("Order Success Payload:", payload);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">

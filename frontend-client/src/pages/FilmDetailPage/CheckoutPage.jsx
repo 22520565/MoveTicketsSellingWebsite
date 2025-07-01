@@ -1,10 +1,7 @@
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Elements } from "@stripe/react-stripe-js";
-import CheckoutForm from "./CheckoutForm"; // Import the CheckoutForm component
 import { createPaymentStripe } from "../../config/api";
 import { loadStripe } from "@stripe/stripe-js";
-
-import { useEffect } from "react";
 
 export default function CheckoutPage() {
   const location = useLocation();
@@ -12,11 +9,8 @@ export default function CheckoutPage() {
     location.state?.payload ||
     JSON.parse(localStorage.getItem("checkoutPayload"));
 
-  console.log("Location state:", location.state);
-  console.log("Payload:", payload);
-  if (!payload) {
-    return <div>Không có thông tin đơn hàng. Vui lòng quay lại.</div>;
-  }
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const redirectToStripe = async () => {
       try {
@@ -24,15 +18,14 @@ export default function CheckoutPage() {
           alert("Không tìm thấy dữ liệu đơn hàng.");
           return;
         }
+
         const response = await createPaymentStripe(payload);
         console.log("Response from createPaymentStripe:", response);
 
         const sessionId = response?.clientSecret;
 
         if (sessionId) {
-          const stripe = await loadStripe(
-            "pk_test_51RSroiFLS9qgPWZTC329aaYLG3kpwxs5dB7cICsPSiZqk58x3DU3X2oYHE4DmiqoeT1g9Sx48CThnIgH9fQ9bEwS00YI7hWxoQ"
-          );
+          const stripe = await loadStripe("pk_test_...");
           await stripe.redirectToCheckout({ sessionId });
         } else {
           alert("Không thể tạo phiên thanh toán");
@@ -40,11 +33,28 @@ export default function CheckoutPage() {
       } catch (err) {
         console.error("Lỗi khi tạo Checkout Session:", err);
         alert("Lỗi khi tạo Checkout Session");
+      } finally {
+        setLoading(false);
       }
     };
 
     redirectToStripe();
   }, []);
 
-  return <div>Đang chuyển hướng đến trang thanh toán...</div>;
+  if (!payload) {
+    return <div>Không có thông tin đơn hàng. Vui lòng quay lại.</div>;
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      {loading ? (
+        <div className="text-center text-lg font-semibold">
+          Đang chuyển hướng đến trang thanh toán...
+          <div className="mt-4 animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-500 mx-auto" />
+        </div>
+      ) : (
+        <div>Đã xử lý xong (nhưng không chuyển được)</div>
+      )}
+    </div>
+  );
 }
