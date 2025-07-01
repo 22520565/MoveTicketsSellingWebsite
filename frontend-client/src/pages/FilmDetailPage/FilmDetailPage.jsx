@@ -13,6 +13,7 @@ import TrailerModal from "../../Components/TrailerModal";
 import axios from "axios";
 import ScheduleChooseBox from "../../Components/ScheduleChooseBox";
 import ShowtimeChooseBox from "../../Components/ShowtimeChooseBox";
+import { loadStripe } from "@stripe/stripe-js";
 import TicketType from "../../Components/TicketType";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
@@ -47,9 +48,11 @@ import {
   getFilmShowById,
   getRoomSeatByRoomId,
   getRoomSeatLockByFilmshowId,
+  createPaymentStripe,
 } from "../../config/api";
 import { FileImage } from "lucide-react";
 import CinemaScheduleList from "../../Components/CinemaList";
+import CheckoutForm from "./CheckoutForm";
 
 const seatWidth = 50;
 const seatHeight = 40;
@@ -530,7 +533,9 @@ const FilmDetailPage = () => {
     if (!selectedFilmShow || !selectedFilmShow.id) return;
 
     try {
-      const response = await getRoomSeatLockByFilmshowId(selectedFilmShow.id);
+      console.log("Selected Film Show ID: ", selectedFilmShow.id);
+      console.log("Selected Film Show: ", selectedFilmShowID);
+      const response = await getRoomSeatLockByFilmshowId(selectedFilmShowID);
 
       const lockedSeats =
         response?._embedded?.roomSeatWithUsableStatusResponseDtoList;
@@ -1212,6 +1217,7 @@ function BottomBar({
   const [param, setParam] = useState(null);
   const [pointUsage, setPointUsage] = useState(null);
   const [priceAfterAll, setPriceAfterAll] = useState(0);
+  const [clientSecret, setClientSecret] = useState(null);
   const navigate = useNavigate();
 
   const handleCreatePayment = async () => {
@@ -1222,37 +1228,51 @@ function BottomBar({
     }
 
     try {
-      // Lấy danh sách promotionId từ selectedPromotions
-      const promotionIds = selectedPromotions.map((promo) => promo.id);
-
-      // Log danh sách promotionIds để kiểm tra
       console.log("Danh sách promotionIds:", promotionIds);
-
-      const response = await createPayment({
-        ticketSelections: ticketSelections.filter(
-          (element) => element.quantity !== 0
-        ),
-        seatSelections: seatSelections,
-        additionalItemSelections: additionalItemSelections.filter(
-          (element) => element.quantity !== 0
-        ),
+      const payload = {
         totalPrice: calculateTotalPrice(),
+        totalPriceAfterDiscount: priceAfterAll,
         filmShowId: selectedFilmShowId,
-        promotionIDs: promotionIds, // Thêm danh sách promotionId vào payload
-        pointUsage: usePoints ? pointUsage : null,
-      });
+        tickets: ticketSelections
+          .filter((t) => t.quantity > 0)
+          .map((t) => ({
+            typeId: t.did,
+            quantity: t.quantity,
+          })),
+        seatIds: seatSelections
+          .flat()
+          .filter((s) => s.selected)
+          .map((s) => s.id),
+        items: additionalItemSelections
+          .filter((i) => i.quantity > 0)
+          .map((i) => ({
+            id: i.id,
+            quantity: i.quantity,
+          })),
+        promotionIds: selectedPromotions.map((p) => p.id),
+        pointUsage: usePoints ? pointUsage : 0,
+      };
 
-      if (response && response.payUrl) {
-        setPaymentUrl(response.payUrl);
-        window.location.href = response.payUrl;
-      } else {
-        alert(response.message);
-      }
+      console.log("Payload gửi:", payload);
+
+      // const response = await createPaymentStripe(payload);
+      localStorage.setItem("checkoutPayload", JSON.stringify(payload));
+      navigate("/checkout");
+
+      // if (response.clientSecret) {
+      //   navigate("/checkout", {
+      //     state: { clientSecret: response.clientSecret, payload: payload },
+      //   });
+      // }
     } catch (error) {
       console.error("Lỗi khi tạo thanh toán:", error);
       alert("Có lỗi xảy ra. Vui lòng thử lại.");
     }
   };
+  // Lấy danh sách promotionId từ selectedPromotions
+  const promotionIds = selectedPromotions.map((promo) => promo.id);
+
+  // Log danh sách promotionIds để kiểm tra
 
   useEffect(() => {
     if (!param) return;
@@ -1590,6 +1610,11 @@ function BottomBar({
             text={"Đặt ngay"} // Hiển thị text thay đổi khi đang xử lý
           />
         </div>
+        {clientSecret && (
+          <Elements stripe={stripePromise}>
+            <CheckoutForm clientSecret={clientSecret} />
+          </Elements>
+        )}
       </div>
     </div>
   );
