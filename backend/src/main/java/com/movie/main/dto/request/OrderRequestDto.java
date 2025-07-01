@@ -2,6 +2,9 @@ package com.movie.main.dto.request;
 
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -43,7 +46,6 @@ public class OrderRequestDto {
     private final int pointUsage;
 
     @Data
-    @AllArgsConstructor
     @FieldNameConstants
     public static class TicketRequestDto {
         @Include
@@ -51,10 +53,17 @@ public class OrderRequestDto {
 
         @Include
         private final int quantity;
+
+        @JsonCreator
+        public TicketRequestDto(
+                @JsonProperty("typeId") final int typeId,
+                @JsonProperty("quantity") final int quantity) {
+            this.typeId = typeId;
+            this.quantity = quantity;
+        }
     }
 
     @Data
-    @AllArgsConstructor
     @FieldNameConstants
     public static class ItemRequestDto {
         @Include
@@ -62,5 +71,13 @@ public class OrderRequestDto {
 
         @Include
         private final int quantity;
+
+        @JsonCreator
+        public ItemRequestDto(
+                @JsonProperty("id") final int id,
+                @JsonProperty("quantity") final int quantity) {
+            this.id = id;
+            this.quantity = quantity;
+        }
     }
 }

@@ -63,6 +63,7 @@ import com.stripe.exception.RateLimitException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.checkout.Session;
+import com.stripe.net.RequestOptions;
 import com.stripe.net.Webhook;
 import com.stripe.param.PaymentIntentCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
@@ -305,7 +306,7 @@ public class OrderService {
     }
 
     @Transactional
-    public Expected<OrderResponseDto, CreationError> create(
+    public synchronized Expected<OrderResponseDto, CreationError> create(
             @NotNull final OrderRequestDto requestDto,
             final int customerId) {
         final var param = this.paramService.getParam();
@@ -543,118 +544,13 @@ public class OrderService {
         }
     }
 
-    public Expected<String, PaymentError> createPaymentIntent(
-            final OrderRequestDto requestDto,
-            final int customerId) {
-        try {
-            final var customer = this.customerRepository.findById(customerId).orElse(null);
-            if (customer == null) {
-                return Expected.failure(PaymentError.ENTITY_NOT_EXISTS);
-            }
-
-            final var mapper = new ObjectMapper();
-            final var metaData = Map.ofEntries(
-                    Map.entry(OrderRequestDto.Fields.filmShowId,
-                            String.valueOf(requestDto.getFilmShowId())),
-                    Map.entry(OrderRequestDto.Fields.seatIds,
-                            requestDto.getSeatIds().stream().map(Object::toString).collect(Collectors.joining(","))),
-                    Map.entry(OrderRequestDto.Fields.totalPrice,
-                            String.valueOf(requestDto.getTotalPrice())),
-                    Map.entry(OrderRequestDto.Fields.totalPriceAfterDiscount,
-                            String.valueOf(requestDto.getTotalPriceAfterDiscount())),
-                    Map.entry(OrderRequestDto.Fields.pointUsage,
-                            String.valueOf(requestDto.getPointUsage())),
-                    Map.entry(OrderRequestDto.Fields.promotionIds,
-                            requestDto.getPromotionIds().stream().map(Object::toString)
-                                    .collect(Collectors.joining(","))),
-                    Map.entry(OrderRequestDto.Fields.tickets,
-                            mapper.writeValueAsString(requestDto.getTickets())),
-                    Map.entry(OrderRequestDto.Fields.items,
-                            mapper.writeValueAsString(requestDto.getItems())));
-
-            final var params = PaymentIntentCreateParams.builder()
-                    .setAmount(Long.valueOf(requestDto.getTotalPriceAfterDiscount()))
-                    .setCurrency(ResourceStrings.STRIPE_CURRENCY)
-                    .putAllMetadata(metaData)
-                    .setAutomaticPaymentMethods(
-                            PaymentIntentCreateParams.AutomaticPaymentMethods.builder().setEnabled(true).build())
-                    .build();
-
-            final var intent = PaymentIntent.create(params);
-            final var stripePayment = new StripePayment(
-                    intent.getId(),
-                    customer,
-                    StripePayment.Status.from(intent.getStatus()),
-                    requestDto.getTotalPriceAfterDiscount(),
-                    Instant.now());
-
-            this.stripePaymentRepository.save(stripePayment);
-            return Expected.success(intent.getClientSecret());
-        }
-        catch (final PermissionException exception) {
-            log.error(exception.getMessage());
-            return Expected.failure(PaymentError.PERMISSION_DENIED);
-        }
-        catch (final AuthenticationException exception) {
-            log.error(exception.getMessage());
-            return Expected.failure(PaymentError.AUTH_ERROR);
-        }
-        catch (final RateLimitException exception) {
-            log.error(exception.getMessage());
-            return Expected.failure(PaymentError.RATE_LIMIT);
-        }
-        catch (final InvalidRequestException exception) {
-            log.error(exception.getMessage());
-            return Expected.failure(PaymentError.INVALID_REQUEST);
-
-        }
-        catch (final CardException exception) {
-            log.error(exception.getMessage());
-            return Expected.failure(PaymentError.CARD_DECLINED);
-
-        }
-        catch (final ApiConnectionException exception) {
-            log.error(exception.getMessage());
-            return Expected.failure(PaymentError.NETWORK_ERROR);
-
-        }
-        catch (final ApiException exception) {
-            log.error(exception.getMessage());
-            return Expected.failure(PaymentError.SERVER_ERROR);
-
-        }
-        catch (final IdempotencyException exception) {
-            log.error(exception.getMessage());
-            return Expected.failure(PaymentError.IDEMPOTENCY);
-
-        }
-        catch (final StripeException exception) {
-            log.error(exception.getMessage());
-            return Expected.failure(PaymentError.INTERNAL_ERROR);
-        }
-        catch (final Exception exception) {
-            log.error(exception.getMessage());
-            return Expected.failure(PaymentError.UNSPECIFIED);
-        }
-    }
-
     public Expected<OrderResponseDto, HandleWebhookError> handleStripeWebhook(String sigHeader, String payload) {
         try {
             final var event = Webhook.constructEvent(payload, sigHeader, ResourceStrings.STRIPE_WEBHOOK_SECRET);
             switch (event.getType()) {
                 case "checkout.session.completed": {
                     final var session = (Session) event.getDataObjectDeserializer().getObject().get();
-                    final var responseDto = this.handleStripeWebhookPaymentIntentSucceeded(
-                            session.getPaymentIntentObject());
-                    if (responseDto != null) {
-                        return Expected.success(responseDto);
-                    }
-                    return Expected.failure(HandleWebhookError.UNSPECIFIED);
-                }
-
-                case "payment_intent.succeeded": {
-                    final var intent = (PaymentIntent) event.getDataObjectDeserializer().getObject().get();
-                    final var responseDto = this.handleStripeWebhookPaymentIntentSucceeded(intent);
+                    final var responseDto = this.handleStripeWebhookSessionCompleted(session);
                     if (responseDto != null) {
                         return Expected.success(responseDto);
                     }
@@ -677,14 +573,14 @@ public class OrderService {
     }
 
     @Nullable
-    private OrderResponseDto handleStripeWebhookPaymentIntentSucceeded(final PaymentIntent intent) {
-        final var stripePayment = this.stripePaymentRepository.findByPaymentIntentId(intent.getId()).orElse(null);
+    private OrderResponseDto handleStripeWebhookSessionCompleted(final Session session) {
+        final var stripePayment = this.stripePaymentRepository.findByPaymentIntentId(session.getId()).orElse(null);
         if (stripePayment == null) {
             return null;
         }
 
         final var customerId = stripePayment.getCustomer().getId();
-        final var requestDto = this.parseCreateOrderRequestDtoFromMetaData(intent.getMetadata());
+        final var requestDto = this.parseCreateOrderRequestDtoFromMetaData(session.getMetadata());
         if (requestDto == null) {
             return null;
         }
