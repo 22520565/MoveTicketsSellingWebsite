@@ -23,7 +23,7 @@ const QuickBooking = () => {
   const [selectedCinema, setSelectedCinema] = useState(null);
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [selectedDate, setSelectedDate] = useState("");
-  const [selectedShowtime, setSelectedShowtime] = useState("");
+  const [selectedFilmShow, setSelectedFilmShow] = useState(null);
 
   const [isCinemaDropdownOpen, setIsCinemaDropdownOpen] = useState(false);
   const [isMovieDropdownOpen, setIsMovieDropdownOpen] = useState(false);
@@ -268,11 +268,12 @@ const QuickBooking = () => {
   };
 
   const handleNavigate = () => {
+    console.log("Saving allShows to localStorage:", allShowtimes);
     localStorage.setItem("allShows", JSON.stringify(allShowtimes));
     navigate(`/movie/detail/${selectedMovie.id}`, {
       state: {
         initShowDate: selectedDate,
-        initShowTime: selectedShowtime,
+        initShowTime: selectedFilmShow,
         initCinema: selectedCinema,
       },
     });
@@ -322,7 +323,7 @@ const QuickBooking = () => {
                 setSelectedCinema(cinema);
                 setSelectedMovie(null);
                 setSelectedDate("");
-                setSelectedShowtime("");
+                setSelectedFilmShow("");
                 setIsCinemaDropdownOpen(!isCinemaDropdownOpen);
               }}
             >
@@ -395,7 +396,7 @@ const QuickBooking = () => {
 
                 setSelectedMovie(movie);
                 setSelectedDate("");
-                setSelectedShowtime("");
+                setSelectedFilmShow("");
                 setIsMovieDropdownOpen(!isMovieDropdownOpen);
               }}
             >
@@ -465,7 +466,7 @@ const QuickBooking = () => {
                 if (isSame) return;
 
                 setSelectedDate(dateItem);
-                setSelectedShowtime("");
+                setSelectedFilmShow("");
                 setIsDateDropdownOpen(!isDateDropdownOpen);
                 setIsShowtimeDropdownOpen(!isShowtimeDropdownOpen);
               }}
@@ -498,7 +499,7 @@ const QuickBooking = () => {
               selectedDate ? "text-purple-600 text-xl" : "text-gray-500 text-xl"
             }
           >
-            {selectedShowtime || "4. Chọn Suất"}
+            {selectedFilmShow?.showTime?.slice(0, 5) || "4. Chọn Suất"}
           </span>
           <ChevronDown
             className={`w-5 h-5 ${
@@ -506,28 +507,35 @@ const QuickBooking = () => {
             }`}
           />
         </button>
+
         <div
           ref={dropdownRefs.showtime}
           style={{ top: "auto", bottom: "auto" }}
           className={`absolute w-full transition-all duration-300 ease-out bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden max-h-[400px] overflow-y-auto
-            ${
-              isShowtimeDropdownOpen
-                ? "max-h-[400px] opacity-100 translate-y-0"
-                : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
-            }`}
+      ${
+        isShowtimeDropdownOpen
+          ? "max-h-[400px] opacity-100 translate-y-0"
+          : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
+      }`}
         >
           {availableShowtimes.length === 0 && (
             <div className="p-4 text-gray-500 text-xl">
               Không có suất chiếu khả dụng
             </div>
           )}
+
           {availableShowtimes.map((timeItem, index) => (
             <div
               key={index}
               className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-black text-xl"
               onClick={() => {
-                setSelectedShowtime(timeItem);
-                setIsShowtimeDropdownOpen(!isShowtimeDropdownOpen);
+                const fullShow = allShowtimes.find(
+                  (show) =>
+                    show.showDate === selectedDate &&
+                    show.showTime.slice(0, 5) === timeItem
+                );
+                setSelectedFilmShow(fullShow);
+                setIsShowtimeDropdownOpen(false);
               }}
             >
               {timeItem}
@@ -539,12 +547,12 @@ const QuickBooking = () => {
       {/* Book Now Button */}
       <button
         className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition-colors text-xl ${
-          selectedShowtime
+          selectedFilmShow
             ? "bg-purple-700 hover:bg-purple-800 text-white"
             : "bg-gray-300 text-gray-500 cursor-not-allowed"
         }`}
         onClick={handleNavigate}
-        disabled={!selectedShowtime}
+        disabled={!selectedFilmShow}
       >
         ĐẶT NGAY
       </button>

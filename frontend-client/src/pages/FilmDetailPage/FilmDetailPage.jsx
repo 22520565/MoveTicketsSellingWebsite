@@ -85,6 +85,15 @@ const FilmDetailPage = () => {
   const [availableShowtimesWithFilmType, setAvailableShowtimesWithFilmType] =
     useState([]);
 
+  useEffect(() => {
+    if (!location.state) {
+      console.warn("Không có state được truyền qua navigate.");
+    } else {
+      console.log("State nhận được:", location.state);
+    }
+    console.log("hihi: ", selectedShowtime);
+  }, []);
+
   const fetchDate = async () => {
     try {
       const response = await getFilmShowByFilmId(filmID);
@@ -126,7 +135,6 @@ const FilmDetailPage = () => {
       const uniqueDates = Array.from(
         new Map(validShows.map((show) => [show.showDate, show])).values()
       );
-      console.log(uniqueDates);
 
       // // Lấy các ngày chiếu duy nhất
       // const availableDates = Array.from(
@@ -199,6 +207,10 @@ const FilmDetailPage = () => {
     fetchFilmDetailAndShowTime();
   }, []);
 
+  useEffect(() => {
+    console.log("hihi: ", selectedDate);
+  }, [selectedDate]);
+
   //cinemalist
   useEffect(() => {
     const fetCinemaList = async () => {
@@ -210,7 +222,11 @@ const FilmDetailPage = () => {
       allCinemas.forEach((cinema) => {
         const schedules = [];
 
-        availableDates.forEach((show) => {
+        const filteredShows = availableDates.filter(
+          (show) => show.showDate === selectedDate
+        );
+
+        filteredShows.forEach((show) => {
           const room = rooms.find((r) => r.id === show.roomId);
           if (!room) return;
 
@@ -248,7 +264,7 @@ const FilmDetailPage = () => {
     };
 
     fetCinemaList();
-  }, [availableDates]);
+  }, [availableDates, selectedDate]);
 
   //useEffect(()=>{console.log("HI" + JSON.stringify(availableShowtimesWithFilmType))},[availableShowtimesWithFilmType])
   useEffect(() => {
@@ -267,7 +283,11 @@ const FilmDetailPage = () => {
             show.showDate === initShowDate && show.showTime === initShowTime
         );
 
+        console.log("hehe: ", initShow);
+
         if (initShow) {
+          console.log("hehe");
+
           setSelectedDate(initShowDate);
           setSelectedShowtime(initShowTime);
         }
@@ -490,7 +510,7 @@ const FilmDetailPage = () => {
     const updatedRoomSeat = roomSeat.map((row) =>
       row.map((seat) => ({ ...seat }))
     );
-    if (updatedRoomSeat[row][col - 1].type === "P") {
+    if (col > 0 && updatedRoomSeat[row][col - 1].type === "P") {
       col--;
     }
     if (updatedRoomSeat[row][col].type === "") {
