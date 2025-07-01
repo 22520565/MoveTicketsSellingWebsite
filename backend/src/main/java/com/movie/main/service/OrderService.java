@@ -352,7 +352,7 @@ public class OrderService {
                 return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
             }
 
-            final var orderTicket = this.orderTicketRepository.save(
+            final var orderTicket = this.orderTicketRepository.saveAndFlush(
                     new OrderTicket(
                             ticketType.getTitle(),
                             ticket.getQuantity(),
@@ -382,7 +382,7 @@ public class OrderService {
                 return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
             }
 
-            final var orderItem = this.orderItemRepository.save(
+            final var orderItem = this.orderItemRepository.saveAndFlush(
                     new OrderItem(
                             additionalItem.getName(),
                             item.getQuantity(),
