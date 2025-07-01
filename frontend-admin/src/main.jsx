@@ -14,7 +14,7 @@ import FilmManagementPage from "./pages/FilmManagementPage/FilmManagementPage";
 import FilmShowListPage from "./pages/FilmShowManagement/FilmShowListPage";
 import FilmShowChartPage from "./pages/FilmShowManagement/FilmShowChartPage";
 import TicketPrintListPage from "./pages/TicketManagement/TicketPrintListPage";
-import TicketServeListPage from "./pages/TicketManagement/TicketServeListPage";
+import TheaterListPage from "./pages/TicketManagement/TheaterListPage";
 import RoomManagementPage from "./pages/RoomManagementPage/RoomManagementPage";
 import UserAccountManagementPage from "./pages/UserAccountManagementPage/UserAccountManagementPage";
 import EmployeeManagementPage from "./pages/EmployeeManagementPage/EmployeeManagementPage";
@@ -88,7 +88,7 @@ const router = createBrowserRouter([
       },
       {
         path: "ticket-management/serve-list",
-        element: <TicketServeListPage />,
+        element: <TheaterListPage />,
       },
       {
         path: "room-management",

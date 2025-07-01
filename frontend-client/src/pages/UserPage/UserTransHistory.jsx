@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from "react";
 import UserInfoLayout from "../../layouts/UserSpaceLayout";
 import { FaChevronDown } from "react-icons/fa";
-import { getAllOrderByUserId } from "../../config/api";
+import {
+  getAllOrderByUserId,
+  getFilmById,
+  getFilmshowById,
+  getParam,
+} from "../../config/api";
 import { FaSpinner } from "react-icons/fa";
 import CustomButton from "../../Components/button";
 
 const UserTransHistory = () => {
+  const currentUser = JSON.parse(localStorage.getItem("user"));
+
+  const [user, setUser] = useState(currentUser);
+  const [param, setParam] = useState();
   const [transactions, setTransactions] = useState([]);
   const [originalTransactions, setOriginalTransactions] = useState([]);
   console.log(
@@ -25,17 +34,51 @@ const UserTransHistory = () => {
   const handleGetAllOrder = async () => {
     setIsLoading(true); // Bắt đầu loading
     try {
-      const response = await getAllOrderByUserId();
+      const [paramRes, response] = await Promise.all([
+        getParam(),
+        getAllOrderByUserId(user.id),
+      ]);
+
+      setParam(paramRes);
+      console.log(paramRes);
+
+      const reversedTransactions =
+        response?._embedded?.orderResponseDtoList.reverse();
+
+      // const enhancedOrders = await Promise.all(
+      //   orders.map(async (order) => {
+      //     const [customerRes, filmShowRes] = await Promise.all([
+      //       getCustomerById(order.customerId),
+      //       getFilmshowById(order.filmShowId),
+      //     ]);
+
+      //     const filmShow = filmShowRes?.data;
+      //     let filmRes = null;
+
+      //     if (filmShow?.filmId) {
+      //       filmRes = await getFilmById(filmShow.filmId);
+      //     }
+
+      //     return {
+      //       ...order,
+      //       customer: customerRes?.data,
+      //       filmShow: filmShowRes?.data,
+      //       film: filmRes?.data || null,
+      //     };
+      //   })
+      // );
 
       // Sắp xếp theo ngày mới nhất (giả sử trường 'date' chứa thông tin ngày tháng)
-      const sortedTransactions = response.data.sort((a, b) => {
-        const dateA = new Date(a.createdAt);
-        const dateB = new Date(b.createdAt);
-        return dateB - dateA; // Ngày mới nhất trước
-      });
+      const sortedTransactions = response?._embedded?.orderResponseDtoList.sort(
+        (a, b) => {
+          const dateA = new Date(a.createdAt);
+          const dateB = new Date(b.createdAt);
+          return dateB - dateA; // Ngày mới nhất trước
+        }
+      );
 
-      setTransactions(sortedTransactions);
-      setOriginalTransactions(sortedTransactions);
+      setTransactions(reversedTransactions);
+      setOriginalTransactions(reversedTransactions);
     } catch (error) {
       console.error("Error fetching orders:", error);
     } finally {
@@ -81,7 +124,7 @@ const UserTransHistory = () => {
 
     const filteredData = originalTransactions.filter((t) => {
       // Chuyển transactionDate về định dạng yyyy-mm-dd
-      const transactionDate = new Date(t.createdAt).toISOString().split("T")[0];
+      const transactionDate = new Date(t.date).toISOString().split("T")[0];
       console.log("🚀 ~ filteredData ~ transactionDate:", transactionDate);
 
       // So sánh chỉ phần ngày
@@ -173,10 +216,10 @@ const UserTransHistory = () => {
         ) : (
           paginateData().map((transaction) => (
             <div
-              key={transaction.orderId}
+              key={transaction.id}
               className="bg-white rounded-lg mb-4 p-4 overflow-hidden transition-all duration-500 ease-in-out"
               style={{
-                maxHeight: activeCollapse.includes(transaction.orderId)
+                maxHeight: activeCollapse.includes(transaction.id)
                   ? "1000px"
                   : "120px",
               }}
@@ -189,20 +232,18 @@ const UserTransHistory = () => {
 
                   <p className="text-sm text-gray-500">
                     Ngày:{" "}
-                    {new Date(transaction?.createdAt).toLocaleDateString()}
+                    {new Date(transaction?.date).toLocaleDateString("vi-VN")}
                   </p>
                 </div>
                 <FaChevronDown
                   className={`text-gray-500 cursor-pointer transition-transform duration-500 ease-in-out ${
-                    activeCollapse.includes(transaction.orderId)
-                      ? "rotate-180"
-                      : ""
+                    activeCollapse.includes(transaction.id) ? "rotate-180" : ""
                   }`}
-                  onClick={() => toggleCollapse(transaction.orderId)}
+                  onClick={() => toggleCollapse(transaction.id)}
                 />
               </div>
 
-              {activeCollapse.includes(transaction.orderId) && (
+              {activeCollapse.includes(transaction.id) && (
                 <div className="mt-2">
                   <table className="w-full table-auto border-collapse rounded-lg overflow-hidden text-sm">
                     <thead>
@@ -215,7 +256,7 @@ const UserTransHistory = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {transaction?.filmShow?.tickets.map((ticket, index) => (
+                      {transaction?.tickets.map((ticket, index) => (
                         <tr
                           key={`ticket-${index}`}
                           className="hover:bg-gray-50"
@@ -242,9 +283,7 @@ const UserTransHistory = () => {
                       {transaction?.items.map((detail, index) => (
                         <tr key={index} className="hover:bg-gray-50">
                           <td className="p-2 border-b text-gray-700 text-center">
-                            {index +
-                              1 +
-                              (transaction?.filmShow?.tickets?.length || 0)}
+                            {index + 1 + (transaction?.tickets?.length || 0)}
                           </td>
                           <td className="p-2 border-b text-gray-700 text-left">
                             {detail?.name}
@@ -301,15 +340,14 @@ const UserTransHistory = () => {
                             Tổng điểm sử dụng (VND)
                           </td>
                           <td className="p-2 text-right text-gray-700">
-                            {(transaction?.pointUsage?.pointUsed).toLocaleString()}
-                            (
+                            {transaction?.pointUsage.toLocaleString()} điểm (
                             {(
                               -(
-                                transaction?.pointUsage?.pointUsed *
-                                transaction?.pointUsage?.pointToMoneyRatio
+                                transaction?.pointUsage *
+                                param.loyalPointPointToReducedPriceRatio
                               ) / 100
-                            ).toLocaleString()}
-                            VNĐ)
+                            ).toLocaleString()}{" "}
+                            VNĐ )
                           </td>
                         </tr>
                       )}
@@ -327,8 +365,8 @@ const UserTransHistory = () => {
                             {(
                               (transaction?.totalPrice || 0) -
                               (transaction?.totalPriceAfterDiscount || 0) -
-                              ((transaction?.pointUsage?.pointUsed || 0) *
-                                (transaction?.pointUsage?.pointToMoneyRatio ||
+                              ((transaction?.pointUsage || 0) *
+                                (param.loyalPointPointToReducedPriceRatio ||
                                   0)) /
                                 100
                             ).toLocaleString()}

@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { createOrder } from "../config/api";
+import { createOrder, callAccount } from "../config/api";
 
 const OrderSuccessPage = () => {
   const navigate = useNavigate();
@@ -9,33 +9,27 @@ const OrderSuccessPage = () => {
     document.title = "Đặt hàng thành công";
   }, []);
   useEffect(() => {
-    const payload = JSON.parse(localStorage.getItem("checkoutPayload"));
-    console.log("Order Success Payload:", payload);
+    const fetchUpdatedUser = async () => {
+      const payload = JSON.parse(localStorage.getItem("checkoutPayload"));
+      console.log("Order Success Payload:", payload);
 
-    // if (!payload) {
-    //   alert("Không tìm thấy thông tin đơn hàng.");
-    //   navigate("/");
-    //   return;
-    // }
+      const currentUser = JSON.parse(localStorage.getItem("user"));
+      if (currentUser?.id) {
+        try {
+          const updatedUserResponse = await callAccount();
+          console.log(updatedUserResponse);
 
-    // const createOrderInDb = async () => {
-    //   try {
-    //     const response = await createOrder(payload);
-    //     console.log("Đơn hàng đã lưu thành công:", response);
+          if (updatedUserResponse) {
+            localStorage.setItem("user", JSON.stringify(updatedUserResponse));
+            console.log("Updated user in localStorage:", updatedUserResponse);
+          }
+        } catch (error) {
+          console.error("Lỗi khi cập nhật user:", error);
+        }
+      }
+    };
 
-    //     if (response.id) {
-    //       // Xoá localStorage sau khi lưu thành công
-    //       localStorage.removeItem("checkoutPayload");
-    //     }
-
-    //     // Có thể hiển thị thông báo hoặc điều hướng
-    //   } catch (error) {
-    //     console.error("Lỗi khi lưu đơn hàng:", error);
-    //     alert("Lưu đơn hàng thất bại.");
-    //   }
-    // };
-
-    // createOrderInDb();
+    fetchUpdatedUser();
   }, [navigate]);
 
   return (

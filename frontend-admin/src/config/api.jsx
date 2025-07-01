@@ -480,6 +480,54 @@ export const getOrders = async () => {
   return await api.get("/orders");
 };
 
+export const getCustomers = async () => {
+  return await api.get("/customers");
+};
+
+export const getCustomerById = async (id) => {
+  return await api.get(`/customers/${id}`);
+};
+
+export const getCustomersBlocked = async () => {
+  return await api.get("/customers/blocked");
+};
+
+export const getCustomersDeleted = async () => {
+  return await api.get("/customers/deleted");
+};
+
+export const blockCustomer = async (id) => {
+  return await api.patch(`/customers/block/${id}`);
+};
+
+export const unblockCustomer = async (id) => {
+  return await api.patch(`/customers/unblock/${id}`);
+};
+
+export const deleteCustomer = async (id) => {
+  return await api.patch(`/customers/delete/${id}`);
+};
+
+export const undeleteCustomer = async (id) => {
+  return await api.patch(`/customers/undelete/${id}`);
+};
+
+export const updateCinema = async (id, data) => {
+  return await api.put(`/theaters/${id}`, data);
+};
+
+export const deleteCinema = async (id) => {
+  return await api.delete(`/theaters/${id}`);
+};
+
+export const addCinema = async (data) => {
+  return await api.post(`/theaters`, data);
+};
+
+export const getFilmshowById = async (id) => {
+  return await api.get(`/film-shows/${id}`);
+};
+
 //............
 // export const callSignUp = async (data) => {
 //   return axios.post("/auth/user/sign-up", { ...data });

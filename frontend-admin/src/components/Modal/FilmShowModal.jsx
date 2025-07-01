@@ -5,7 +5,12 @@ import { Combobox } from "@headlessui/react";
 import RefreshLoader from "../Loading";
 import Dialog from "../Dialog/ConfirmDialog";
 import SuccessDialog from "../Dialog/SuccessDialog";
-import { getAllRooms, getAllFilms, addFilmShows } from "../../config/api";
+import {
+  getAllRooms,
+  getAllFilms,
+  addFilmShows,
+  getTheaterById,
+} from "../../config/api";
 
 const FilmShowModal = ({ isOpen, onClose, onAddSuccess }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -24,10 +29,17 @@ const FilmShowModal = ({ isOpen, onClose, onAddSuccess }) => {
     try {
       const response = await getAllRooms();
       const data = response.data._embedded.roomResponseDtoList;
-      const processedData = data.map((room) => ({
-        id: room.id, // Lấy ID
-        name: room.name, // Lấy tên phòng
-      }));
+      const processedData = await Promise.all(
+        data.map(async (room) => {
+          const theaterRes = await getTheaterById(room.theaterId);
+          const theaterName = theaterRes?.data?.name || "Không rõ rạp";
+
+          return {
+            id: room.id,
+            name: `${room.name} - ${theaterName}`, // Ghép tên phòng và rạp
+          };
+        })
+      );
       setRooms(processedData); // Lưu dữ liệu vào state
     } catch (error) {
       console.error("Error fetching films:", error);

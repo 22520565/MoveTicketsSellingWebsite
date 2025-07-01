@@ -32,6 +32,7 @@ const RoomManagementPage = () => {
   };
 
   const fetchRoom = async () => {
+    setLoading(true);
     try {
       const response = await getAllRooms();
       const data = response.data._embedded?.roomResponseDtoList || [];
@@ -63,6 +64,8 @@ const RoomManagementPage = () => {
       setRooms(processedData);
     } catch (error) {
       alert("Thao tác thất bại, lỗi: " + error);
+    } finally {
+      setLoading(false);
     }
   };
 

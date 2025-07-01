@@ -99,8 +99,8 @@ export const getProById = async (id) => {
   return await axios.get(`/promotion/${id}`);
 };
 
-export const getAllOrderByUserId = async () => {
-  return await axios.get(`/orders/all-order-by-userId`);
+export const getAllOrderByUserId = async (id) => {
+  return await axios.get(`/orders/by-customer/${id}`);
 };
 
 export const getAllPromotion = async () => {
@@ -194,4 +194,16 @@ export const createPaymentStripe = async (data) => {
 
 export const createOrder = async (data) => {
   return await axios.post(`/orders`, data);
+};
+
+export const getRoomSeatUnuable = async (id) => {
+  return await api.get(`/room-seats/unusable-by-film-show/${id}`);
+};
+
+export const getCustomerById = async (id) => {
+  return await api.get(`/customers/${id}`);
+};
+
+export const getFilmshowById = async (id) => {
+  return await api.get(`/film-shows/${id}`);
 };

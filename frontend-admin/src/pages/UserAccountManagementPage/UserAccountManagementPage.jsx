@@ -3,6 +3,7 @@ import Table from "../../components/Table";
 import axios from "axios";
 import { FiTrash2 } from "react-icons/fi";
 import { TbCancel } from "react-icons/tb";
+import { IoIosRefresh } from "react-icons/io";
 import { BiRefresh } from "react-icons/bi";
 import TicketDetailModal from "../../components/Modal/TicketDetailModal";
 import TicketCancelModal from "../../components/Modal/TicketCancelModal";
@@ -11,6 +12,15 @@ import SuccessDialog from "../../components/Dialog/SuccessDialog";
 import RefreshLoader from "../../components/Loading";
 import { FaLock, FaLockOpen } from "react-icons/fa";
 import { FaL } from "react-icons/fa6";
+import {
+  getCustomers,
+  blockCustomer,
+  unblockCustomer,
+  deleteCustomer,
+  undeleteCustomer,
+  getCustomersBlocked,
+  getCustomersDeleted,
+} from "../../config/api";
 
 const UserAccountManagementPage = () => {
   const [users, setUsers] = useState([]);
@@ -34,6 +44,7 @@ const UserAccountManagementPage = () => {
 
   //nhấn nút chặn
   const handleCancelClick = (order) => {
+    if (order.deleted) return;
     setSelectedUser(order);
     if (order.blocked) {
       setMode("unblock");
@@ -57,7 +68,18 @@ const UserAccountManagementPage = () => {
     setMode("delete");
     setDialogData({
       title: "Xác nhận",
-      message: "Bạn chắc chắn muốn xóa tài khoản này này ?",
+      message: "Bạn chắc chắn muốn xóa tài khoản này ?",
+    });
+    setIsConfirmModalOpen(true);
+  };
+
+  //nhấn nút khôi phục
+  const handleRestoreClick = (order) => {
+    setSelectedUser(order);
+    setMode("undelete");
+    setDialogData({
+      title: "Xác nhận",
+      message: "Bạn chắc chắn muốn khôi phục tài khoản này ?",
     });
     setIsConfirmModalOpen(true);
   };
@@ -75,28 +97,28 @@ const UserAccountManagementPage = () => {
     setIsConfirmModalOpen(false);
     try {
       if (mode === "block") {
-        await axios.post(
-          `http://localhost:8000/api/user/user/${selectedUser._id}/block`
-        );
+        await blockCustomer(selectedUser.id);
         setDialogData({
           title: "Thành công",
           message: "Chặn tài khoản thành công",
         });
       } else if (mode === "delete") {
-        await axios.delete(
-          `http://localhost:8000/api/user/user/${selectedUser._id}`
-        );
+        await deleteCustomer(selectedUser.id);
         setDialogData({
           title: "Thành công",
           message: "Xóa tài khoản thành công",
         });
       } else if (mode === "unblock") {
-        await axios.post(
-          `http://localhost:8000/api/user/user/${selectedUser._id}/unblock`
-        );
+        await unblockCustomer(selectedUser.id);
         setDialogData({
           title: "Thành công",
           message: "Mở chặn tài khoản thành công",
+        });
+      } else if (mode === "undelete") {
+        await undeleteCustomer(selectedUser.id);
+        setDialogData({
+          title: "Thành công",
+          message: "Khôi phục tài khoản thành công",
         });
       }
 
@@ -113,12 +135,42 @@ const UserAccountManagementPage = () => {
   };
 
   const fetchUser = async () => {
+    setLoading(true);
     try {
-      const response = await axios.get("http://localhost:8000/api/user/user");
+      const [activeRes, blockedRes, deletedRes] = await Promise.all([
+        getCustomers(),
+        getCustomersBlocked(),
+        getCustomersDeleted(),
+      ]);
+      // Gọi API lấy danh sách người dùng
+      const active = (
+        activeRes?.data?._embedded?.customerResponseDtoList || []
+      ).map((c) => ({
+        ...c,
+        status: "active",
+      }));
+
+      const blocked = (
+        blockedRes?.data?._embedded?.customerResponseDtoList || []
+      ).map((c) => ({
+        ...c,
+        status: "blocked",
+      }));
+
+      const deleted = (
+        deletedRes?.data?._embedded?.customerResponseDtoList || []
+      ).map((c) => ({
+        ...c,
+        status: "deleted",
+      }));
+
       // Lọc những order có printed === false
-      setUsers(response.data.msg);
+      const merged = [...active, ...blocked, ...deleted];
+      setUsers(merged);
     } catch (error) {
       alert("Thao tác thất bại, lỗi: " + error.response.data.msg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -146,7 +198,7 @@ const UserAccountManagementPage = () => {
       ? order.email.toLowerCase().includes(cusEmailQuery.toLowerCase())
       : true;
     const matchesPhone = cusPhoneQuery
-      ? order.phone.toLowerCase().includes(cusPhoneQuery.toLowerCase())
+      ? order.phoneNumber.toLowerCase().includes(cusPhoneQuery.toLowerCase())
       : true;
 
     const matchesStatus =
@@ -173,17 +225,23 @@ const UserAccountManagementPage = () => {
   const columns = [
     { header: "Tên người dùng", key: "name" },
     { header: "Email", key: "email" },
-    { header: "Số điện thoại", key: "phone" },
+    { header: "Số điện thoại", key: "phoneNumber" },
     {
-      header: "Bị chặn",
+      header: "Trạng thái",
       key: "status",
       render: (_, row) => {
         let statusText = "";
         let statusClass = "";
 
-        if (row.blocked) {
+        if (row.deleted) {
+          statusText = "Đã xoá";
+          statusClass = "bg-gray-100 text-gray-800";
+        } else if (row.blocked) {
           statusText = "Bị chặn";
           statusClass = "bg-red-100 text-red-800";
+        } else {
+          statusText = "Hoạt động";
+          statusClass = "bg-green-100 text-green-800";
         }
 
         return (
@@ -197,31 +255,47 @@ const UserAccountManagementPage = () => {
       header: "Hành động",
       key: "actions",
       render: (_, row) => (
-        <div className="flex space-x-3">
-          {!row.blocked ? 
-            (
-              <button className="text-red-600 hover:text-red-800">
-                <FaLock
-                  className="w-5 h-5"
-                  onClick={() => handleCancelClick(row)} />
-              </button>
-            )
-            :
-            (
-              <button className="text-green-600 hover:text-green-800">
-                <FaLockOpen
-                  className="w-5 h-5"
-                  onClick={() => handleCancelClick(row)} />
-              </button>
-            )
-          }
-          
-          <button
-            className="text-red-600 hover:text-red-800"
-            onClick={() => handleDeleteClick(row)}
-          >
-            <FiTrash2 className="w-4 h-4" /> {/* Delete icon */}
-          </button>
+        <div className="flex items-center gap-2">
+          {/* Nút khoá hoặc mở khoá */}
+          {!row.blocked ? (
+            <button
+              className="text-red-600 hover:text-red-800"
+              onClick={() => handleCancelClick(row)}
+              title="Chặn người dùng"
+            >
+              <FaLock className="w-5 h-5" />
+            </button>
+          ) : (
+            <button
+              className="text-green-600 hover:text-green-800"
+              onClick={() => handleCancelClick(row)}
+              title="Bỏ chặn người dùng"
+            >
+              <FaLockOpen className="w-5 h-5" />
+            </button>
+          )}
+
+          {/* Nút khôi phục nếu đã xoá */}
+          {row.deleted && (
+            <button
+              className="text-green-600 hover:text-green-800"
+              onClick={() => handleRestoreClick(row)}
+              title="Khôi phục"
+            >
+              <IoIosRefresh className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Nút xoá nếu chưa bị xoá */}
+          {!row.deleted && (
+            <button
+              className="text-red-600 hover:text-red-800"
+              onClick={() => handleDeleteClick(row)}
+              title="Xoá người dùng"
+            >
+              <FiTrash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       ),
     },

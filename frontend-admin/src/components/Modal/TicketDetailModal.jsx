@@ -1,10 +1,29 @@
 import React, { forwardRef } from "react";
+import { useState, useEffect } from "react";
 import { FiPrinter, FiArrowLeft } from "react-icons/fi";
+import { getRoomById } from "../../config/api";
 import formatCurrencyNumber from "../../ulitilities/formatCurrencyNumber";
 
 const TicketModal = forwardRef(
   ({ isOpen, onClose, onConfirm, order, view }, ref) => {
     if (!isOpen) return null;
+    const [roomName, setRoomName] = useState([]);
+
+    const fetchRoom = async () => {
+      try {
+        const response = await getRoomById(order.filmShow.roomId); // Gọi API lấy danh sách order
+
+        console.log(response);
+
+        // Lọc những order có printed === false
+        setRoomName(response?.data?.name);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    useEffect(() => {
+      fetchRoom();
+    }, [order]);
 
     return (
       <div
@@ -25,51 +44,7 @@ const TicketModal = forwardRef(
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Mã giao dịch</p>
-                  <p className="font-semibold">{order.orderId}</p>
-                </div>
-                <div className="ml-10 no-print">
-                  <p className="text-sm text-gray-500">Trạng thái</p>
-                  {order.offlineService.invalidReason_Printed ? (
-                    <span className="inline-block px-2 py-1 text-sm font-semibold text-red-700 bg-red-100 rounded">
-                      Từ chối in vé
-                    </span>
-                  ) : order.offlineService.invalidReason_Served ? (
-                    <span className="inline-block px-2 py-1 text-sm font-semibold text-red-700 bg-red-100 rounded">
-                      Từ chối phục vụ
-                    </span>
-                  ) : order.offlineService.served ? (
-                    <span className="inline-block px-2 py-1 text-sm font-semibold text-green-700 bg-green-100 rounded">
-                      Đã phục vụ
-                    </span>
-                  ) : order.offlineService.printed ? (
-                    <span className="inline-block px-2 py-1 text-sm font-semibold text-blue-700 bg-blue-100 rounded">
-                      Đã in
-                    </span>
-                  ) : (
-                    <span className="inline-block px-2 py-1 text-sm font-semibold text-yellow-700 bg-yellow-100 rounded">
-                      Chưa in
-                    </span>
-                  )}
-                </div>
-                <div>
-                  {order.offlineService.invalidReason_Printed && (
-                    <>
-                      <p className="text-sm text-gray-500">Lý do từ chối in</p>
-                      <p className="font-semibold">
-                        {order.offlineService.invalidReason_Printed}
-                      </p>
-                    </>
-                  )}
-                  {order.offlineService.invalidReason_Served && (
-                    <>
-                      <p className="text-sm text-gray-500">
-                        Lý do từ chối phục vụ
-                      </p>
-                      <p className="font-semibold">
-                        {order.offlineService.invalidReason_Served}
-                      </p>
-                    </>
-                  )}
+                  <p className="font-semibold">{order.id}</p>
                 </div>
               </div>
             </div>
@@ -79,21 +54,22 @@ const TicketModal = forwardRef(
               <h2 className="text-xl font-bold text-gray-800 mb-4">
                 Thông tin khách hàng
               </h2>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="flex justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Tên khách hàng</p>
-                  <p className="font-semibold">{order.customerInfo.name}</p>
+                  <p className="font-semibold">{order.customer.name}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Email</p>
-                  <p className="font-semibold">{order.customerInfo.email}</p>
+                  <p className="font-semibold">{order.customer.email}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">SĐT</p>
-                  <p className="font-semibold">{order.customerInfo.phone}</p>
+                  <p className="font-semibold">{order.customer.phoneNumber}</p>
                 </div>
               </div>
             </div>
+
             <hr className="border-gray-200" />
             {/* Showtime Information */}
             {order.filmShow && (
@@ -104,13 +80,11 @@ const TicketModal = forwardRef(
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Tên phim</p>
-                    <p className="font-semibold">{order.filmShow.filmName}</p>
+                    <p className="font-semibold">{order.film.name}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Giới hạn độ tuổi</p>
-                    <p className="font-semibold">
-                      {order.filmShow.ageRestriction}
-                    </p>
+                    <p className="font-semibold">{order.film.ageRestriction}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Ngày chiếu</p>
@@ -124,29 +98,29 @@ const TicketModal = forwardRef(
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Phòng chiếu</p>
-                    <p className="font-semibold">{order.filmShow.roomName}</p>
+                    <p className="font-semibold">{roomName}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Danh sách ghế ngồi</p>
                     <p className="font-semibold">
-                      {order.filmShow.seatNames.join(", ")}
+                      {order.seats.map((seat) => seat.name).join(", ")}
                     </p>
                   </div>
                 </div>
               </div>
             )}
-            {order.filmShow && <hr className="border-gray-200" />}
+            {order.tickets && <hr className="border-gray-200" />}
             {/* Payment Information */}
             <div>
               <h2 className="text-xl font-bold text-gray-800 mb-4">
                 Thông tin thanh toán
               </h2>
 
-              {order.filmShow && order.filmShow.tickets?.length > 0 ? (
+              {order.tickets && order.tickets?.length > 0 ? (
                 // Tickets
                 <div className="mb-4">
                   <h3 className="font-semibold mb-2">Danh sách vé đã mua</h3>
-                  {order.filmShow.tickets.map((ticket, index) => (
+                  {order.tickets.map((ticket, index) => (
                     <div key={index} className="flex justify-between text-sm">
                       <span>
                         {ticket.quantity}x {ticket.name}

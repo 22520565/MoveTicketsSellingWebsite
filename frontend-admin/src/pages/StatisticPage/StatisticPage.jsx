@@ -73,21 +73,21 @@ const StatisticPage = () => {
       });
 
       const data =
-        response?.data?._embedded?.ticketCategoryRevenueResponseDtoList;
-      const transformedData = [];
+        response?.data?._embedded?.ticketCategoryRevenueResponseDtoList || [];
+
+      console.log("loại vé: ", data);
 
       const groupedData = data?.reduce((acc, item) => {
-        if (acc[item.name]) {
-          acc[item.name] += item.totalRevenue;
-        } else {
-          acc[item.name] = item.totalRevenue;
-        }
+        acc[item.name] = (acc[item.name] || 0) + item.totalRevenue;
         return acc;
       }, {});
 
-      for (const [name, value] of Object.entries(groupedData)) {
-        transformedData.push({ name, value });
-      }
+      const transformedData = Object.entries(groupedData).map(
+        ([name, value]) => ({
+          name,
+          value,
+        })
+      );
 
       setTicketTypeData(transformedData);
     } catch (error) {
@@ -104,12 +104,15 @@ const StatisticPage = () => {
       });
 
       const data = response?.data?._embedded?.ticketRateOfFilmResponseDtoList;
-      const transformedData = data.map((item) => ({
+
+      console.log("vé theo phim: ", data);
+
+      const transformedData = data?.map((item) => ({
         name: item.filmName,
         value: item.totalTicket,
       }));
 
-      setTicketMovieData(transformedData);
+      setTicketMovieData(transformedData || []);
     } catch (error) {
       alert("Thao tác thất bại, lỗi: " + error.response.data.msg);
     }
@@ -124,6 +127,8 @@ const StatisticPage = () => {
       });
 
       const data = response?.data?._embedded?.itemRevenueResponseDtoList;
+
+      console.log("sản phẩm khác: ", data);
 
       const transformedData = data?.map((item) => ({
         name: item.name,
@@ -184,10 +189,11 @@ const StatisticPage = () => {
       });
 
       const data = response?.data;
+
       setStatistics((prev) => ({
         ...prev, // Giữ lại các giá trị cũ
         hotFilmName: data?.filmName,
-        hotFilmTotalSeat: data?.totalSeats,
+        hotFilmTotalSeat: data?.totalSeat,
       }));
     } catch (error) {
       console.log(error);
@@ -217,10 +223,11 @@ const StatisticPage = () => {
 
   const fetchData = async (year) => {
     try {
-      const response = await getMonthlyStatisticsByTheater({
+      const response = await getMonthlyStatisticsByTheater(
         year,
-        selectedCinemaId,
-      });
+        selectedCinemaId
+      );
+
       const transformedData = transformApiDataToRevenueData(
         response?.data,
         year

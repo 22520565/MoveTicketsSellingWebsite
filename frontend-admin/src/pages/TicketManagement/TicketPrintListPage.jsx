@@ -15,7 +15,12 @@ import SuccessDialog from "../../components/Dialog/SuccessDialog";
 import RefreshLoader from "../../components/Loading";
 import formatCurrencyNumber from "../../ulitilities/formatCurrencyNumber";
 import { useReactToPrint } from "react-to-print";
-import { getOrders } from "../../config/api";
+import {
+  getOrders,
+  getFilmshowById,
+  getCustomerById,
+  getFilmById,
+} from "../../config/api";
 
 const TicketPrintListPage = () => {
   const [orders, setOrders] = useState([]);
@@ -210,11 +215,35 @@ const TicketPrintListPage = () => {
     try {
       setLoading(true);
       const response = await getOrders(); // Gọi API lấy danh sách order
+      const orders = response?.data?._embedded?.orderResponseDtoList || [];
+      console.log("Orders:", orders);
 
+      const enhancedOrders = await Promise.all(
+        orders.map(async (order) => {
+          const [customerRes, filmShowRes] = await Promise.all([
+            getCustomerById(order.customerId),
+            getFilmshowById(order.filmShowId),
+          ]);
+
+          const filmShow = filmShowRes?.data;
+          let filmRes = null;
+
+          if (filmShow?.filmId) {
+            filmRes = await getFilmById(filmShow.filmId);
+          }
+
+          return {
+            ...order,
+            customer: customerRes?.data,
+            filmShow: filmShowRes?.data,
+            film: filmRes?.data || null,
+          };
+        })
+      );
       // Lọc những order có printed === false
-      setOrders(response?.data?._embedded?.orderResponseDtoList);
+      setOrders(enhancedOrders);
     } catch (error) {
-      alert("Thao tác thất bại, lỗi: " + error.response.data.msg);
+      console.log(error);
     } finally {
       setLoading(false); // End loading when API call is complete
     }
@@ -253,13 +282,11 @@ const TicketPrintListPage = () => {
         : true;
 
       const matchesfilmName = filmNameQuery
-        ? order.filmShow.filmName
-            ?.toLowerCase()
-            .includes(filmNameQuery.toLowerCase())
+        ? order.film.name?.toLowerCase().includes(filmNameQuery.toLowerCase())
         : true;
 
       const matchesName = cusNameQuery
-        ? order.customerInfo.name
+        ? order.customer.name
             .toLowerCase()
             .normalize("NFC")
             .includes(cusNameQuery.toLowerCase().normalize("NFC"))
@@ -273,28 +300,8 @@ const TicketPrintListPage = () => {
           .includes(tableSearchQuery.toLowerCase());
 
       // Lọc theo trạng thái
-      const matchesStatus =
-        statusQuery === "all" ||
-        (!order.offlineService.printed &&
-          statusQuery === "Chưa in" &&
-          !order.offlineService.invalidReason_Printed) ||
-        (order.offlineService.invalidReason_Printed &&
-          statusQuery === "Từ chối in vé") ||
-        (order.offlineService.printed &&
-          statusQuery === "Đã in" &&
-          !order.offlineService.served &&
-          !order.offlineService.invalidReason_Served) ||
-        (order.offlineService.invalidReason_Served &&
-          statusQuery === "Từ chối phục vụ") ||
-        (order.offlineService.served && statusQuery === "Đã phục vụ");
 
-      return (
-        matchesCode &&
-        matchesStatus &&
-        matchesName &&
-        matchesDate &&
-        matchesfilmName
-      );
+      return matchesCode && matchesName && matchesDate && matchesfilmName;
     });
 
     // if (sortOption === "Theo ngày") {
@@ -324,7 +331,7 @@ const TicketPrintListPage = () => {
     orders,
     filmNameQuery,
     selectedDate,
-    statusQuery,
+
     tableSearchQuery,
     cusNameQuery,
     sortOption,
@@ -341,24 +348,17 @@ const TicketPrintListPage = () => {
     startIndex,
     startIndex + itemsPerPage
   );
-  const statusOptions = [
-    "Chưa in",
-    "Từ chối in vé",
-    "Đã in",
-    "Từ chối phục vụ",
-    "Đã phục vụ",
-  ];
 
   const columns = [
     {
       header: "Tên khách hàng",
       key: "customerName",
-      render: (_, row) => row.customerInfo.name,
+      render: (_, row) => row.customer.name,
     },
     {
       header: "Tên phim",
       key: "filmName",
-      render: (_, row) => row.filmShow?.filmName || "Không có dữ liệu",
+      render: (_, row) => row.film?.name || "Không có dữ liệu",
     },
     { header: "Verify Code", key: "verifyCode" },
     {
@@ -377,7 +377,7 @@ const TicketPrintListPage = () => {
       render: (_, row) => {
         const showDate = row.filmShow?.showDate; // Lấy giá trị ngày chiếu
         return showDate
-          ? new Date(showDate).toLocaleDateString() // Hiển thị ngày nếu hợp lệ
+          ? new Date(showDate).toLocaleDateString("vi-VN") // Hiển thị ngày nếu hợp lệ
           : "Không có dữ liệu"; // Hiển thị chuỗi mặc định nếu không có dữ liệu
       },
     },
@@ -410,37 +410,37 @@ const TicketPrintListPage = () => {
         return totalPriceAfterDiscount.toLocaleString();
       },
     },
-    {
-      header: "Trạng thái",
-      key: "status",
-      render: (_, row) => {
-        let statusText = "";
-        let statusClass = "";
+    // {
+    //   header: "Trạng thái",
+    //   key: "status",
+    //   render: (_, row) => {
+    //     let statusText = "";
+    //     let statusClass = "";
 
-        if (row.offlineService.invalidReason_Printed) {
-          statusText = "Từ chối in vé";
-          statusClass = "bg-red-100 text-red-800";
-        } else if (row.offlineService.invalidReason_Served) {
-          statusText = "Từ chối phục vụ";
-          statusClass = "bg-red-100 text-red-800";
-        } else if (!row.offlineService.printed) {
-          statusText = "Chưa in";
-          statusClass = "bg-yellow-100 text-yellow-800";
-        } else if (row.offlineService.served) {
-          statusText = "Đã phục vụ";
-          statusClass = "bg-green-100 text-green-800";
-        } else if (row.offlineService.printed) {
-          statusText = "Đã in";
-          statusClass = "bg-blue-100 text-blue-800";
-        }
+    //     if (row.offlineService.invalidReason_Printed) {
+    //       statusText = "Từ chối in vé";
+    //       statusClass = "bg-red-100 text-red-800";
+    //     } else if (row.offlineService.invalidReason_Served) {
+    //       statusText = "Từ chối phục vụ";
+    //       statusClass = "bg-red-100 text-red-800";
+    //     } else if (!row.offlineService.printed) {
+    //       statusText = "Chưa in";
+    //       statusClass = "bg-yellow-100 text-yellow-800";
+    //     } else if (row.offlineService.served) {
+    //       statusText = "Đã phục vụ";
+    //       statusClass = "bg-green-100 text-green-800";
+    //     } else if (row.offlineService.printed) {
+    //       statusText = "Đã in";
+    //       statusClass = "bg-blue-100 text-blue-800";
+    //     }
 
-        return (
-          <span className={`px-2 py-1 rounded-full text-xs ${statusClass}`}>
-            {statusText}
-          </span>
-        );
-      },
-    },
+    //     return (
+    //       <span className={`px-2 py-1 rounded-full text-xs ${statusClass}`}>
+    //         {statusText}
+    //       </span>
+    //     );
+    //   },
+    // },
     {
       header: "Hành động",
       key: "actions",
@@ -450,43 +450,6 @@ const TicketPrintListPage = () => {
             <FiSearch
               className="w-4 h-4"
               onClick={() => handleViewClick(row)}
-            />
-          </button>
-          <button
-            className="text-blue-600 hover:text-blue-800"
-            disabled={
-              row.offlineService.printed ||
-              row.offlineService.served ||
-              row.offlineService.invalidReason_Printed ||
-              row.offlineService.invalidReason_Served
-            }
-          >
-            <FaPrint className="w-4 h-4" onClick={() => handlePrintPdf(row)} />
-          </button>
-          <button
-            className="text-green-600 hover:text-green-800"
-            disabled={
-              row.offlineService.printed ||
-              row.offlineService.served ||
-              row.offlineService.invalidReason_Printed ||
-              row.offlineService.invalidReason_Served
-            }
-            onClick={() => handlePrintClick(row)} // Gọi hàm cập nhật trạng thái
-          >
-            <FaCheckCircle />
-          </button>
-          <button
-            className="text-red-600 hover:text-red-800"
-            disabled={
-              row.offlineService.printed ||
-              row.offlineService.served ||
-              row.offlineService.invalidReason_Printed ||
-              row.offlineService.invalidReason_Served
-            }
-          >
-            <TbCancel
-              className="w-5 h-5"
-              onClick={() => handleCancelClick(row)}
             />
           </button>
         </div>
@@ -549,7 +512,7 @@ const TicketPrintListPage = () => {
             }}
             className="p-2 border rounded-md"
           />
-          <div className="flex items-center w-[200px]">
+          {/* <div className="flex items-center w-[200px]">
             <select
               name="status"
               value={statusQuery}
@@ -566,7 +529,7 @@ const TicketPrintListPage = () => {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
           <button
             className="ml-4 px-4 py-2 text-gray-600 bg-gray-300 rounded-lg hover:bg-gray-400"
             onClick={() => handleDeleteFilter()}

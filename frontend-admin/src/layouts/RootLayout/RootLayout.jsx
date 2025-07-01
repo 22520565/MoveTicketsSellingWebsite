@@ -40,7 +40,7 @@ const printTicketTab = {
   icon: <FiPackage className="w-6 h-6" />,
 };
 const serveTicketTab = {
-  name: "Phục vụ vé",
+  name: "Danh sách rạp phim",
   path: "/admin/ticket-management/serve-list",
   icon: <FiPackage className="w-6 h-6" />,
 };

@@ -16,8 +16,16 @@ export const AuthProvider = ({ children }) => {
       console.log("Skipping API call because backend is not available.");
       const storedUser = localStorage.getItem("user");
 
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+      if (storedUser && storedUser !== "undefined") {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (e) {
+          console.error("Lỗi khi parse user từ localStorage:", e);
+          localStorage.removeItem("user");
+          setUser(null);
+        }
+      } else {
+        setUser(null);
       }
 
       setLoading(false);

@@ -48,6 +48,7 @@ import {
   getRoomSeatByRoomId,
   getRoomSeatLockByFilmshowId,
   createPaymentStripe,
+  getRoomSeatUnuable,
 } from "../../config/api";
 import { FileImage } from "lucide-react";
 import CinemaScheduleList from "../../Components/CinemaList";
@@ -80,6 +81,7 @@ const FilmDetailPage = () => {
   const [selectedShowtime, setSelectedShowtime] = useState(initShowTime || "");
 
   const [availableDates, setAvailableDates] = useState([]);
+  const [uniqueAvailableDates, setUniqueAvailableDates] = useState([]);
   const [availableShowtimesWithFilmType, setAvailableShowtimesWithFilmType] =
     useState([]);
 
@@ -121,6 +123,10 @@ const FilmDetailPage = () => {
         const showDateTime = new Date(`${show.showDate}T${show.showTime}`);
         return showDateTime > now;
       });
+      const uniqueDates = Array.from(
+        new Map(validShows.map((show) => [show.showDate, show])).values()
+      );
+      console.log(uniqueDates);
 
       // // Lấy các ngày chiếu duy nhất
       // const availableDates = Array.from(
@@ -128,6 +134,7 @@ const FilmDetailPage = () => {
       // ).sort();
 
       setAvailableDates(validShows);
+      setUniqueAvailableDates(uniqueDates);
     } catch {
       throw new Error("There is an error while getting date");
     }
@@ -165,6 +172,7 @@ const FilmDetailPage = () => {
     }
   };
 
+  //filmdetail
   useEffect(() => {
     const fetchFilmDetail = async () => {
       try {
@@ -191,6 +199,7 @@ const FilmDetailPage = () => {
     fetchFilmDetailAndShowTime();
   }, []);
 
+  //cinemalist
   useEffect(() => {
     const fetCinemaList = async () => {
       const rooms = (await getAllRooms())._embedded.roomResponseDtoList;
@@ -284,6 +293,7 @@ const FilmDetailPage = () => {
     document.title = filmDetail?.name || "Loading...";
   }, [filmDetail]);
 
+  //tag
   useEffect(() => {
     const fetchTags = async () => {
       try {
@@ -340,6 +350,8 @@ const FilmDetailPage = () => {
 
   const [usedSingle, setUsedSingle] = useState(0);
   const [usedPair, setUsedPair] = useState(0);
+  const [isBookedApplied, setIsBookedApplied] = useState(false);
+
   useEffect(() => {
     if (selectedFilmShow) return;
     setRoomDetail(null);
@@ -475,7 +487,9 @@ const FilmDetailPage = () => {
   }, [roomDetail]);
 
   const handleSelectSeat = (row, col) => {
-    const updatedRoomSeat = [...roomSeat];
+    const updatedRoomSeat = roomSeat.map((row) =>
+      row.map((seat) => ({ ...seat }))
+    );
     if (updatedRoomSeat[row][col - 1].type === "P") {
       col--;
     }
@@ -529,32 +543,27 @@ const FilmDetailPage = () => {
   //   setRoomSeat(updatedSeat);
   // };
   const setBookedSeat = async () => {
-    if (!selectedFilmShow || !selectedFilmShow.id) return;
+    if (!selectedFilmShow || !selectedFilmShowID || isBookedApplied) return;
 
     try {
-      console.log("Selected Film Show ID: ", selectedFilmShow.id);
-      console.log("Selected Film Show: ", selectedFilmShowID);
-      const response = await getRoomSeatLockByFilmshowId(selectedFilmShowID);
+      const response = await getRoomSeatUnuable(selectedFilmShowID);
 
-      const lockedSeats =
-        response?._embedded?.roomSeatWithUsableStatusResponseDtoList;
+      const lockedSeats = response?._embedded?.roomSeatResponseDtoList;
 
       if (!Array.isArray(lockedSeats)) {
         console.warn("lockedSeats không hợp lệ:", lockedSeats);
         return;
       }
+      const lockedIds = lockedSeats.map((s) => s.id);
 
       const updatedSeat = roomSeat.map((row) =>
-        row.map((seat) => (seat ? { ...seat } : null))
+        row.map((seat) =>
+          lockedIds.includes(seat.id) ? { ...seat, booked: true } : { ...seat }
+        )
       );
 
-      for (const { i, j } of lockedSeats) {
-        if (updatedSeat[i] && updatedSeat[i][j]) {
-          updatedSeat[i][j].booked = true;
-        }
-      }
-
       setRoomSeat(updatedSeat);
+      setIsBookedApplied(true);
     } catch (err) {
       console.error("Lỗi khi lấy danh sách ghế đã khóa:", err);
     }
@@ -562,12 +571,20 @@ const FilmDetailPage = () => {
 
   //update room seat effect
   useEffect(() => {
-    if (!roomSeat) {
-      return;
-    }
+    if (!roomSeat || !selectedFilmShowID) return;
     setBookedSeat();
+  }, [selectedFilmShowID, roomSeat, isBookedApplied]);
+
+  useEffect(() => {
+    setIsBookedApplied(false); // khi chọn suất chiếu mới thì reset flag
+  }, [selectedFilmShowID]);
+
+  // Khi roomSeat thay đổi → tính số ghế đã dùng
+  useEffect(() => {
+    if (!roomSeat) return;
     updateUsedTicket();
   }, [roomSeat]);
+
   //update enable seat
   useEffect(() => {
     if (!roomSeat) {
@@ -767,7 +784,7 @@ const FilmDetailPage = () => {
         <div className="flex flex-col justify-center items-center space-y-12">
           <h1 className="font-interExtraBold">LỊCH CHIẾU</h1>
           <div className="flex flex-wrap justify-center items-center mt-6 gap-4">
-            {availableDates.map((dateGroup) => {
+            {uniqueAvailableDates.map((dateGroup) => {
               return (
                 <ScheduleChooseBox
                   date={dateGroup.showDate}
@@ -1249,12 +1266,14 @@ function BottomBar({
             quantity: i.quantity,
           })),
         promotionIds: selectedPromotions.map((p) => p.id),
+        loyalPoint: Math.floor(
+          (priceAfterAll * param?.loyalPointOrderToPointRatio) / 100
+        ),
         pointUsage: usePoints ? pointUsage : 0,
       };
 
       console.log("Payload gửi:", payload);
 
-      // const response = await createPaymentStripe(payload);
       localStorage.setItem("checkoutPayload", JSON.stringify(payload));
       const response = await createPaymentStripe(payload);
       const sessionId = response?.clientSecret;
@@ -1327,11 +1346,11 @@ function BottomBar({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const pointResponse = await getCurrentPoint();
-        if (pointResponse?.data?.currentLoyalPoint) {
-          setLoyalPoint(pointResponse.data.currentLoyalPoint);
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user && user.loyalPoint !== undefined) {
+          setLoyalPoint(user.loyalPoint);
         } else {
-          console.error("Invalid pointResponse:", pointResponse);
+          console.error("Không tìm thấy loyalPoint trong localStorage");
         }
 
         const paramResponse = await getParam();
