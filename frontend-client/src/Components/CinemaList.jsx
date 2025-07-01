@@ -5,6 +5,9 @@ export default function CinemaScheduleList({
   onSelectShowtime,
   selectedShowtime,
 }) {
+  console.log("cnime: ", selectedShowtime);
+  console.log("data: ", cinemasData);
+
   const [selectedCity, setSelectedCity] = useState("Hồ Chí Minh");
 
   const cities = [...new Set(cinemasData.map((cinema) => cinema.city))];
@@ -56,7 +59,7 @@ export default function CinemaScheduleList({
                     <button
                       key={idx}
                       className={`border px-4 py-2 rounded text-base font-semibold transition ${
-                        selectedShowtime === show.showTime
+                        selectedShowtime.showTime.slice(0, 5) === show.showTime
                           ? "bg-yellow-400 text-black border-yellow-400"
                           : "border-white hover:bg-yellow-400 hover:text-black"
                       }`}

@@ -157,7 +157,7 @@ const ShowTimePage = () => {
               grouped[theaterId].filmTypes[show.type] = [];
             }
 
-            grouped[theaterId].filmTypes[show.type].push(show.showTime);
+            grouped[theaterId].filmTypes[show.type].push(show);
           });
 
           const groupedArray = Object.values(grouped).map((group) => ({
@@ -363,11 +363,11 @@ const ShowTimePage = () => {
                   : "border-white text-white hover:border-yellow-400 hover:text-yellow-400"
               }`}
                                           onClick={() => {
-                                            setSelectedTime(time);
+                                            setSelectedTime(time.showTime);
                                             handleNavigate(time, filmDetail.id);
                                           }}
                                         >
-                                          {time.slice(0, 5)}
+                                          {time.showTime.slice(0, 5)}
                                         </button>
                                       ))}
                                     </div>

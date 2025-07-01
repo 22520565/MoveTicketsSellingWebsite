@@ -91,7 +91,6 @@ const FilmDetailPage = () => {
     } else {
       console.log("State nhận được:", location.state);
     }
-    console.log("hihi: ", selectedShowtime);
   }, []);
 
   const fetchDate = async () => {
@@ -207,10 +206,6 @@ const FilmDetailPage = () => {
     fetchFilmDetailAndShowTime();
   }, []);
 
-  useEffect(() => {
-    console.log("hihi: ", selectedDate);
-  }, [selectedDate]);
-
   //cinemalist
   useEffect(() => {
     const fetCinemaList = async () => {
@@ -267,20 +262,14 @@ const FilmDetailPage = () => {
   }, [availableDates, selectedDate]);
 
   //useEffect(()=>{console.log("HI" + JSON.stringify(availableShowtimesWithFilmType))},[availableShowtimesWithFilmType])
-  useEffect(() => {
-    setSelectedShowtime("");
-    if (selectedDate) {
-      const dateData = availableDates.find((d) => d.date === selectedDate);
-      setAvailableShowtimesWithFilmType(dateData?.show || []);
-    }
-  }, [selectedDate]);
 
   useEffect(() => {
     if (availableDates.length > 0) {
       if (initShowDate && initShowTime) {
         const initShow = availableDates.find(
           (show) =>
-            show.showDate === initShowDate && show.showTime === initShowTime
+            show.showDate === initShowDate &&
+            show.showTime.slice(0, 5) === initShowTime
         );
 
         console.log("hehe: ", initShow);
@@ -289,12 +278,10 @@ const FilmDetailPage = () => {
           console.log("hehe");
 
           setSelectedDate(initShowDate);
-          setSelectedShowtime(initShowTime);
         }
       } else {
         const first = availableDates[0];
         setSelectedDate(first.showDate);
-        setSelectedShowtime(first.showTime);
       }
     }
   }, [availableDates]);
@@ -361,8 +348,12 @@ const FilmDetailPage = () => {
     }
   };
 
-  const [selectedFilmShowID, setSelectedFilmShowID] = useState(null);
-  const [selectedFilmShow, setSelectedFilmShow] = useState(null);
+  const [selectedFilmShowID, setSelectedFilmShowID] = useState(
+    initShowTime.id || null
+  );
+  const [selectedFilmShow, setSelectedFilmShow] = useState(
+    initShowTime || null
+  );
   const [ticketSelection, setTicketSelection] = useState([]);
   const [additionalItemSelections, setAdditionalItemSelections] = useState([]);
   const [totalTicket_Single, setTotalTicket_Single] = useState(0);
@@ -371,6 +362,10 @@ const FilmDetailPage = () => {
   const [usedSingle, setUsedSingle] = useState(0);
   const [usedPair, setUsedPair] = useState(0);
   const [isBookedApplied, setIsBookedApplied] = useState(false);
+
+  useEffect(() => {
+    console.log("hihi: ", selectedFilmShow);
+  }, [selectedFilmShow]);
 
   useEffect(() => {
     if (selectedFilmShow) return;
@@ -816,9 +811,8 @@ const FilmDetailPage = () => {
           </div>
           <CinemaScheduleList
             cinemasData={availableCinemaSchedules}
-            selectedShowtime={selectedShowtime}
+            selectedShowtime={selectedFilmShow}
             onSelectShowtime={(showTime, filmShowId) => {
-              setSelectedShowtime(showTime);
               setSelectedFilmShowID(filmShowId);
             }}
           />
