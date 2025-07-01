@@ -193,30 +193,64 @@ public class OrderService {
     @NotNull
     public static OrderResponseDto getResponseDtoFrom(
             @NotNull final CustomerOrder customerOrder,
-            @NotNull final OrderDataFilm orderDataFilm,
-            @NotNull final OrderDataItem orderDataItem,
-            @NotNull final OrderDecoratorsOfflineService orderDecoratorsOfflineService,
-            @NotNull final OrderDecoratorsPointUsage orderDecoratorsPointUsage,
-            @NotNull final OrderDecoratorsPromotion orderDecoratorsPromotion) {
-        final var orderTickets = orderDataFilm.getOrderTickets();
+            @Nullable final OrderDataFilm orderDataFilm,
+            @Nullable final OrderDataItem orderDataItem,
+            @Nullable final OrderDecoratorsOfflineService orderDecoratorsOfflineService,
+            @Nullable final OrderDecoratorsPointUsage orderDecoratorsPointUsage,
+            @Nullable final OrderDecoratorsPromotion orderDecoratorsPromotion) {
+        final int filmShowId;
+        final Set<OrderTicket> orderTickets;
+        final Set<RoomSeat> roomSeats;
+        if (orderDataFilm == null) {
+            filmShowId = 0;
+            orderTickets = Collections.emptySet();
+            roomSeats = Collections.emptySet();
+        }
+        else {
+            filmShowId = orderDataFilm.getFilmShow().getId();
+            orderTickets = orderDataFilm.getOrderTickets();
+            roomSeats = orderDataFilm.getRoomSeats();
+        }
+
         final Set<TicketResponseDto> ticketDtos = HashSet.newHashSet(orderTickets.size());
         for (final var orderTicket : orderTickets) {
             ticketDtos.add(new TicketResponseDto(orderTicket.getId(), orderTicket.getQuantity()));
         }
 
-        final var roomSeats = orderDataFilm.getRoomSeats();
         final Set<Integer> roomSeatIds = HashSet.newHashSet(roomSeats.size());
         for (final var roomSeat : roomSeats) {
             roomSeatIds.add(roomSeat.getId());
         }
 
-        final var orderItems = orderDataItem.getOrderItems();
+        final Set<OrderItem> orderItems;
+        if (orderDataItem == null) {
+            orderItems = Collections.emptySet();
+        }
+        else {
+            orderItems = orderDataItem.getOrderItems();
+        }
+
         final Set<ItemResponseDto> itemDtos = HashSet.newHashSet(orderItems.size());
         for (final var orderItem : orderItems) {
             itemDtos.add(new ItemResponseDto(orderItem.getId(), orderItem.getQuantity()));
         }
 
-        final var promotions = orderDecoratorsPromotion.getPromotions();
+        final Set<Promotion> promotions;
+        if (orderDecoratorsPromotion == null) {
+            promotions = Collections.emptySet();
+        }
+        else {
+            promotions = orderDecoratorsPromotion.getPromotions();
+        }
+
+        final int pointUsage;
+        if (orderDecoratorsPointUsage == null) {
+            pointUsage = 0;
+        }
+        else {
+            pointUsage = orderDecoratorsPointUsage.getPointUsed();
+        }
+
         final Set<Integer> promotionIds = HashSet.newHashSet(promotions.size());
         for (final var promotion : promotions) {
             promotionIds.add(promotion.getId());
@@ -227,12 +261,12 @@ public class OrderService {
                 customerOrder.getCustomer().getId(),
                 customerOrder.getTotalPrice(),
                 customerOrder.getTotalPriceAfterDiscount(),
-                orderDataFilm.getFilmShow().getId(),
+                filmShowId,
                 ticketDtos,
                 roomSeatIds,
                 itemDtos,
                 promotionIds,
-                orderDecoratorsPointUsage.getPointUsed());
+                pointUsage);
     }
 
     @NotNull
@@ -244,30 +278,27 @@ public class OrderService {
         final var orderDecoratorsPointUsages = this.orderDecoratorsPointUsageRepository.findAll(pageable);
         final var orderDecoratorsPromotions = this.orderDecoratorsPromotionRepository.findAll(pageable);
 
-        final var customerOrderList = customerOrders.getContent();
-        final var orderDataFilmList = orderDataFilms.getContent();
-        final var orderDataItemList = orderDataItems.getContent();
-        final var orderDecoratorsOfflineServiceList = orderDecoratorsOfflineServices.getContent();
-        final var orderDecoratorsPointUsageList = orderDecoratorsPointUsages.getContent();
-        final var orderDecoratorsPromotionList = orderDecoratorsPromotions.getContent();
+        final List<OrderResponseDto> dtoList = new ArrayList<>(customerOrders.getNumberOfElements());
 
-        int minSize = Collections.min(List.of(
-                customerOrderList.size(),
-                orderDataFilmList.size(),
-                orderDataItemList.size(),
-                orderDecoratorsOfflineServiceList.size(),
-                orderDecoratorsPointUsageList.size(),
-                orderDecoratorsPromotionList.size()));
+        for (final var customerOrder : customerOrders) {
+            final var customerOrderId = customerOrder.getId();
+            final var orderDataFilm = this.orderDataFilmRepository.findById(customerOrderId).orElse(null);
+            final var orderDataItem = this.orderDataItemRepository.findById(customerOrderId).orElse(null);
+            final var orderDecoratorsOfflineService = this.orderDecoratorsOfflineServiceRepository
+                    .findById(customerOrderId).orElse(null);
+            final var orderDecoratorsPointUsage = this.orderDecoratorsPointUsageRepository
+                    .findById(customerOrderId).orElse(null);
+            final var orderDecoratorsPromotion = this.orderDecoratorsPromotionRepository
+                    .findById(customerOrderId).orElse(null);
 
-        final List<OrderResponseDto> dtoList = new ArrayList<>(minSize);
-        for (var i = 0; i < minSize; ++i) {
-            dtoList.add(OrderService.getResponseDtoFrom(
-                    customerOrderList.get(i),
-                    orderDataFilmList.get(i),
-                    orderDataItemList.get(i),
-                    orderDecoratorsOfflineServiceList.get(i),
-                    orderDecoratorsPointUsageList.get(i),
-                    orderDecoratorsPromotionList.get(i)));
+            dtoList.add(
+                    OrderService.getResponseDtoFrom(
+                            customerOrder,
+                            orderDataFilm,
+                            orderDataItem,
+                            orderDecoratorsOfflineService,
+                            orderDecoratorsPointUsage,
+                            orderDecoratorsPromotion));
         }
 
         return new PageImpl<>(dtoList, pageable, customerOrders.getTotalElements());
