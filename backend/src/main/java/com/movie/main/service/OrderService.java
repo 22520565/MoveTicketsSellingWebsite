@@ -405,7 +405,7 @@ public class OrderService {
 
         try {
             final var customerOrder = this.customerOrderRepository
-                    .save(new CustomerOrder(
+                    .saveAndFlush(new CustomerOrder(
                             LocalDate.now(),
                             UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.getDefault()),
                             requestDto.getTotalPrice(),
@@ -413,7 +413,7 @@ public class OrderService {
                             customer));
 
             final var orderDataFilm = this.orderDataFilmRepository
-                    .save(new OrderDataFilm(
+                    .saveAndFlush(new OrderDataFilm(
                             customerOrder,
                             LocalDate.now(),
                             LocalTime.now(),
@@ -422,12 +422,12 @@ public class OrderService {
                             orderTickets));
 
             final var orderDataItem = this.orderDataItemRepository
-                    .save(new OrderDataItem(
+                    .saveAndFlush(new OrderDataItem(
                             customerOrder,
                             orderItems));
 
             final var orderDecoratorsOfflineService = this.orderDecoratorsOfflineServiceRepository
-                    .save(new OrderDecoratorsOfflineService(
+                    .saveAndFlush(new OrderDecoratorsOfflineService(
                             customerOrder,
                             false,
                             false,
@@ -435,13 +435,13 @@ public class OrderService {
                             null));
 
             final var orderDecoratorsPointUsage = this.orderDecoratorsPointUsageRepository
-                    .save(new OrderDecoratorsPointUsage(
+                    .saveAndFlush(new OrderDecoratorsPointUsage(
                             customerOrder,
                             pointUsage,
                             param.getLoyalPointPointToReducedPriceRatio()));
 
             final var orderDecoratorsPromotion = this.orderDecoratorsPromotionRepository
-                    .save(new OrderDecoratorsPromotion(
+                    .saveAndFlush(new OrderDecoratorsPromotion(
                             customerOrder,
                             promotions));
 

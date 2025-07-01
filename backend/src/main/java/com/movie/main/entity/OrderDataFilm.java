@@ -58,10 +58,10 @@ public class OrderDataFilm {
     @NotNull
     private FilmShow filmShow = null;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    private Set<@NotBlank RoomSeat> roomSeats = new HashSet<>();
+    private Set<@NotNull RoomSeat> roomSeats = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
     @Getter(value = AccessLevel.NONE)
@@ -87,11 +87,11 @@ public class OrderDataFilm {
         this.customerOrder = customerOrder;
     }
 
-    public Set<@NotBlank RoomSeat> getRoomSeats() {
+    public Set<@NotNull RoomSeat> getRoomSeats() {
         return new HashSet<>(this.roomSeats);
     }
 
-    public void setSeatNames(final Set<@NotBlank RoomSeat> roomSeats) {
+    public void setSeatNames(final Set<@NotNull RoomSeat> roomSeats) {
         this.roomSeats = new HashSet<>(roomSeats);
     }
 

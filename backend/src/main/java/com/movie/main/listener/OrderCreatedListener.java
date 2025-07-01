@@ -38,7 +38,7 @@ public class OrderCreatedListener {
         }
 
         final var subject = "Thank you for your order";
-        final var content = String.format("Dear {},%nThank you for your order",
+        final var content = String.format("Dear %s,%nThank you for your order",
                 customer.getName());
 
         try {
