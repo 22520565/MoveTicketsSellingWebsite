@@ -34,10 +34,22 @@ public interface RoomSeatRepository extends JpaRepository<RoomSeat, Integer> {
             @Nonnull final Pageable pageable);
 
     @Query("""
-            SELECT rs
-            FROM OrderDataFilm odf
-                JOIN odf.roomSeats rs
-            WHERE odf.filmShow.id = :filmShowId
+            SELECT DISTINCT rs
+            FROM RoomSeat rs
+            JOIN rs.room r
+            JOIN FilmShow fs ON fs.room.id = r.id
+            WHERE fs.id = :filmShowId
+              AND (
+                rs IN (
+                    SELECT rs1 FROM OrderDataFilm odf JOIN odf.roomSeats rs1
+                    WHERE odf.filmShow.id = :filmShowId
+                )
+                OR rs IN (
+                    SELECT rsl.roomSeat FROM RoomSeatLock rsl
+                    WHERE rsl.filmShow.id = :filmShowId
+                      AND rsl.expireAt > CURRENT_TIMESTAMP
+                )
+              )
             """)
     Page<RoomSeat> findAllUnusableByFilmShowId(
             @Param("filmShowId") final int filmShowId,
