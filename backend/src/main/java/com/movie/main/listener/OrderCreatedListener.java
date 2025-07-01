@@ -46,6 +46,7 @@ public class OrderCreatedListener {
             final var helper = new MimeMessageHelper(message);
             helper.setSubject(subject);
             helper.setText(content);
+            helper.setTo(customer.getEmail());
             this.mailSender.send(message);
         }
         catch (final Exception exception) {
