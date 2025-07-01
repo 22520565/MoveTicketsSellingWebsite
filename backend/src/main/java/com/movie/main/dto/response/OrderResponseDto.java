@@ -1,5 +1,7 @@
 package com.movie.main.dto.response;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Set;
 
 import jakarta.validation.constraints.Min;
@@ -18,6 +20,9 @@ public class OrderResponseDto {
 
     @Include
     private final int customerId;
+
+    @NotNull
+    private final LocalDate date;
 
     @Include
     private final int totalPrice;
