@@ -472,6 +472,7 @@ public class OrderService {
                             .setCurrency(ResourceStrings.STRIPE_CURRENCY)
                             .setUnitAmount(Long.valueOf(requestDto.getTotalPriceAfterDiscount()))
                             .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                    .setName("Thanh toán tiền vé xem phim")
                                     .build())
                             .build())
                     .build());

@@ -29,8 +29,8 @@ import lombok.experimental.FieldNameConstants;
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
 public class StripePayment {
-    public static final int MaxLengthPaymentIntentId = 50;
-    public static final int MinAnount = 1;
+    public static final int MaxLengthPaymentIntentId = 100;
+    public static final int MinAnount = 0;
 
     public enum Status {
         REQUIRES_PAYMENT_METHOD("requires_payment_method"),
