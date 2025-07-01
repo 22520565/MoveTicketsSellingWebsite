@@ -191,3 +191,7 @@ export const getRoomSeatLockByFilmshowId = async (filmShowId) => {
 export const createPaymentStripe = async (data) => {
   return await axios.post(`/orders/stripe-checkout`, data);
 };
+
+export const createOrder = async (data) => {
+  return await axios.post(`/orders`, data);
+};

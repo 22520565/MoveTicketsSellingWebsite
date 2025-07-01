@@ -121,10 +121,6 @@ const router = createBrowserRouter([
     path: "*",
     element: <ErrorPage />,
   },
-  {
-    path: "/checkout",
-    element: <CheckoutPage />,
-  },
 ]);
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
