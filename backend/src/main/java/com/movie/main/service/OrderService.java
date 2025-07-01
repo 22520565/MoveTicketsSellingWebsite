@@ -18,6 +18,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -487,13 +488,15 @@ public class OrderService {
         }
 
         try {
+            final var savedCustomer = this.customerRepository.save(customer);
+
             final var customerOrder = this.customerOrderRepository
                     .saveAndFlush(new CustomerOrder(
                             LocalDate.now(),
                             UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.getDefault()),
                             requestDto.getTotalPrice(),
                             requestDto.getTotalPriceAfterDiscount(),
-                            customer));
+                            savedCustomer));
 
             final var orderDataFilm = this.orderDataFilmRepository
                     .saveAndFlush(new OrderDataFilm(

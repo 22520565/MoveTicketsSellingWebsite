@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.movie.main.dto.request.RoomSeatRequestDto;
-import com.movie.main.dto.response.RoomResponseDto;
 import com.movie.main.dto.response.RoomSeatWithUsableStatusResponseDto;
 import com.movie.main.entity.RoomSeat;
 import com.movie.main.repository.OrderDataFilmRepository;

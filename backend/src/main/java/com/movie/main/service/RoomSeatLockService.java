@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.movie.main.entity.RoomSeatLock;
 import com.movie.main.repository.RoomSeatLockRepository;
 
+import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,6 +24,7 @@ public class RoomSeatLockService {
         this.repository = repository;
     }
 
+    @Transactional
     @Scheduled(fixedRate = RoomSeatLock.AmountValidMinutes, timeUnit = TimeUnit.MINUTES)
     public void clearExpiredLocks() {
         this.repository.deleteByExpireAtBefore(LocalDateTime.now());
