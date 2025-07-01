@@ -40,7 +40,11 @@ instance.interceptors.response.use(
     const originalRequest = error.config;
 
     // Kiểm tra nếu lỗi 401 và chưa retry
-    if (error?.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error?.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.headers[NO_RETRY_HEADER]
+    ) {
       originalRequest._retry = true;
 
       const refreshToken = localStorage.getItem("refreshToken");
@@ -55,7 +59,7 @@ instance.interceptors.response.use(
         // Gọi API refresh token
         const res = await axios.post(
           "http://localhost:8080/api/auth/employee/refresh-token",
-          { refreshToken }
+          { token: refreshToken }
         );
 
         const { accessToken, refreshToken: newRefreshToken } = res.data;

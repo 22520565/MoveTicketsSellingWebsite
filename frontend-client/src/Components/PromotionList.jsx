@@ -9,12 +9,14 @@ const PromotionList = ({ isOpen, setIsOpen, onApplyPromotions }) => {
   const [tempSelectedPromotions, setTempSelectedPromotions] = useState([]); // Danh sách tạm thời
   const [isAnimating, setIsAnimating] = useState(false); // Trạng thái hoạt ảnh
   const [maxDiscountRate, setMaxDiscountRate] = useState(0); // Tỷ lệ khuyến mãi tối đa
+  const [totalDiscount, setTotalDiscount] = useState(0);
 
   const handleGetAllPromotion = async () => {
     try {
       const response = await getAllPromotion();
-      if (response.success) {
-        setPromotionList(response.data);
+
+      if (response) {
+        setPromotionList(response?._embedded?.promotionResponseDtoList || []);
       } else {
         console.error("Failed to fetch promotions:", response.msg);
       }
@@ -26,8 +28,9 @@ const PromotionList = ({ isOpen, setIsOpen, onApplyPromotions }) => {
   const handleGetParam = async () => {
     try {
       const response = await getParam();
-      console.log("🚀 ~ handleGetParam ~ response:", response)
-      setMaxDiscountRate(response.data.maximumDiscountRate);
+      console.log("Response from getParam:", response);
+
+      setMaxDiscountRate(response.maximumDiscountRate);
     } catch (error) {
       console.error("Error fetching max discount rate:", error);
     }
@@ -51,27 +54,24 @@ const PromotionList = ({ isOpen, setIsOpen, onApplyPromotions }) => {
 
   const handleTogglePromotion = (promotionId) => {
     setTempSelectedPromotions((prev) => {
-      const promotion = promotionList.find(
-        (promo) => promo._id === promotionId
-      );
+      const promotion = promotionList.find((promo) => promo.id === promotionId);
       if (!promotion) return prev;
 
-      return prev.some((promo) => promo._id === promotionId)
-        ? prev.filter((promo) => promo._id !== promotionId)
+      return prev.some((promo) => promo.id === promotionId)
+        ? prev.filter((promo) => promo.id !== promotionId)
         : [...prev, promotion];
     });
   };
 
-  const calculateTotalDiscount = () => {
+  useEffect(() => {
     const total = tempSelectedPromotions
       .map((promo) => parseInt(promo.discountRate, 10))
       .reduce((sum, value) => sum + value, 0);
 
-    return total > maxDiscountRate ? maxDiscountRate : total;
-  };
+    setTotalDiscount(total > maxDiscountRate ? maxDiscountRate : total);
+  }, [tempSelectedPromotions, maxDiscountRate]);
 
   const handleApplyPromotions = () => {
-    const totalDiscount = calculateTotalDiscount();
     if (totalDiscount >= maxDiscountRate) {
       toast.warn(
         `Tổng khuyến mãi vượt giới hạn ${maxDiscountRate}%. Giảm giá đã được đặt về tối đa.`
@@ -87,43 +87,88 @@ const PromotionList = ({ isOpen, setIsOpen, onApplyPromotions }) => {
     handleClose();
   };
 
-  const PromotionItem = ({ promotion }) => (
-    <div
-      className={`group flex items-start gap-4 p-5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md ${
-        tempSelectedPromotions.some((promo) => promo._id === promotion._id)
-          ? "bg-red-50 border-2 border-red-500"
-          : "bg-gray-50 hover:bg-gray-100"
-      }`}
-      onClick={() => handleTogglePromotion(promotion._id)}
-    >
-      <img
-        src={promotion.thumbnailURL}
-        alt={promotion.name}
-        className="w-20 h-20 object-cover rounded-lg"
-      />
-      <div className="flex-1 min-w-0">
-        <p className="text-lg font-medium text-gray-900 leading-6">
-          {promotion.name}
-        </p>
-        <p className="text-base text-red-500 mt-2 leading-6">
-          Giảm {promotion.discountRate}%
-        </p>
-      </div>
+  // const PromotionItem = ({ promotion }) => (
+  //   <div
+  //     className={`group flex items-start gap-4 p-5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md ${
+  //       tempSelectedPromotions.some((promo) => promo.id === promotion.id)
+  //         ? "bg-red-50 border-2 border-red-500"
+  //         : "bg-gray-50 hover:bg-gray-100"
+  //     }`}
+  //     onClick={() => handleTogglePromotion(promotion.id)}
+  //   >
+  //     <img
+  //       src={promotion.thumbnailUrl}
+  //       alt={promotion.name}
+  //       className="w-20 h-20 object-cover rounded-lg"
+  //     />
+  //     <div className="flex-1 min-w-0">
+  //       <p className="text-lg font-medium text-gray-900 leading-6">
+  //         {promotion.name}
+  //       </p>
+  //       <p className="text-base text-red-500 mt-2 leading-6">
+  //         Giảm {promotion.discountRate}%
+  //       </p>
+  //     </div>
+  //     <div
+  //       className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+  //         tempSelectedPromotions.some((promo) => promo.id === promotion.id)
+  //           ? "bg-red-500"
+  //           : "border-2 border-gray-300 group-hover:border-gray-400"
+  //       }`}
+  //     >
+  //       {tempSelectedPromotions.some((promo) => promo.id === promotion.id) ? (
+  //         <Check className="w-5 h-5 text-white" />
+  //       ) : (
+  //         <Plus className="w-5 h-5 text-gray-400" />
+  //       )}
+  //     </div>
+  //   </div>
+  // );
+
+  const PromotionItem = ({ promotion }) => {
+    const isSelected = tempSelectedPromotions.some(
+      (promo) => promo.id === promotion.id
+    );
+
+    return (
       <div
-        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-          tempSelectedPromotions.some((promo) => promo._id === promotion._id)
-            ? "bg-red-500"
-            : "border-2 border-gray-300 group-hover:border-gray-400"
+        className={`group flex items-start gap-4 p-5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md ${
+          isSelected
+            ? "bg-red-50 border-2 border-red-500"
+            : "bg-gray-50 hover:bg-gray-100"
         }`}
       >
-        {tempSelectedPromotions.some((promo) => promo._id === promotion._id) ? (
-          <Check className="w-5 h-5 text-white" />
-        ) : (
-          <Plus className="w-5 h-5 text-gray-400" />
-        )}
+        <img
+          src={promotion.thumbnailUrl}
+          alt={promotion.name}
+          className="w-20 h-20 object-cover rounded-lg"
+        />
+        <div className="flex-1 min-w-0">
+          <p className="text-lg font-medium text-gray-900 leading-6">
+            {promotion.name}
+          </p>
+          <p className="text-base text-red-500 mt-2 leading-6">
+            Giảm {promotion.discountRate}%
+          </p>
+        </div>
+        {/* Chỉ toggle khi click nút */}
+        <button
+          onClick={() => handleTogglePromotion(promotion.id)}
+          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
+            isSelected
+              ? "bg-red-500"
+              : "border-2 border-gray-300 hover:border-gray-400"
+          }`}
+        >
+          {isSelected ? (
+            <Check className="w-5 h-5 text-white" />
+          ) : (
+            <Plus className="w-5 h-5 text-gray-400" />
+          )}
+        </button>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div>
@@ -155,7 +200,7 @@ const PromotionList = ({ isOpen, setIsOpen, onApplyPromotions }) => {
             <div className="flex-1 overflow-y-auto px-6 pb-6">
               <div className="space-y-4 mt-4">
                 {promotionList.map((promotion) => (
-                  <PromotionItem key={promotion._id} promotion={promotion} />
+                  <PromotionItem key={promotion.id} promotion={promotion} />
                 ))}
               </div>
             </div>
@@ -166,7 +211,7 @@ const PromotionList = ({ isOpen, setIsOpen, onApplyPromotions }) => {
                 <p className="text-lg font-medium text-gray-700">
                   Tổng khuyến mãi:{" "}
                   <span className="text-red-500 font-semibold">
-                    {calculateTotalDiscount()}%
+                    {totalDiscount}%
                   </span>
                 </p>
               </div>
