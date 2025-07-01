@@ -19,17 +19,15 @@ import lombok.experimental.FieldNameConstants;
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldNameConstants
 public class OrderItem {
-    public static final int MaxLengthName = 30;
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true, updatable = false)
     @Setter(value = AccessLevel.PACKAGE)
     private int id = 0;
 
-    @Column(nullable = false, length = MaxLengthName)
+    @Column(nullable = false, length = AdditionalItem.MaxLengthName)
     @NotBlank
-    @Size(max = MaxLengthName)
+    @Size(max = AdditionalItem.MaxLengthName)
     private String name = "";
 
     @Column(nullable = false)

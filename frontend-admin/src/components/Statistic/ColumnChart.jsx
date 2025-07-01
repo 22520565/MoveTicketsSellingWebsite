@@ -10,7 +10,9 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import axios from "axios";
+import { getOrders } from "../../config/api";
 import { useEffect, useState } from "react";
+import { get } from "lodash";
 
 const LineChartComponent = ({
   revenueDataByYear,
@@ -25,9 +27,11 @@ const LineChartComponent = ({
   useEffect(() => {
     const fetchYears = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/orders");
+        const response = await getOrders();
 
-        const years = extractYears(response.data.data);
+        const years = extractYears(
+          response.data._embedded.ordersResponseDtoList || []
+        );
 
         setAvailableYears(
           years.length > 0 ? years : [new Date().getFullYear()]

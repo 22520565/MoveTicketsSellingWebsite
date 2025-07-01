@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +39,7 @@ import com.movie.main.entity.OrderTicket;
 import com.movie.main.entity.Promotion;
 import com.movie.main.entity.RoomSeat;
 import com.movie.main.entity.StripePayment;
+import com.movie.main.event.OrderCreatedEvent;
 import com.movie.main.repository.AdditionalItemRepository;
 import com.movie.main.repository.CustomerOrderRepository;
 import com.movie.main.repository.CustomerRepository;
@@ -148,6 +150,9 @@ public class OrderService {
     @NotNull
     private final StripePaymentRepository stripePaymentRepository;
 
+    @NotNull
+    private final ApplicationEventPublisher publisher;
+
     public OrderService(
             @NotNull final CustomerRepository customerRepository,
             @NotNull final FilmShowRepository filmShowRepository,
@@ -164,7 +169,8 @@ public class OrderService {
             @NotNull final OrderDecoratorsPromotionRepository orderDecoratorsPromotionRepository,
             @NotNull final OrderTicketRepository orderTicketRepository,
             @NotNull final OrderItemRepository orderItemRepository,
-            @NotNull final StripePaymentRepository stripePaymentRepository) {
+            @NotNull final StripePaymentRepository stripePaymentRepository,
+            @NotNull final ApplicationEventPublisher publisher) {
         this.customerRepository = customerRepository;
         this.filmShowRepository = filmShowRepository;
         this.ticketTypeRepository = ticketTypeRepository;
@@ -181,6 +187,7 @@ public class OrderService {
         this.orderTicketRepository = orderTicketRepository;
         this.orderItemRepository = orderItemRepository;
         this.stripePaymentRepository = stripePaymentRepository;
+        this.publisher = publisher;
     }
 
     @NotNull
@@ -217,6 +224,7 @@ public class OrderService {
 
         return new OrderResponseDto(
                 customerOrder.getId(),
+                customerOrder.getCustomer().getId(),
                 customerOrder.getTotalPrice(),
                 customerOrder.getTotalPriceAfterDiscount(),
                 orderDataFilm.getFilmShow().getId(),
@@ -568,6 +576,7 @@ public class OrderService {
                     final var session = (Session) event.getDataObjectDeserializer().getObject().get();
                     final var responseDto = this.handleStripeWebhookSessionCompleted(session);
                     if (responseDto != null) {
+                        this.publisher.publishEvent(new OrderCreatedEvent(responseDto));
                         return Expected.success(responseDto);
                     }
                     return Expected.failure(HandleWebhookError.UNSPECIFIED);
@@ -595,11 +604,11 @@ public class OrderService {
             return null;
         }
 
-        final var customerId = stripePayment.getCustomer().getId();
         final var requestDto = this.parseCreateOrderRequestDtoFromMetaData(session.getMetadata());
         if (requestDto == null) {
             return null;
         }
+        final var customerId = stripePayment.getCustomer().getId();
 
         return this.create(requestDto, customerId).getValue();
     }

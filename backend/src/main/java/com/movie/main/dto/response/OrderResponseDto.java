@@ -17,6 +17,9 @@ public class OrderResponseDto {
     private final int id;
 
     @Include
+    private final int customerId;
+
+    @Include
     private final int totalPrice;
 
     @Include
