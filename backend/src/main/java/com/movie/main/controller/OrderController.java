@@ -104,6 +104,25 @@ public class OrderController {
         return ResponseEntity.internalServerError().build();
     }
 
+    @PostMapping("stripe-checkout")
+    @PermitAll
+    public ResponseEntity<StripePaymentCreateIntentResponseDto> createStripeCheckoutSession(
+            @RequestBody OrderRequestDto requestDto,
+            @AuthenticationPrincipal final User user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        final var result = this.service.createStripeCheckoutSession(requestDto, user.getId());
+
+        final var clientSecret = result.getValue();
+        if (clientSecret != null) {
+            return ResponseEntity.ok(new StripePaymentCreateIntentResponseDto(clientSecret));
+        }
+
+        return ResponseEntity.internalServerError().build();
+    }
+
     @PostMapping("stripe-webhook")
     @PermitAll
     public ResponseEntity<OrderResponseDto> handleStripeWebhook(
