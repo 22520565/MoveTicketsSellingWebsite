@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.movie.main.controller.FilmShowController;
 import com.movie.main.dto.request.OrderRequestDto;
 import com.movie.main.dto.response.OrderResponseDto;
 import com.movie.main.dto.response.OrderResponseDto.ItemResponseDto;
@@ -38,6 +39,7 @@ import com.movie.main.entity.OrderItem;
 import com.movie.main.entity.OrderTicket;
 import com.movie.main.entity.Promotion;
 import com.movie.main.entity.RoomSeat;
+import com.movie.main.entity.RoomSeatLock;
 import com.movie.main.entity.StripePayment;
 import com.movie.main.event.OrderCreatedEvent;
 import com.movie.main.repository.AdditionalItemRepository;
@@ -52,6 +54,7 @@ import com.movie.main.repository.OrderDecoratorsPromotionRepository;
 import com.movie.main.repository.OrderItemRepository;
 import com.movie.main.repository.OrderTicketRepository;
 import com.movie.main.repository.PromotionRepository;
+import com.movie.main.repository.RoomSeatLockRepository;
 import com.movie.main.repository.RoomSeatRepository;
 import com.movie.main.repository.StripePaymentRepository;
 import com.movie.main.repository.TicketTypeRepository;
@@ -77,6 +80,9 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class OrderService {
+
+    private final FilmShowController filmShowController;
+
     public enum CreationError {
         ENTITY_NOT_EXISTS,
         INSUFFICIENT_LOYAL_POINT,
@@ -113,6 +119,9 @@ public class OrderService {
 
     @NotNull
     private final RoomSeatRepository roomSeatRepository;
+
+    @NotNull
+    private final RoomSeatLockRepository roomSeatLockRepository;
 
     @NotNull
     private final AdditionalItemRepository additionalItemRepository;
@@ -158,6 +167,7 @@ public class OrderService {
             @NotNull final FilmShowRepository filmShowRepository,
             @NotNull final TicketTypeRepository ticketTypeRepository,
             @NotNull final RoomSeatRepository roomSeatRepository,
+            @NotNull final RoomSeatLockRepository roomSeatLockRepository,
             @NotNull final AdditionalItemRepository additionalItemRepository,
             @NotNull final PromotionRepository promotionRepository,
             @NotNull final ParamService paramService,
@@ -170,11 +180,12 @@ public class OrderService {
             @NotNull final OrderTicketRepository orderTicketRepository,
             @NotNull final OrderItemRepository orderItemRepository,
             @NotNull final StripePaymentRepository stripePaymentRepository,
-            @NotNull final ApplicationEventPublisher publisher) {
+            @NotNull final ApplicationEventPublisher publisher, FilmShowController filmShowController) {
         this.customerRepository = customerRepository;
         this.filmShowRepository = filmShowRepository;
         this.ticketTypeRepository = ticketTypeRepository;
         this.roomSeatRepository = roomSeatRepository;
+        this.roomSeatLockRepository = roomSeatLockRepository;
         this.additionalItemRepository = additionalItemRepository;
         this.promotionRepository = promotionRepository;
         this.paramService = paramService;
@@ -188,6 +199,7 @@ public class OrderService {
         this.orderItemRepository = orderItemRepository;
         this.stripePaymentRepository = stripePaymentRepository;
         this.publisher = publisher;
+        this.filmShowController = filmShowController;
     }
 
     @NotNull
@@ -531,12 +543,18 @@ public class OrderService {
         }
     }
 
+    @Transactional
     public Expected<String, PaymentError> createStripeCheckoutSession(
             final OrderRequestDto requestDto,
             final int customerId) {
         try {
             final var customer = this.customerRepository.findById(customerId).orElse(null);
             if (customer == null) {
+                return Expected.failure(PaymentError.ENTITY_NOT_EXISTS);
+            }
+
+            final var filmShow = this.filmShowRepository.findById(requestDto.getFilmShowId()).orElse(null);
+            if (filmShow == null) {
                 return Expected.failure(PaymentError.ENTITY_NOT_EXISTS);
             }
 
@@ -589,6 +607,20 @@ public class OrderService {
                     StripePayment.Status.from(session.getStatus()),
                     requestDto.getTotalPriceAfterDiscount(),
                     Instant.now());
+
+            for (final var roomSeatId : requestDto.getSeatIds()) {
+                final var roomSeat = this.roomSeatRepository.findById(roomSeatId).orElse(null);
+
+                if (roomSeat == null) {
+                    return Expected.failure(PaymentError.ENTITY_NOT_EXISTS);
+                }
+
+                this.roomSeatLockRepository.save(
+                        new RoomSeatLock(
+                                roomSeat,
+                                filmShow,
+                                session.getId()));
+            }
 
             this.stripePaymentRepository.save(stripePayment);
             return Expected.success(session.getId());
@@ -648,6 +680,7 @@ public class OrderService {
                     final var session = (Session) event.getDataObjectDeserializer().getObject().get();
                     final var responseDto = this.handleStripeWebhookSessionCompleted(session);
                     if (responseDto != null) {
+                        this.roomSeatLockRepository.deleteBySessionId(session.getId());
                         this.publisher.publishEvent(new OrderCreatedEvent(responseDto));
                         return Expected.success(responseDto);
                     }

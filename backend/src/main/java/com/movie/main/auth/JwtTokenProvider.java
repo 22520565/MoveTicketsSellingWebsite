@@ -9,6 +9,7 @@ import javax.crypto.SecretKey;
 
 import com.movie.main.entity.User;
 import com.movie.main.entity.User.UserRole;
+import com.movie.main.resource.ResourceStrings;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -19,8 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public final class JwtTokenProvider {
-    public static final Duration TOKEN_DURATION = Duration.ofMinutes(15);
-    private static final String RAW_SECRET = "your-very-secure-secret-32bytes-minimum123!";
+    public static final Duration TOKEN_DURATION = Duration.ofMinutes(60);
+    private static final String RAW_SECRET = ResourceStrings.JWT_RAW_KEY;
     private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(RAW_SECRET.getBytes(StandardCharsets.UTF_8));
 
     private JwtTokenProvider() {}

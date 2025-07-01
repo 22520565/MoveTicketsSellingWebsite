@@ -11,6 +11,9 @@ public final class ResourceStrings {
     private static final Dotenv dotenv = Dotenv.load();
 
     @Include
+    public static final String JWT_RAW_KEY;
+
+    @Include
     public static final String DEFAULT_ADMIN_USERNAME;
 
     @Include
@@ -37,6 +40,7 @@ public final class ResourceStrings {
     static {
         DEFAULT_ADMIN_USERNAME = dotenv.get(ResourceStrings.Fields.DEFAULT_ADMIN_USERNAME, "Admin");
         DEFAULT_ADMIN_PASSWORD = dotenv.get(ResourceStrings.Fields.DEFAULT_ADMIN_PASSWORD, "Admin");
+        JWT_RAW_KEY = dotenv.get(ResourceStrings.Fields.JWT_RAW_KEY);
         CLOUDINARY_CLOUD_NAME = dotenv.get(ResourceStrings.Fields.CLOUDINARY_CLOUD_NAME);
         CLOUDINARY_API_KEY = dotenv.get(ResourceStrings.Fields.CLOUDINARY_API_KEY);
         CLOUDINARY_API_SECRET = dotenv.get(ResourceStrings.Fields.CLOUDINARY_API_SECRET);
