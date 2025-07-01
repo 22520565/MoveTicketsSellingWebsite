@@ -34,7 +34,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 @RestController
-@RequestMapping("orders")
+@RequestMapping("api/orders")
 @RequirePermission(value = Permission.ADMIN)
 @SecurityRequirement(name = OpenApiConfig.SECURITY_SCHEME_NAME)
 public class OrderController {
