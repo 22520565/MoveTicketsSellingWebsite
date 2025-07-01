@@ -217,6 +217,7 @@ public class OrderService {
 
         return new OrderResponseDto(
                 customerOrder.getId(),
+                customerOrder.getCustomer().getId(),
                 customerOrder.getTotalPrice(),
                 customerOrder.getTotalPriceAfterDiscount(),
                 orderDataFilm.getFilmShow().getId(),
