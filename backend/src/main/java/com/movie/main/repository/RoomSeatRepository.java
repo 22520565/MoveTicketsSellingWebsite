@@ -32,4 +32,14 @@ public interface RoomSeatRepository extends JpaRepository<RoomSeat, Integer> {
     Page<RoomSeat> findAllByFilmShowId(
             @Param("filmShowId") final int filmShowId,
             @Nonnull final Pageable pageable);
+
+    @Query("""
+            SELECT rs
+            FROM OrderDataFilm odf
+                JOIN odf.roomSeats rs
+            WHERE odf.filmShow.id = :filmShowId
+            """)
+    Page<RoomSeat> findAllUnusableByFilmShowId(
+            @Param("filmShowId") final int filmShowId,
+            @Nonnull final Pageable pageable);
 }
