@@ -266,7 +266,8 @@ public class OrderService {
                 roomSeatIds,
                 itemDtos,
                 promotionIds,
-                pointUsage);
+                pointUsage,
+                customerOrder.getVerifyCode());
     }
 
     @NotNull
