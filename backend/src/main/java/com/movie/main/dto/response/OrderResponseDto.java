@@ -48,6 +48,8 @@ public class OrderResponseDto {
     @Min(0)
     private final int pointUsage;
 
+    private String verifyCode;
+
     @Data
     @AllArgsConstructor
     @FieldNameConstants
