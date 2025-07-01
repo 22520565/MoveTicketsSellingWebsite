@@ -11,8 +11,6 @@ import org.springframework.stereotype.Repository;
 import com.movie.main.dto.response.HotFilmResponseDto;
 import com.movie.main.entity.OrderDataFilm;
 
-import jakarta.validation.constraints.NotNull;
-
 @Repository
 public interface OrderDataFilmRepository extends JpaRepository<OrderDataFilm, Integer> {
     @Query("SELECT SUM(t.quantity * t.price) FROM OrderDataFilm o INNER JOIN o.orderTickets t "
