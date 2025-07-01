@@ -27,6 +27,7 @@ import com.movie.main.auth.RequirePermissionAspect;
 import com.movie.main.dto.request.OrderRequestDto;
 import com.movie.main.dto.response.OrderResponseDto;
 import com.movie.main.dto.response.OrderResponseDto.ItemResponseDto;
+import com.movie.main.dto.response.OrderResponseDto.SeatResponseDto;
 import com.movie.main.dto.response.OrderResponseDto.TicketResponseDto;
 import com.movie.main.entity.CustomerOrder;
 import com.movie.main.entity.OrderDataFilm;
@@ -214,12 +215,20 @@ public class OrderService {
 
         final Set<TicketResponseDto> ticketDtos = HashSet.newHashSet(orderTickets.size());
         for (final var orderTicket : orderTickets) {
-            ticketDtos.add(new TicketResponseDto(orderTicket.getId(), orderTicket.getQuantity()));
+            ticketDtos.add(
+                    new TicketResponseDto(
+                            orderTicket.getId(),
+                            orderTicket.getName(),
+                            orderTicket.getPrice(),
+                            orderTicket.getQuantity()));
         }
 
-        final Set<Integer> roomSeatIds = HashSet.newHashSet(roomSeats.size());
+        final Set<SeatResponseDto> seatDtos = HashSet.newHashSet(roomSeats.size());
         for (final var roomSeat : roomSeats) {
-            roomSeatIds.add(roomSeat.getId());
+            seatDtos.add(
+                    new SeatResponseDto(
+                            roomSeat.getId(),
+                            roomSeat.getName()));
         }
 
         final Set<OrderItem> orderItems;
@@ -232,7 +241,12 @@ public class OrderService {
 
         final Set<ItemResponseDto> itemDtos = HashSet.newHashSet(orderItems.size());
         for (final var orderItem : orderItems) {
-            itemDtos.add(new ItemResponseDto(orderItem.getId(), orderItem.getQuantity()));
+            itemDtos.add(
+                    new ItemResponseDto(
+                            orderItem.getId(),
+                            orderItem.getName(),
+                            orderItem.getPrice(),
+                            orderItem.getQuantity()));
         }
 
         final Set<Promotion> promotions;
@@ -263,7 +277,7 @@ public class OrderService {
                 customerOrder.getTotalPriceAfterDiscount(),
                 filmShowId,
                 ticketDtos,
-                roomSeatIds,
+                seatDtos,
                 itemDtos,
                 promotionIds,
                 pointUsage,
@@ -273,12 +287,37 @@ public class OrderService {
     @NotNull
     public Page<@NotNull OrderResponseDto> findAll(@NotNull final Pageable pageable) {
         final var customerOrders = this.customerOrderRepository.findAll(pageable);
-        final var orderDataFilms = this.orderDataFilmRepository.findAll(pageable);
-        final var orderDataItems = this.orderDataItemRepository.findAll(pageable);
-        final var orderDecoratorsOfflineServices = this.orderDecoratorsOfflineServiceRepository.findAll(pageable);
-        final var orderDecoratorsPointUsages = this.orderDecoratorsPointUsageRepository.findAll(pageable);
-        final var orderDecoratorsPromotions = this.orderDecoratorsPromotionRepository.findAll(pageable);
+        final List<OrderResponseDto> dtoList = new ArrayList<>(customerOrders.getNumberOfElements());
 
+        for (final var customerOrder : customerOrders) {
+            final var customerOrderId = customerOrder.getId();
+            final var orderDataFilm = this.orderDataFilmRepository.findById(customerOrderId).orElse(null);
+            final var orderDataItem = this.orderDataItemRepository.findById(customerOrderId).orElse(null);
+            final var orderDecoratorsOfflineService = this.orderDecoratorsOfflineServiceRepository
+                    .findById(customerOrderId).orElse(null);
+            final var orderDecoratorsPointUsage = this.orderDecoratorsPointUsageRepository
+                    .findById(customerOrderId).orElse(null);
+            final var orderDecoratorsPromotion = this.orderDecoratorsPromotionRepository
+                    .findById(customerOrderId).orElse(null);
+
+            dtoList.add(
+                    OrderService.getResponseDtoFrom(
+                            customerOrder,
+                            orderDataFilm,
+                            orderDataItem,
+                            orderDecoratorsOfflineService,
+                            orderDecoratorsPointUsage,
+                            orderDecoratorsPromotion));
+        }
+
+        return new PageImpl<>(dtoList, pageable, customerOrders.getTotalElements());
+    }
+
+    @NotNull
+    public Page<@NotNull OrderResponseDto> findAllByCustomerId(
+            final int customerId,
+            @NotNull final Pageable pageable) {
+        final var customerOrders = this.customerOrderRepository.findAllByCustomerId(customerId, pageable);
         final List<OrderResponseDto> dtoList = new ArrayList<>(customerOrders.getNumberOfElements());
 
         for (final var customerOrder : customerOrders) {

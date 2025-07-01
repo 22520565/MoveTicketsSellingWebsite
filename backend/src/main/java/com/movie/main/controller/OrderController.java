@@ -54,6 +54,17 @@ public class OrderController {
         return ResponseEntity.ok(assembler.toModel(result));
     }
 
+    @GetMapping("by-customer/{customerId}")
+    @PermitAll
+    public ResponseEntity<PagedModel<EntityModel<OrderResponseDto>>> findAllByCustomerId(
+            @PathVariable final int customerId,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
+            final PagedResourcesAssembler<OrderResponseDto> assembler) {
+        final var result = this.service.findAll(PageRequest.of(page, size));
+        return ResponseEntity.ok(assembler.toModel(result));
+    }
+
     @GetMapping("{id}")
     @PermitAll
     public ResponseEntity<OrderResponseDto> findById(@PathVariable final int id) {

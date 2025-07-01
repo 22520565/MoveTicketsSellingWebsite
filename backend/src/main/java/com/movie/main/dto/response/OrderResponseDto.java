@@ -34,7 +34,7 @@ public class OrderResponseDto {
 
     @Include
     @NotNull
-    private final Set<@NotNull Integer> seatIds;
+    private final Set<@NotNull SeatResponseDto> seats;
 
     @Include
     @NotNull
@@ -53,9 +53,26 @@ public class OrderResponseDto {
     @Data
     @AllArgsConstructor
     @FieldNameConstants
+    public static class SeatResponseDto {
+        @Include
+        private final int id;
+
+        @Include
+        private final String name;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @FieldNameConstants
     public static class TicketResponseDto {
         @Include
         private final int typeId;
+
+        @Include
+        private final String name;
+
+        @Include
+        private final int price;
 
         @Include
         private final int quantity;
@@ -67,6 +84,12 @@ public class OrderResponseDto {
     public static class ItemResponseDto {
         @Include
         private final int id;
+
+        @Include
+        private final String name;
+
+        @Include
+        private final int price;
 
         @Include
         private final int quantity;

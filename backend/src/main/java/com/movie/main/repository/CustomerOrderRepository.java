@@ -18,8 +18,21 @@ import com.movie.main.dto.response.TicketRateOfFilmResponseDto;
 import com.movie.main.dto.response.TicketServeRateResponseDto;
 import com.movie.main.entity.CustomerOrder;
 
+import jakarta.annotation.Nonnull;
+import jakarta.validation.constraints.NotNull;
+
 @Repository
 public interface CustomerOrderRepository extends JpaRepository<CustomerOrder, Integer> {
+    @Query("""
+            SELECT co
+            FROM CustomerOrder co
+            WHERE (co.customer.id = :customerId)
+            """)
+    @NotNull
+    Page<@NotNull CustomerOrder> findAllByCustomerId(
+            @Param("customerId") final int customerId,
+            @Nonnull final Pageable pageable);
+
     @Query("SELECT SUM(co.totalPrice) FROM CustomerOrder co WHERE co.date = :date")
     Long getTotalNetRevenueByDate(@Param("date") final LocalDate date);
 
