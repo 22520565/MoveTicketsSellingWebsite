@@ -1,5 +1,6 @@
 package com.movie.main.service;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.movie.main.dto.request.CustomerRequestDto;
 import com.movie.main.dto.request.CustomerSelfRequestDto;
 import com.movie.main.entity.Customer;
+import com.movie.main.event.CustomerCreatedEvent;
 import com.movie.main.repository.CustomerRepository;
 import com.movie.main.ulti.Expected;
 
@@ -64,13 +66,18 @@ public class CustomerService {
     @NotNull
     private final UserRefreshTokenService userRefreshTokenService;
 
+    @NotNull
+    private final ApplicationEventPublisher publisher;
+
     public CustomerService(
             @NotNull final CustomerRepository repository,
             @NotNull final PasswordEncoder passwordEncoder,
-            @NotNull final UserRefreshTokenService userRefreshTokenService) {
+            @NotNull final UserRefreshTokenService userRefreshTokenService,
+            @NotNull final ApplicationEventPublisher publisher) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
         this.userRefreshTokenService = userRefreshTokenService;
+        this.publisher = publisher;
     }
 
     @Nullable
@@ -142,7 +149,10 @@ public class CustomerService {
                 this.passwordEncoder.encode(requestDto.password()));
 
         try {
-            return Expected.success(this.repository.save(newCustomer));
+            final var savedCustomer = this.repository.save(newCustomer);
+            this.publisher.publishEvent(new CustomerCreatedEvent(savedCustomer));
+
+            return Expected.success(savedCustomer);
         }
         catch (final Exception exception) {
             log.error(exception.getMessage());

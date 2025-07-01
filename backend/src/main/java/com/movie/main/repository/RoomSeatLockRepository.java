@@ -13,10 +13,10 @@ import jakarta.transaction.Transactional;
 @Repository
 public interface RoomSeatLockRepository extends JpaRepository<RoomSeatLock, Integer> {
     @Transactional
-    @Modifying(clearAutomatically = true)
+    @Modifying(flushAutomatically = true)
     void deleteByExpireAtBefore(final LocalDateTime dateTime);
 
     @Transactional
-    @Modifying(clearAutomatically = true)
+    @Modifying(flushAutomatically = true)
     void deleteBySessionId(final String sessionId);
 }

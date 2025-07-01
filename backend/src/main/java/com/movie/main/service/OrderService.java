@@ -676,7 +676,6 @@ public class OrderService {
         }
     }
 
-    @Transactional
     public Expected<OrderResponseDto, HandleWebhookError> handleStripeWebhook(String sigHeader, String payload) {
         try {
             final var event = Webhook.constructEvent(payload, sigHeader, ResourceStrings.STRIPE_WEBHOOK_SECRET);
