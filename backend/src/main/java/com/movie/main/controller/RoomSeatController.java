@@ -100,12 +100,25 @@ public class RoomSeatController {
 
     @GetMapping("by-film-show/{filmShowId}")
     @PermitAll
-    public ResponseEntity<PagedModel<EntityModel<RoomSeatWithUsableStatusResponseDto>>> findByFilmShowIdAndDeletedFalse(
+    public ResponseEntity<PagedModel<EntityModel<RoomSeatWithUsableStatusResponseDto>>> findAllByFilmShowIdAndDeletedFalse(
             @PathVariable final int filmShowId,
             @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
             @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
             final PagedResourcesAssembler<RoomSeatWithUsableStatusResponseDto> assembler) {
-        final var result = this.service.findByFilmShowIdAndDeletedFalse(filmShowId, PageRequest.of(page, size));
+        final var result = this.service.findAllByFilmShowIdAndDeletedFalse(filmShowId, PageRequest.of(page, size));
+        return ResponseEntity.ok(assembler.toModel(result));
+    }
+
+    @GetMapping("unusable-by-film-show/{filmShowId}")
+    @PermitAll
+    public ResponseEntity<PagedModel<EntityModel<RoomSeatResponseDto>>> findAllUnusableByFilmShowIdAndDeletedFalse(
+            @PathVariable final int filmShowId,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_NUMBER_STRING) @Min(value = 0) final int page,
+            @RequestParam(defaultValue = ControllerConfig.PAGE_SIZE_STRING) @Range(min = 1, max = ControllerConfig.MAX_PAGE_SIZE) final int size,
+            final PagedResourcesAssembler<RoomSeatResponseDto> assembler) {
+        final var result = this.service
+                .findAllUnusableByFilmShowIdAndDeletedFalse(filmShowId, PageRequest.of(page, size))
+                .map(RoomSeatController::getResponseDtoFrom);
         return ResponseEntity.ok(assembler.toModel(result));
     }
 

@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.movie.main.dto.request.RoomSeatRequestDto;
+import com.movie.main.dto.response.RoomResponseDto;
 import com.movie.main.dto.response.RoomSeatWithUsableStatusResponseDto;
 import com.movie.main.entity.RoomSeat;
 import com.movie.main.repository.OrderDataFilmRepository;
@@ -116,7 +117,7 @@ public class RoomSeatService {
     }
 
     @NotNull
-    public Page<RoomSeatWithUsableStatusResponseDto> findByFilmShowIdAndDeletedFalse(
+    public Page<RoomSeatWithUsableStatusResponseDto> findAllByFilmShowIdAndDeletedFalse(
             final int filmShowId,
             final Pageable pageable) {
         return this.repository.findAllByFilmShowId(filmShowId, pageable).map(
@@ -129,6 +130,13 @@ public class RoomSeatService {
                             roomSeat.getRoom().getId(),
                             this.orderDataFilmRepository.isRoomSeatUsableByFilmShowId(roomSeatId, filmShowId));
                 });
+    }
+
+    @NotNull
+    public Page<RoomSeat> findAllUnusableByFilmShowIdAndDeletedFalse(
+            final int filmShowId,
+            final Pageable pageable) {
+        return this.repository.findAllUnusableByFilmShowId(filmShowId, pageable);
     }
 
     @NotNull
