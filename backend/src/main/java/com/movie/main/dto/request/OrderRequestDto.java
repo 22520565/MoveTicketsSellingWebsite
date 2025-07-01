@@ -45,6 +45,10 @@ public class OrderRequestDto {
     @Min(0)
     private final int pointUsage;
 
+    @Include
+    @Min(0)
+    private final int loyalPoint;
+
     @Data
     @FieldNameConstants
     public static class TicketRequestDto {
