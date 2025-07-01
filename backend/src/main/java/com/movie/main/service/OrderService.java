@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.movie.main.auth.RequirePermissionAspect;
 import com.movie.main.dto.request.OrderRequestDto;
 import com.movie.main.dto.response.OrderResponseDto;
 import com.movie.main.dto.response.OrderResponseDto.ItemResponseDto;
@@ -407,7 +406,7 @@ public class OrderService {
         if (customerLoyalPoint < pointUsage) {
             return Expected.failure(CreationError.INSUFFICIENT_LOYAL_POINT);
         }
-        customer.setLoyalPoint(customerLoyalPoint - pointUsage);
+        customer.setLoyalPoint(customerLoyalPoint - pointUsage + requestDto.getLoyalPoint());
 
         final var filmShow = this.filmShowRepository.findByIdAndDeletedFalse(requestDto.getFilmShowId()).orElse(null);
         if (filmShow == null) {
@@ -553,6 +552,8 @@ public class OrderService {
                             String.valueOf(requestDto.getTotalPriceAfterDiscount())),
                     Map.entry(OrderRequestDto.Fields.pointUsage,
                             String.valueOf(requestDto.getPointUsage())),
+                    Map.entry(OrderRequestDto.Fields.loyalPoint,
+                            String.valueOf(requestDto.getLoyalPoint())),
                     Map.entry(OrderRequestDto.Fields.promotionIds,
                             requestDto.getPromotionIds().stream().map(Object::toString)
                                     .collect(Collectors.joining(","))),
@@ -692,6 +693,7 @@ public class OrderService {
             final var totalPriceAfterDiscount = Integer.parseInt(
                     metaData.get(OrderRequestDto.Fields.totalPriceAfterDiscount));
             final var pointUsage = Integer.parseInt(metaData.get(OrderRequestDto.Fields.pointUsage));
+            final var loyalPoint = Integer.parseInt(metaData.get(OrderRequestDto.Fields.loyalPoint));
 
             final var seatIds = Arrays.stream(metaData.get(OrderRequestDto.Fields.seatIds).split(","))
                     .filter(s -> !s.isBlank()).map(Integer::parseInt).collect(Collectors.toSet());
@@ -714,7 +716,8 @@ public class OrderService {
                     seatIds,
                     itemDtos,
                     promotionIds,
-                    pointUsage);
+                    pointUsage,
+                    loyalPoint);
         }
         catch (final Exception exception) {
             log.error(exception.getMessage());
