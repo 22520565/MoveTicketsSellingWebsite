@@ -117,7 +117,7 @@ public class RoomSeatService {
     }
 
     @NotNull
-    public Page<RoomSeatWithUsableStatusResponseDto> findAllByFilmShowIdAndDeletedFalse(
+    public Page<RoomSeatWithUsableStatusResponseDto> findAllByFilmShowId(
             final int filmShowId,
             final Pageable pageable) {
         return this.repository.findAllByFilmShowId(filmShowId, pageable).map(
@@ -133,7 +133,7 @@ public class RoomSeatService {
     }
 
     @NotNull
-    public Page<RoomSeat> findAllUnusableByFilmShowIdAndDeletedFalse(
+    public Page<RoomSeat> findAllUnusableByFilmShowId(
             final int filmShowId,
             final Pageable pageable) {
         return this.repository.findAllUnusableByFilmShowId(filmShowId, pageable);
