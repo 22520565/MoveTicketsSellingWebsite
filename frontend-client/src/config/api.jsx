@@ -182,15 +182,12 @@ export const getRoomSeatByRoomId = async (id) => {
   return await axios.get(`/room-seats/by-room/${id}`);
 };
 
-export const getRoomSeatLockByFilmshowId = async ({
-  id,
-  page = 0,
-  size = 250,
-}) => {
-  return await axios.get(`/room-seats/by-film-show/${id}`, {
-    params: {
-      page,
-      size,
-    },
-  });
+export const getRoomSeatLockByFilmshowId = async (filmShowId) => {
+  return await api.get(
+    `/room-seats/by-film-show/${filmShowId}?page=0&size=250`
+  );
+};
+
+export const createPaymentStripe = async (data) => {
+  return await axios.post(`/orders/stripe-checkout`, data);
 };

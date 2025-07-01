@@ -17,13 +17,16 @@ const HomePage = () => {
 
   const fetchFilmData = async () => {
     try {
-      const [allRes, showingRes] = await Promise.all([
+      const [allRes, showingRes, upcomingRes] = await Promise.all([
         getAllFilms(),
         getShowingFilms(),
+        getUpcommingFilms(),
       ]);
 
       const allFilms = allRes._embedded.filmResponseDtoList || [];
       const showingFilms = showingRes?._embedded?.filmResponseDtoList || [];
+      const upcomingFilms = upcomingRes?._embedded?.filmResponseDtoList || [];
+      console.log(upcomingFilms);
 
       setFilmShowing(showingFilms);
 
@@ -36,6 +39,11 @@ const HomePage = () => {
         // Ngược lại → lọc ra những phim chưa chiếu
         const showingIds = new Set(showingFilms.map((film) => film.id));
         upcoming = allFilms.filter((film) => !showingIds.has(film.id));
+      }
+
+      if (upcomingFilms.length > 0) {
+        // Nếu không có phim đang chiếu → upcoming = tất cả
+        upcoming = upcomingFilms;
       }
 
       setUpcomingFilm(upcoming);
