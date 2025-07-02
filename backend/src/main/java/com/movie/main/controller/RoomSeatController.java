@@ -1,7 +1,6 @@
 package com.movie.main.controller;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.hibernate.validator.constraints.Range;

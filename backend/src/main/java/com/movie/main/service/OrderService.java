@@ -19,13 +19,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.movie.main.controller.FilmShowController;
 import com.movie.main.dto.request.OrderRequestDto;
 import com.movie.main.dto.response.OrderResponseDto;
 import com.movie.main.dto.response.OrderResponseDto.ItemResponseDto;
@@ -83,9 +81,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class OrderService {
-
-    private final FilmShowController filmShowController;
-
     public enum CreationError {
         ENTITY_NOT_EXISTS,
         INSUFFICIENT_LOYAL_POINT,
@@ -183,7 +178,7 @@ public class OrderService {
             @NotNull final OrderTicketRepository orderTicketRepository,
             @NotNull final OrderItemRepository orderItemRepository,
             @NotNull final StripePaymentRepository stripePaymentRepository,
-            @NotNull final ApplicationEventPublisher publisher, FilmShowController filmShowController) {
+            @NotNull final ApplicationEventPublisher publisher) {
         this.customerRepository = customerRepository;
         this.filmShowRepository = filmShowRepository;
         this.ticketTypeRepository = ticketTypeRepository;
@@ -202,7 +197,6 @@ public class OrderService {
         this.orderItemRepository = orderItemRepository;
         this.stripePaymentRepository = stripePaymentRepository;
         this.publisher = publisher;
-        this.filmShowController = filmShowController;
     }
 
     @NotNull
@@ -424,31 +418,30 @@ public class OrderService {
         }
         customer.setLoyalPoint(customerLoyalPoint - pointUsage + requestDto.getLoyalPoint());
 
-        
         final var seatIds = requestDto.getSeatIds();
         final Set<RoomSeat> roomSeats = HashSet.newHashSet(seatIds.size());
 
         final var filmShowId = requestDto.getFilmShowId();
         final FilmShow filmShow;
-        if (filmShowId == null){
+        if (filmShowId == null) {
             filmShow = null;
         }
-        else{
+        else {
             filmShow = this.filmShowRepository.findByIdAndDeletedFalse(requestDto.getFilmShowId()).orElse(null);
             if (filmShow == null) {
                 return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
             }
 
-        for (final var seatId : seatIds) {
-            final var roomSeat = this.roomSeatRepository.findById(seatId).orElse(null);
+            for (final var seatId : seatIds) {
+                final var roomSeat = this.roomSeatRepository.findById(seatId).orElse(null);
 
-            if (roomSeat == null) {
-                return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
+                if (roomSeat == null) {
+                    return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
+                }
+
+                roomSeats.add(roomSeat);
             }
-
-            roomSeats.add(roomSeat);
         }
-        }       
 
         final var tickets = requestDto.getTickets();
         final Set<OrderTicket> orderTickets = HashSet.newHashSet(tickets.size());
@@ -508,19 +501,21 @@ public class OrderService {
                             requestDto.getTotalPrice(),
                             requestDto.getTotalPriceAfterDiscount(),
                             savedCustomer));
-            
+
             final OrderDataFilm orderDataFilm;
-            if (filmShow == null){
+            if (filmShow == null) {
                 orderDataFilm = null;
-            }else{
-           orderDataFilm = this.orderDataFilmRepository
-                    .saveAndFlush(new OrderDataFilm(
-                            customerOrder,
-                            LocalDate.now(),
-                            LocalTime.now(),
-                            filmShow,
-                            roomSeats,
-                            orderTickets));}
+            }
+            else {
+                orderDataFilm = this.orderDataFilmRepository
+                        .saveAndFlush(new OrderDataFilm(
+                                customerOrder,
+                                LocalDate.now(),
+                                LocalTime.now(),
+                                filmShow,
+                                roomSeats,
+                                orderTickets));
+            }
 
             final var orderDataItem = this.orderDataItemRepository
                     .saveAndFlush(new OrderDataItem(
@@ -756,9 +751,9 @@ public class OrderService {
     public OrderRequestDto parseCreateOrderRequestDtoFromMetaData(final Map<String, String> metaData) {
         try {
             final var filmShowId = Optional.ofNullable(metaData.get(OrderRequestDto.Fields.filmShowId))
-                                .filter(id -> !"null".equals(id))
-                                .map(Integer::valueOf)
-                                .orElse(null);
+                    .filter(id -> !"null".equals(id))
+                    .map(Integer::valueOf)
+                    .orElse(null);
             final var totalPrice = Integer.parseInt(metaData.get(OrderRequestDto.Fields.totalPrice));
             final var totalPriceAfterDiscount = Integer.parseInt(
                     metaData.get(OrderRequestDto.Fields.totalPriceAfterDiscount));

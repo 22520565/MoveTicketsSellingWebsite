@@ -1,7 +1,6 @@
 package com.movie.main.dto.response;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.Set;
 
 import jakarta.validation.constraints.Min;
