@@ -562,7 +562,7 @@ public class OrderService {
             final var filmShowId = requestDto.getFilmShowId();
             final FilmShow filmShow;
             if (filmShowId == null) {
-                if (!roomSeatIds.isEmpty()) {
+                if (roomSeatIds.isEmpty()) {
                     filmShow = null;
                 }
                 else {
