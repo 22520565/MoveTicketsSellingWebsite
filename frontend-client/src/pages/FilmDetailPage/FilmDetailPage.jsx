@@ -215,7 +215,7 @@ const FilmDetailPage = () => {
       const cinemaSchedules = [];
 
       allCinemas.forEach((cinema) => {
-        const schedules = [];
+        const schedulesByType = {}; // sẽ tự động gộp 2D, 3D hoặc các loại khác
 
         const filteredShows = availableDates.filter(
           (show) => show.showDate === selectedDate
@@ -225,37 +225,40 @@ const FilmDetailPage = () => {
           const room = rooms.find((r) => r.id === show.roomId);
           if (!room) return;
 
-          const isSameCinema = cinema.id === room.theaterId;
-          if (!isSameCinema) return;
+          if (cinema.id !== room.theaterId) return;
 
           const time = show.showTime.slice(0, 5);
+          const type = show.type || "Standard";
 
-          // Kiểm tra nếu chưa tồn tại suất này thì thêm vào
-          const alreadyExists = schedules.some(
+          if (!schedulesByType[type]) schedulesByType[type] = [];
+
+          const alreadyExists = schedulesByType[type].some(
             (s) => s.showTime === time && s.filmShowId === show.id
           );
 
           if (!alreadyExists) {
-            schedules.push({
+            schedulesByType[type].push({
               showTime: time,
-              filmShowId: show.id, // hoặc show._id tùy theo cấu trúc
+              filmShowId: show.id,
             });
           }
         });
 
-        console.log("shedule: ", schedules);
+        // Sắp xếp mỗi loại lịch chiếu theo thời gian
+        for (const type in schedulesByType) {
+          schedulesByType[type].sort((a, b) =>
+            a.showTime.localeCompare(b.showTime)
+          );
+        }
 
         cinemaSchedules.push({
+          name: cinema.name,
           address: cinema.address,
           city: cinema.city,
-          name: cinema.name,
-          schedules: {
-            Standard: schedules.sort((a, b) =>
-              a.showTime.localeCompare(b.showTime)
-            ),
-          },
+          schedules: schedulesByType,
         });
       });
+      console.log(cinemaSchedules);
 
       setAvailableCinemaSchedules(cinemaSchedules);
     };
