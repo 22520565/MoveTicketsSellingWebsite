@@ -21,7 +21,11 @@ const calculateTotalAfterDiscount = (
 
 import React, { useEffect, useState } from "react";
 import CustomButton from "../button/index"; // Giả sử bạn đã có CustomButton component
-import { createPayment, getCurrentPoint, getParam } from "../../config/api"; // Đảm bảo các API được định nghĩa đúng
+import {
+  createPaymentStripe,
+  getCurrentPoint,
+  getParam,
+} from "../../config/api"; // Đảm bảo các API được định nghĩa đúng
 import { useAuth } from "../../Context/AuthContext"; // Dùng context cho user
 import { useNavigate } from "react-router-dom";
 
@@ -57,7 +61,7 @@ const PaymentSection = ({
   const promotionIds = selectedPromotions.map((promo) => promo.id);
 
   const handleCreatePayment = async () => {
-    setIsLoading(true); // Bật trạng thái loading khi bắt đầu gửi yêu cầu
+    setIsLoading(true);
     try {
       if (!localStorage.getItem("accessToken")) {
         alert("Bạn cần phải đăng nhập trước khi thực hiện thanh toán");
@@ -65,24 +69,44 @@ const PaymentSection = ({
         return;
       }
 
-      const response = await createPayment({
-        additionalItemSelections: additionalItems,
-        totalPrice,
-        promotionIDs: promotionIds,
-        pointUsage: usePoints ? pointUsage : null, // Gửi số điểm sử dụng nếu có
-      });
+      const payload = {
+        tickets: [], // Không có vé
+        seatIds: [], // Không có ghế
+        filmShowId: null, // Không chọn suất chiếu
+        items: additionalItems
+          .filter((item) => item.quantity > 0)
+          .map((item) => ({
+            id: item.id,
+            quantity: item.quantity,
+          })),
+        promotionIds: promotionIds ?? [],
+        loyalPoint: 0,
+        pointUsage: usePoints ? pointUsage : 0,
+        totalPrice: totalPrice, // hoặc 0 nếu để backend tính
+        totalPriceAfterDiscount: 0, // hoặc tính nếu cần
+      };
 
-      if (response && response.payUrl) {
-        setPaymentUrl(response.payUrl);
-        window.location.href = response.payUrl;
-      } else {
-        alert(response.message || "Chưa chọn sản phẩm");
+      console.log("Payload đầy đủ gửi backend:", payload);
+
+      const response = await createPaymentStripe(payload);
+
+      const sessionId = response?.clientSecret;
+
+      if (!sessionId) {
+        alert("Không thể tạo phiên thanh toán. Vui lòng thử lại.");
+        return;
       }
+
+      const stripe = await loadStripe(
+        "pk_test_51RSroiFLS9qgPWZTC329aaYLG3kpwxs5dB7cICsPSiZqk58x3DU3X2oYHE4DmiqoeT1g9Sx48CThnIgH9fQ9bEwS00YI7hWxoQ"
+      );
+
+      await stripe.redirectToCheckout({ sessionId });
     } catch (error) {
       console.error("Lỗi khi tạo thanh toán:", error);
       alert("Có lỗi xảy ra. Vui lòng thử lại.");
     } finally {
-      setIsLoading(false); // Tắt trạng thái loading sau khi xong
+      setIsLoading(false);
     }
   };
 
