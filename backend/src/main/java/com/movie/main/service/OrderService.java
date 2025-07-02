@@ -31,6 +31,7 @@ import com.movie.main.dto.response.OrderResponseDto.ItemResponseDto;
 import com.movie.main.dto.response.OrderResponseDto.SeatResponseDto;
 import com.movie.main.dto.response.OrderResponseDto.TicketResponseDto;
 import com.movie.main.entity.CustomerOrder;
+import com.movie.main.entity.FilmShow;
 import com.movie.main.entity.OrderDataFilm;
 import com.movie.main.entity.OrderDataItem;
 import com.movie.main.entity.OrderDecoratorsOfflineService;
@@ -557,9 +558,22 @@ public class OrderService {
                 return Expected.failure(PaymentError.ENTITY_NOT_EXISTS);
             }
 
-            final var filmShow = this.filmShowRepository.findById(requestDto.getFilmShowId()).orElse(null);
-            if (filmShow == null) {
-                return Expected.failure(PaymentError.ENTITY_NOT_EXISTS);
+            final var roomSeatIds = requestDto.getSeatIds();
+            final var filmShowId = requestDto.getFilmShowId();
+            final FilmShow filmShow;
+            if (filmShowId == null) {
+                if (!roomSeatIds.isEmpty()) {
+                    filmShow = null;
+                }
+                else {
+                    return Expected.failure(PaymentError.ENTITY_NOT_EXISTS);
+                }
+            }
+            else {
+                filmShow = this.filmShowRepository.findById(requestDto.getFilmShowId()).orElse(null);
+                if (filmShow == null) {
+                    return Expected.failure(PaymentError.ENTITY_NOT_EXISTS);
+                }
             }
 
             final var mapper = new ObjectMapper();
@@ -612,18 +626,20 @@ public class OrderService {
                     requestDto.getTotalPriceAfterDiscount(),
                     Instant.now());
 
-            for (final var roomSeatId : requestDto.getSeatIds()) {
-                final var roomSeat = this.roomSeatRepository.findById(roomSeatId).orElse(null);
+            if (filmShow != null) {
+                for (final var roomSeatId : requestDto.getSeatIds()) {
+                    final var roomSeat = this.roomSeatRepository.findById(roomSeatId).orElse(null);
 
-                if (roomSeat == null) {
-                    return Expected.failure(PaymentError.ENTITY_NOT_EXISTS);
+                    if (roomSeat == null) {
+                        return Expected.failure(PaymentError.ENTITY_NOT_EXISTS);
+                    }
+
+                    this.roomSeatLockRepository.save(
+                            new RoomSeatLock(
+                                    roomSeat,
+                                    filmShow,
+                                    session.getId()));
                 }
-
-                this.roomSeatLockRepository.save(
-                        new RoomSeatLock(
-                                roomSeat,
-                                filmShow,
-                                session.getId()));
             }
 
             this.stripePaymentRepository.save(stripePayment);

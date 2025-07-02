@@ -23,7 +23,7 @@ public class OrderRequestDto {
     private final int totalPriceAfterDiscount;
 
     @Include
-    private final int filmShowId;
+    private final Integer filmShowId;
 
     @Include
     @NotNull
