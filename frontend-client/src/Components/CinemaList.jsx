@@ -5,9 +5,6 @@ export default function CinemaScheduleList({
   onSelectShowtime,
   selectedShowtime,
 }) {
-  console.log("cnime: ", selectedShowtime);
-  console.log("data: ", cinemasData);
-
   const [selectedCity, setSelectedCity] = useState("Hồ Chí Minh");
 
   const cities = [...new Set(cinemasData.map((cinema) => cinema.city))];

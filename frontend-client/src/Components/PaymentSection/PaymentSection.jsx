@@ -20,6 +20,7 @@ const calculateTotalAfterDiscount = (
 };
 
 import React, { useEffect, useState } from "react";
+import { loadStripe } from "@stripe/stripe-js";
 import CustomButton from "../button/index"; // Giả sử bạn đã có CustomButton component
 import {
   createPaymentStripe,
@@ -52,7 +53,7 @@ const PaymentSection = ({
 
   const additionalItems = selectedFood.map((food) => {
     return {
-      _id: food.id,
+      id: food.id,
       quantity: food.quantity,
     };
   });
@@ -83,10 +84,11 @@ const PaymentSection = ({
         loyalPoint: 0,
         pointUsage: usePoints ? pointUsage : 0,
         totalPrice: totalPrice, // hoặc 0 nếu để backend tính
-        totalPriceAfterDiscount: 0, // hoặc tính nếu cần
+        totalPriceAfterDiscount: totalAfterDiscount, // hoặc tính nếu cần
       };
 
       console.log("Payload đầy đủ gửi backend:", payload);
+      localStorage.setItem("checkoutPayload", JSON.stringify(payload));
 
       const response = await createPaymentStripe(payload);
 
@@ -113,16 +115,16 @@ const PaymentSection = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const pointResponse = await getCurrentPoint();
-        if (pointResponse?.data?.currentLoyalPoint) {
-          setLoyalPoint(pointResponse.data.currentLoyalPoint);
-        } else {
-          console.error("Invalid pointResponse:", pointResponse);
+        const currentUser = JSON.parse(localStorage.getItem("user"));
+        if (currentUser) {
+          setLoyalPoint(currentUser.loyalPoint);
         }
 
         const paramResponse = await getParam();
-        if (paramResponse?.data) {
-          setParam(paramResponse.data);
+        console.log(paramResponse);
+
+        if (paramResponse) {
+          setParam(paramResponse);
         } else {
           console.error("Invalid paramResponse:", paramResponse);
         }
@@ -144,8 +146,8 @@ const PaymentSection = ({
       totalPrice -
         (totalPrice * totalDiscount) /
           100 /
-          param?.loyalPoint_PointToReducedPriceRatio,
-      param?.loyalPoint_MaxiumPointUseInOneGo
+          param?.loyalPointPointToReducedPriceRatio,
+      param?.loyalPointMaximumPointUseInOneGo
     );
 
     const calculatedPointUsage = Math.min(data, loyalPoint);
@@ -161,18 +163,18 @@ const PaymentSection = ({
 
     if (
       !usePoints &&
-      totalPrice < param?.loyalPoint_MiniumValueToUseLoyalPoint
+      totalPrice < param?.loyalPointMinimumValueToUseLoyalPoint
     ) {
       alert(
-        `Để có thể sử dụng điểm tích lũy, đơn hàng tối thiểu phải là: ${param?.loyalPoint_MiniumValueToUseLoyalPoint.toLocaleString()} VNĐ`
+        `Để có thể sử dụng điểm tích lũy, đơn hàng tối thiểu phải là: ${param?.loyalPointMinimumValueToUseLoyalPoint.toLocaleString()} VNĐ`
       );
       return;
     } else if (
-      loyalPoint > param?.loyalPoint_MaxiumPointUseInOneGo &&
+      loyalPoint > param?.loyalPointMaximumPointUseInOneGo &&
       !usePoints
     ) {
       alert(
-        `Điểm sử dụng tối đa trong một lần là ${param?.loyalPoint_MaxiumPointUseInOneGo}. Phần dư ra có thể được sử dụng lại cho lần sau.`
+        `Điểm sử dụng tối đa trong một lần là ${param?.loyalPointMaximumPointUseInOneGo}. Phần dư ra có thể được sử dụng lại cho lần sau.`
       );
     }
     setUsePoints(!usePoints);
@@ -201,7 +203,7 @@ const PaymentSection = ({
                   fontSize: "18px",
                 }}
                 className="text-lg mt-2 break-words w-full"
-                key={food._id}
+                key={food.id}
               >
                 <span style={{ color: "#F3EA28" }} className="text-gray-500">
                   x{food.quantity}
@@ -237,10 +239,10 @@ const PaymentSection = ({
                       )
                     } */}
 
-                    {param?.loyalPoint_OrderToPointRatio
+                    {param?.loyalPointOrderToPointRatio
                       ? +Math.floor(
                           (totalAfterDiscount *
-                            param.loyalPoint_OrderToPointRatio) /
+                            param.loyalPointOrderToPointRatio) /
                             100
                         )
                       : 0}

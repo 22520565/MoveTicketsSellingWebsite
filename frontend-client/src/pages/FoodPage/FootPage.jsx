@@ -26,7 +26,9 @@ const FoodPage = () => {
     fetchAllFood();
   }, []);
 
-  console.log("foods", foods);
+  useEffect(() => {
+    console.log("selected: ", selectedFood);
+  }, [selectedFood]);
 
   return (
     <div className="relative">

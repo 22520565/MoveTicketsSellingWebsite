@@ -353,9 +353,7 @@ const FilmDetailPage = () => {
     }
   };
 
-  const [selectedFilmShowID, setSelectedFilmShowID] = useState(
-    initShowTime?.id || null
-  );
+  const [selectedFilmShowID, setSelectedFilmShowID] = useState(null);
 
   useEffect(() => {
     if (initShowTime?.id) {
@@ -493,8 +491,6 @@ const FilmDetailPage = () => {
       try {
         const response = await getRoomSeatByRoomId(roomDetail.id); // Giả sử response chứa mảng ghế
 
-        console.log("Room Seats Response: ", response);
-
         if (response) {
           const appendedSeat = response.map((row) =>
             row.map((seat) => ({
@@ -570,13 +566,25 @@ const FilmDetailPage = () => {
   //   }
   //   setRoomSeat(updatedSeat);
   // };
+  let callCount = 0;
   const setBookedSeat = async () => {
-    if (!selectedFilmShow || !selectedFilmShowID || isBookedApplied) return;
+    callCount += 1;
+    console.log(
+      ` [${callCount}] Gọi setBookedSeat - selectedFilmShowID:`,
+      selectedFilmShowID
+    );
+    if (!selectedFilmShow || !selectedFilmShowID || isBookedApplied) {
+      console.log(
+        ` [${callCount}] Bỏ qua vì thiếu điều kiện (selectedFilmShow=${!!selectedFilmShow}, selectedFilmShowID=${selectedFilmShowID}, isBookedApplied=${isBookedApplied})`
+      );
+      return;
+    }
 
     try {
       const response = await getRoomSeatUnuable(selectedFilmShowID);
 
       const lockedSeats = response?._embedded?.roomSeatResponseDtoList;
+      console.log("Room Seats Response: ", lockedSeats);
 
       if (!Array.isArray(lockedSeats)) {
         console.warn("lockedSeats không hợp lệ:", lockedSeats);
@@ -589,19 +597,29 @@ const FilmDetailPage = () => {
           lockedIds.includes(seat.id) ? { ...seat, booked: true } : { ...seat }
         )
       );
+      console.log(updatedSeat);
 
       setRoomSeat(updatedSeat);
       setIsBookedApplied(true);
+      console.log(` [${callCount}] Đã cập nhật booked seats`);
     } catch (err) {
       console.error("Lỗi khi lấy danh sách ghế đã khóa:", err);
     }
   };
 
-  //update room seat effect
   useEffect(() => {
-    if (!roomSeat || !selectedFilmShowID) return;
+    if (!roomSeat || !selectedFilmShowID || isBookedApplied) return;
     setBookedSeat();
-  }, [selectedFilmShowID, roomSeat, isBookedApplied]);
+  }, [roomSeat, selectedFilmShowID]);
+  useEffect(() => {
+    setIsBookedApplied(false);
+  }, [selectedFilmShowID]);
+
+  //update room seat effect
+  // useEffect(() => {
+  //   if (!roomSeat || !selectedFilmShowID) return;
+  //   setBookedSeat();
+  // }, [selectedFilmShowID, roomSeat, isBookedApplied, initShowTime]);
 
   useEffect(() => {
     setIsBookedApplied(false); // khi chọn suất chiếu mới thì reset flag
@@ -639,7 +657,7 @@ const FilmDetailPage = () => {
       }
     }
     setRoomSeat(updatedRoomSeat);
-  }, [usedSingle, totalTicket_Single]);
+  }, [usedSingle, totalTicket_Single, initShowTime]);
   useEffect(() => {
     if (!roomSeat) {
       return;
@@ -664,7 +682,7 @@ const FilmDetailPage = () => {
       }
     }
     setRoomSeat(updatedRoomSeat);
-  }, [usedPair, totalTicket_Pair]);
+  }, [usedPair, totalTicket_Pair, initShowTime]);
 
   const updateTotalTicket = () => {
     let single = 0,
@@ -1094,6 +1112,15 @@ function RoomDisplay({ roomSeat, roomName, handleSelectSeat, center }) {
                           </SeatSlot>
                         );
                       } else {
+                        if (["J7", "K4", "M5"].includes(seat.name)) {
+                          console.log(
+                            `🪑 Ghế ${seat.name} → booked: ${
+                              seat.booked
+                            }, enabled: ${seat.enabled}, disabled: ${
+                              seat.booked || !seat.enabled
+                            }`
+                          );
+                        }
                         seatSlots.push(
                           <SeatSlot
                             key={seatIndex}
@@ -1267,6 +1294,28 @@ function BottomBar({
     if (!localStorage.getItem("accessToken")) {
       alert("Bạn cần phải đăng nhập trước khi thực hiện thanh toán");
       navigate("/auth");
+      return;
+    }
+
+    // Kiểm tra trước khi tạo payload
+    if (!selectedFilmShowId) {
+      alert("Vui lòng chọn suất chiếu trước khi thanh toán");
+      return;
+    }
+
+    const selectedTickets = ticketSelections.filter((t) => t.quantity > 0);
+    if (selectedTickets.length === 0) {
+      alert("Vui lòng chọn ít nhất 1 loại vé");
+      return;
+    }
+
+    const selectedSeatIds = seatSelections
+      .flat()
+      .filter((s) => s.selected)
+      .map((s) => s.id);
+
+    if (selectedSeatIds.length === 0) {
+      alert("Vui lòng chọn ghế trước khi thanh toán");
       return;
     }
 

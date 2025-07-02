@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -423,10 +424,31 @@ public class OrderService {
         }
         customer.setLoyalPoint(customerLoyalPoint - pointUsage + requestDto.getLoyalPoint());
 
-        final var filmShow = this.filmShowRepository.findByIdAndDeletedFalse(requestDto.getFilmShowId()).orElse(null);
-        if (filmShow == null) {
-            return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
+        
+        final var seatIds = requestDto.getSeatIds();
+        final Set<RoomSeat> roomSeats = HashSet.newHashSet(seatIds.size());
+
+        final var filmShowId = requestDto.getFilmShowId();
+        final FilmShow filmShow;
+        if (filmShowId == null){
+            filmShow = null;
         }
+        else{
+            filmShow = this.filmShowRepository.findByIdAndDeletedFalse(requestDto.getFilmShowId()).orElse(null);
+            if (filmShow == null) {
+                return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
+            }
+
+        for (final var seatId : seatIds) {
+            final var roomSeat = this.roomSeatRepository.findById(seatId).orElse(null);
+
+            if (roomSeat == null) {
+                return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
+            }
+
+            roomSeats.add(roomSeat);
+        }
+        }       
 
         final var tickets = requestDto.getTickets();
         final Set<OrderTicket> orderTickets = HashSet.newHashSet(tickets.size());
@@ -444,18 +466,6 @@ public class OrderService {
                             ticketType.getPrice()));
 
             orderTickets.add(orderTicket);
-        }
-
-        final var seatIds = requestDto.getSeatIds();
-        final Set<RoomSeat> roomSeats = HashSet.newHashSet(seatIds.size());
-        for (final var seatId : seatIds) {
-            final var roomSeat = this.roomSeatRepository.findById(seatId).orElse(null);
-
-            if (roomSeat == null) {
-                return Expected.failure(CreationError.ENTITY_NOT_EXISTS);
-            }
-
-            roomSeats.add(roomSeat);
         }
 
         final var items = requestDto.getItems();
@@ -498,15 +508,19 @@ public class OrderService {
                             requestDto.getTotalPrice(),
                             requestDto.getTotalPriceAfterDiscount(),
                             savedCustomer));
-
-            final var orderDataFilm = this.orderDataFilmRepository
+            
+            final OrderDataFilm orderDataFilm;
+            if (filmShow == null){
+                orderDataFilm = null;
+            }else{
+           orderDataFilm = this.orderDataFilmRepository
                     .saveAndFlush(new OrderDataFilm(
                             customerOrder,
                             LocalDate.now(),
                             LocalTime.now(),
                             filmShow,
                             roomSeats,
-                            orderTickets));
+                            orderTickets));}
 
             final var orderDataItem = this.orderDataItemRepository
                     .saveAndFlush(new OrderDataItem(
@@ -741,7 +755,10 @@ public class OrderService {
     @Nullable
     public OrderRequestDto parseCreateOrderRequestDtoFromMetaData(final Map<String, String> metaData) {
         try {
-            final var filmShowId = Integer.parseInt(metaData.get(OrderRequestDto.Fields.filmShowId));
+            final var filmShowId = Optional.ofNullable(metaData.get(OrderRequestDto.Fields.filmShowId))
+                                .filter(id -> !"null".equals(id))
+                                .map(Integer::valueOf)
+                                .orElse(null);
             final var totalPrice = Integer.parseInt(metaData.get(OrderRequestDto.Fields.totalPrice));
             final var totalPriceAfterDiscount = Integer.parseInt(
                     metaData.get(OrderRequestDto.Fields.totalPriceAfterDiscount));
