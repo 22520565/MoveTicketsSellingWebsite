@@ -525,6 +525,9 @@ export const addCinema = async (data) => {
 };
 
 export const getFilmshowById = async (id) => {
+  if (id<=0) {
+    return;
+  }
   return await api.get(`/film-shows/${id}`);
 };
 

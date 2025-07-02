@@ -228,7 +228,7 @@ const TicketPrintListPage = () => {
           const filmShow = filmShowRes?.data;
           let filmRes = null;
 
-          if (filmShow?.filmId) {
+          if (filmShow?.filmId ) {
             filmRes = await getFilmById(filmShow.filmId);
           }
 
@@ -363,11 +363,11 @@ const TicketPrintListPage = () => {
     { header: "Verify Code", key: "verifyCode" },
     {
       header: "Ngày đặt",
-      key: "createdAt",
+      key: "date",
       render: (_, row) => {
-        const createdAt = row.createdAt; // Lấy giá trị ngày chiếu
+        const createdAt = row.date; // Lấy giá trị ngày chiếu
         return createdAt
-          ? new Date(createdAt).toLocaleDateString() // Hiển thị ngày nếu hợp lệ
+          ? new Date(createdAt).toLocaleDateString("vi-VN") // Hiển thị ngày nếu hợp lệ
           : "Không có dữ liệu"; // Hiển thị chuỗi mặc định nếu không có dữ liệu
       },
     },
