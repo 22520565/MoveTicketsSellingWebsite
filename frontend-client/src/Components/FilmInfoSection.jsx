@@ -8,13 +8,13 @@ const FilmInfoSection = ({ className, filmDescription, filmContent }) => {
   return (
     <div className={className}>
       <div>
-        <h2 className="font-interBold">MÔ TẢ</h2>
+        <h2 className="font-interBold text-3xl">MÔ TẢ</h2>
         <div className="flex flex-col text-lg items-start justify-start mt-3">
           {renderDescription(filmDescription)}
         </div>
       </div>
       <div className="mt-8">
-        <h2 className="font-interBold">NỘI DUNG PHIM</h2>
+        <h2 className="font-interBold text-3xl">NỘI DUNG PHIM</h2>
         <div className="flex flex-col text-lg items-start justify-start mt-3">
           {filmContent}
         </div>

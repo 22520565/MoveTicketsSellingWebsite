@@ -1,8 +1,36 @@
 import React from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { createOrder, callAccount } from "../config/api";
 
 const OrderSuccessPage = () => {
   const navigate = useNavigate();
+  useEffect(() => {
+    document.title = "Đặt hàng thành công";
+  }, []);
+  useEffect(() => {
+    const fetchUpdatedUser = async () => {
+      const payload = JSON.parse(localStorage.getItem("checkoutPayload"));
+      console.log("Order Success Payload:", payload);
+
+      const currentUser = JSON.parse(localStorage.getItem("user"));
+      if (currentUser?.id) {
+        try {
+          const updatedUserResponse = await callAccount();
+          console.log(updatedUserResponse);
+
+          if (updatedUserResponse) {
+            localStorage.setItem("user", JSON.stringify(updatedUserResponse));
+            console.log("Updated user in localStorage:", updatedUserResponse);
+          }
+        } catch (error) {
+          console.error("Lỗi khi cập nhật user:", error);
+        }
+      }
+    };
+
+    fetchUpdatedUser();
+  }, [navigate]);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
@@ -10,10 +38,7 @@ const OrderSuccessPage = () => {
         <h2 className="text-3xl font-semibold text-green-500">
           Đơn hàng thành công!
         </h2>
-        <p className="text-xl text-gray-600 mt-4">
-          Cảm ơn bạn đã đặt hàng! Vui lòng kiểm tra email của bạn để xem hóa
-          đơn.
-        </p>
+        <p className="text-xl text-gray-600 mt-4">Cảm ơn bạn đã đặt hàng!</p>
         <div className="mt-8">
           <button
             onClick={() => navigate("/")}

@@ -1,42 +1,36 @@
-import axios from "./axios_custom";
+import api from "./axios_custom";
+import axios from "./axios_private";
 
 export const callLogin = async (data) => {
-  return axios.post("/auth/user/sign-in", { ...data });
+  return axios.post("/auth/customer/login", { ...data });
 };
 
 export const callSignUp = async (data) => {
-  return axios.post("/auth/user/sign-up", { ...data });
+  return axios.post("/auth/customer/register", { ...data });
 };
 
 export const callAccount = async () => {
-  return axios.get("/auth/user/account");
+  return axios.get("/self/customer");
 };
 
 export const callSignOut = async (data) => {
-  return axios.get("/auth/user/sign-out", { ...data });
+  return axios.post("/auth/customer/logout", { ...data });
 };
 
-export const updateUser = async (id, updateData) => {
-  return axios.put(`/user/user/${id}`, { ...updateData });
+export const updateUser = async (updateData) => {
+  return axios.put(`/self/customer`, { ...updateData });
 };
 
-export const changePasword = async (id, updateData) => {
-  return axios.post(`/user/user/change-password/${id}`, { ...updateData });
+export const changePasword = async (updateData) => {
+  return axios.patch(`/self/customer/reset-password`, { ...updateData });
 };
 
-export const getShowingFilms = async () => {
-  return await axios.get(`film-show/showing`);
-};
-
-export const getUpcommingFilms = async () => {
-  return await axios.get(`film-show/upcoming`);
-};
-
-export const searchFilm = async ({ keyword, page = 1, limit = 2 }) => {
-  return await axios.post(`films/searchFilm`, {
-    keyword,
-    page,
-    limit,
+export const searchFilm = async ({ keyword, page = 0, size = 10 }) => {
+  return await axios.get(`/films/search/${keyword}`, {
+    params: {
+      page,
+      size,
+    },
   });
 };
 
@@ -52,18 +46,8 @@ export const getAvailableShowDate = async (filmId) => {
   return await axios.get(`film-show/get-available/showDate`);
 };
 
-export const getAvailableFilmByDate = async ({
-  date,
-  filmId,
-  page,
-  limit = 1000,
-}) => {
-  return await axios.post(`film-show/get-film-available-by-date`, {
-    date,
-    filmId,
-    page,
-    limit,
-  });
+export const getAvailableFilmByDate = async (date) => {
+  return await axios.get(`/film-shows/available-film-by-date/${date}`);
 };
 
 export const getAllFilms = async () => {
@@ -115,12 +99,12 @@ export const getProById = async (id) => {
   return await axios.get(`/promotion/${id}`);
 };
 
-export const getAllOrderByUserId = async () => {
-  return await axios.get(`/orders/all-order-by-userId`);
+export const getAllOrderByUserId = async (id) => {
+  return await axios.get(`/orders/by-customer/${id}`);
 };
 
 export const getAllPromotion = async () => {
-  return await axios.get(`/promotion/active`);
+  return await axios.get(`/promotions/active`);
 };
 
 // point
@@ -130,5 +114,96 @@ export const getCurrentPoint = async () => {
 };
 
 export const getParam = async () => {
-  return await axios.get(`/param`);
+  return await axios.get(`/params`);
+};
+
+export const getCinemas = async () => {
+  return await axios.get(`/theaters`);
+};
+
+export const getShowingFilms = async () => {
+  return await axios.get(`film-shows/showing`);
+};
+
+export const getUpcommingFilms = async () => {
+  return await axios.get(`film-shows/upcoming`);
+};
+
+export const getAllTags = async () => {
+  return await axios.get(`/tags`);
+};
+
+export const getFilmByTheaterId = async (id) => {
+  return await axios.get(`/films/by-theater/${id}`);
+};
+
+export const getTheaterByFilmId = async (id) => {
+  return await axios.get(`/theaters/by-film/${id}`);
+};
+
+export const getFilmById = async (id) => {
+  return await axios.get(`/films/${id}`);
+};
+
+export const getFilmShowByFilmId = async (id) => {
+  return await axios.get(`/film-shows/by-film/${id}`);
+};
+
+export const getFilmShowByFilmIdAndDate = async (id, date) => {
+  return await axios.get(`/film-shows/by-film/${id}/by-date/${date}`);
+};
+
+export const getAdditionalItem = async () => {
+  return await axios.get(`/additional-items`);
+};
+
+export const getRoomById = async (id) => {
+  return await axios.get(`/rooms/${id}`);
+};
+
+export const getAllRooms = async () => {
+  return await axios.get(`/rooms`);
+};
+
+export const getAllItems = async () => {
+  return await axios.get(`/additional-items`);
+};
+
+//filmdetail
+export const getAllTicketType = async () => {
+  return await axios.get(`/ticket-types`);
+};
+
+export const getFilmShowById = async (id) => {
+  return await axios.get(`/film-shows/${id}`);
+};
+
+export const getRoomSeatByRoomId = async (id) => {
+  return await axios.get(`/room-seats/by-room/${id}`);
+};
+
+export const getRoomSeatLockByFilmshowId = async (filmShowId) => {
+  return await api.get(
+    `/room-seats/by-film-show/${filmShowId}?page=0&size=250`
+  );
+};
+
+export const createPaymentStripe = async (data) => {
+  return await axios.post(`/orders/stripe-checkout`, data);
+};
+
+export const createOrder = async (data) => {
+  return await axios.post(`/orders`, data);
+};
+
+export const getRoomSeatUnuable = async (id) => {
+  return await api.get(`/room-seats/unusable-by-film-show/${id}`);
+};
+
+export const getCustomerById = async (id) => {
+  return await api.get(`/customers/${id}`);
+};
+
+export const getFilmshowById = async (id) => {
+  return await api.get(`/film-shows/${id}`);
 };

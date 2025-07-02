@@ -7,12 +7,17 @@ const FilmShowingPage = () => {
   const [filmShowing, setFilmShowing] = useState([]);
 
   useEffect(() => {
+    // Khi component mounted, reset scroll về đầu
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
     document.title = "Phim đang chiếu";
     const fetchFilmShowing = async () => {
       try {
         const response = await getShowingFilms();
-        if (response && response.data) {
-          setFilmShowing(response.data);
+        if (response) {
+          setFilmShowing(response._embedded.filmResponseDtoList);
         }
       } catch {
         throw new Error("There is an error while getting film detail");
@@ -22,7 +27,11 @@ const FilmShowingPage = () => {
   }, []);
 
   if (!filmShowing || filmShowing.length === 0) {
-    return <div>Loading...</div>;
+    return (
+      <div className="text-center text-white py-20 text-xl">
+        🎬 Hiện tại không có phim nào đang chiếu. Vui lòng quay lại sau.
+      </div>
+    );
   }
 
   return (
@@ -31,18 +40,18 @@ const FilmShowingPage = () => {
       <div className="flex flex-wrap justify-center items-center gap-4 md:gap-12">
         {filmShowing.map((film) => (
           <FilmCard
-            key={film._id}
-            filmId={film._id}
-            imageUrl={film.thumbnailURL || ""}
+            key={film.id}
+            filmId={film.id}
+            imageUrl={film.thumbnailUrl || ""}
             name={film.name || "Không có tên"}
             country={film.originatedCountry || "Không rõ"}
-            type={"Chưa xác định"} // Bạn có thể thêm trường 'type' vào data trả về nếu có
-            duration={film.filmDuration || 0}
+            type={film.tagIds || "Chưa xác định"}
+            duration={film.duration || 0}
             ageLimit={film.ageRestriction || "Không rõ"}
             voice={film.voice || "Không rõ"}
-            trailerURL={film.trailerURL}
-            twoDthreeD={film.twoDthreeD}
-            isShowing={true} // Nếu cần điều kiện khác, hãy cập nhật logic này
+            trailerURL={film.trailerUrl}
+            twoDthreeD={film.is3D ? ["2D", "3D"] : ["2D"]}
+            isShowing={true}
           />
         ))}
       </div>

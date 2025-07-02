@@ -4,7 +4,7 @@ const calculateTotalAfterDiscount = (
   pointUsage,
   param
 ) => {
-  if (!param) return 0;
+  if (!param) return totalPrice;
 
   let discountedPrice = Math.floor(
     totalPrice - (totalPrice * totalDiscount) / 100
@@ -20,8 +20,13 @@ const calculateTotalAfterDiscount = (
 };
 
 import React, { useEffect, useState } from "react";
+import { loadStripe } from "@stripe/stripe-js";
 import CustomButton from "../button/index"; // Giả sử bạn đã có CustomButton component
-import { createPayment, getCurrentPoint, getParam } from "../../config/api"; // Đảm bảo các API được định nghĩa đúng
+import {
+  createPaymentStripe,
+  getCurrentPoint,
+  getParam,
+} from "../../config/api"; // Đảm bảo các API được định nghĩa đúng
 import { useAuth } from "../../Context/AuthContext"; // Dùng context cho user
 import { useNavigate } from "react-router-dom";
 
@@ -48,16 +53,16 @@ const PaymentSection = ({
 
   const additionalItems = selectedFood.map((food) => {
     return {
-      _id: food._id,
+      id: food.id,
       quantity: food.quantity,
     };
   });
 
   // Lấy danh sách ID từ selectedPromotions
-  const promotionIds = selectedPromotions.map((promo) => promo._id);
+  const promotionIds = selectedPromotions.map((promo) => promo.id);
 
   const handleCreatePayment = async () => {
-    setIsLoading(true); // Bật trạng thái loading khi bắt đầu gửi yêu cầu
+    setIsLoading(true);
     try {
       if (!localStorage.getItem("accessToken")) {
         alert("Bạn cần phải đăng nhập trước khi thực hiện thanh toán");
@@ -65,40 +70,61 @@ const PaymentSection = ({
         return;
       }
 
-      const response = await createPayment({
-        additionalItemSelections: additionalItems,
-        totalPrice,
-        promotionIDs: promotionIds,
-        pointUsage: usePoints ? pointUsage : null, // Gửi số điểm sử dụng nếu có
-      });
+      const payload = {
+        tickets: [], // Không có vé
+        seatIds: [], // Không có ghế
+        filmShowId: null, // Không chọn suất chiếu
+        items: additionalItems
+          .filter((item) => item.quantity > 0)
+          .map((item) => ({
+            id: item.id,
+            quantity: item.quantity,
+          })),
+        promotionIds: promotionIds ?? [],
+        loyalPoint: 0,
+        pointUsage: usePoints ? pointUsage : 0,
+        totalPrice: totalPrice, // hoặc 0 nếu để backend tính
+        totalPriceAfterDiscount: totalAfterDiscount, // hoặc tính nếu cần
+      };
 
-      if (response && response.payUrl) {
-        setPaymentUrl(response.payUrl);
-        window.location.href = response.payUrl;
-      } else {
-        alert(response.message || "Chưa chọn sản phẩm");
+      console.log("Payload đầy đủ gửi backend:", payload);
+      localStorage.setItem("checkoutPayload", JSON.stringify(payload));
+
+      const response = await createPaymentStripe(payload);
+
+      const sessionId = response?.clientSecret;
+
+      if (!sessionId) {
+        alert("Không thể tạo phiên thanh toán. Vui lòng thử lại.");
+        return;
       }
+
+      const stripe = await loadStripe(
+        "pk_test_51RSroiFLS9qgPWZTC329aaYLG3kpwxs5dB7cICsPSiZqk58x3DU3X2oYHE4DmiqoeT1g9Sx48CThnIgH9fQ9bEwS00YI7hWxoQ"
+      );
+
+      await stripe.redirectToCheckout({ sessionId });
     } catch (error) {
       console.error("Lỗi khi tạo thanh toán:", error);
       alert("Có lỗi xảy ra. Vui lòng thử lại.");
     } finally {
-      setIsLoading(false); // Tắt trạng thái loading sau khi xong
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const pointResponse = await getCurrentPoint();
-        if (pointResponse?.data?.currentLoyalPoint) {
-          setLoyalPoint(pointResponse.data.currentLoyalPoint);
-        } else {
-          console.error("Invalid pointResponse:", pointResponse);
+        const currentUser = JSON.parse(localStorage.getItem("user"));
+        if (currentUser) {
+          setLoyalPoint(currentUser.loyalPoint);
         }
 
         const paramResponse = await getParam();
-        if (paramResponse?.data) {
-          setParam(paramResponse.data);
+        console.log(paramResponse);
+
+        if (paramResponse) {
+          setParam(paramResponse);
         } else {
           console.error("Invalid paramResponse:", paramResponse);
         }
@@ -120,8 +146,8 @@ const PaymentSection = ({
       totalPrice -
         (totalPrice * totalDiscount) /
           100 /
-          param?.loyalPoint_PointToReducedPriceRatio,
-      param?.loyalPoint_MaxiumPointUseInOneGo
+          param?.loyalPointPointToReducedPriceRatio,
+      param?.loyalPointMaximumPointUseInOneGo
     );
 
     const calculatedPointUsage = Math.min(data, loyalPoint);
@@ -137,18 +163,18 @@ const PaymentSection = ({
 
     if (
       !usePoints &&
-      totalPrice < param?.loyalPoint_MiniumValueToUseLoyalPoint
+      totalPrice < param?.loyalPointMinimumValueToUseLoyalPoint
     ) {
       alert(
-        `Để có thể sử dụng điểm tích lũy, đơn hàng tối thiểu phải là: ${param?.loyalPoint_MiniumValueToUseLoyalPoint.toLocaleString()} VNĐ`
+        `Để có thể sử dụng điểm tích lũy, đơn hàng tối thiểu phải là: ${param?.loyalPointMinimumValueToUseLoyalPoint.toLocaleString()} VNĐ`
       );
       return;
     } else if (
-      loyalPoint > param?.loyalPoint_MaxiumPointUseInOneGo &&
+      loyalPoint > param?.loyalPointMaximumPointUseInOneGo &&
       !usePoints
     ) {
       alert(
-        `Điểm sử dụng tối đa trong một lần là ${param?.loyalPoint_MaxiumPointUseInOneGo}. Phần dư ra có thể được sử dụng lại cho lần sau.`
+        `Điểm sử dụng tối đa trong một lần là ${param?.loyalPointMaximumPointUseInOneGo}. Phần dư ra có thể được sử dụng lại cho lần sau.`
       );
     }
     setUsePoints(!usePoints);
@@ -177,7 +203,7 @@ const PaymentSection = ({
                   fontSize: "18px",
                 }}
                 className="text-lg mt-2 break-words w-full"
-                key={food._id}
+                key={food.id}
               >
                 <span style={{ color: "#F3EA28" }} className="text-gray-500">
                   x{food.quantity}
@@ -205,13 +231,21 @@ const PaymentSection = ({
                   <p className="text-xl font-bold">{+totalDiscount} %</p>
                   <p className="text-lg">Điểm tích được</p>
                   <p className="text-xl font-bold">
-                    {
+                    {/* {
                       +Math.floor(
                         (totalAfterDiscount *
                           param?.loyalPoint_OrderToPointRatio) /
                           100
                       )
-                    }
+                    } */}
+
+                    {param?.loyalPointOrderToPointRatio
+                      ? +Math.floor(
+                          (totalAfterDiscount *
+                            param.loyalPointOrderToPointRatio) /
+                            100
+                        )
+                      : 0}
                   </p>
                 </div>
               </div>

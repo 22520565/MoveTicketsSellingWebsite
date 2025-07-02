@@ -20,11 +20,20 @@ const SearchPage = () => {
     handleSearch(keyword, page);
   }, [searchParams]);
 
-  const handleSearch = async (keyword, page = 1) => {
-    const response = await searchFilm({ keyword, page });
-    if (response.success) {
-      setFilms(response.data.films);
-      setMetadata(response.data.metadata);
+  const handleSearch = async (keyword) => {
+    const response = await searchFilm({ keyword });
+    console.log("keyword: ", keyword);
+    console.log("response: ", response._embedded.filmResponseDtoList);
+    if (response) {
+      setFilms(response?._embedded?.filmResponseDtoList);
+
+      const page = response?.page;
+      setMetadata({
+        total: page?.totalElements,
+        currentPage: page?.number + 1, // vì API đếm từ 0, client từ 1
+        totalPages: page?.totalPages,
+        limit: page?.size,
+      });
     }
   };
 
@@ -83,17 +92,17 @@ const SearchPage = () => {
             <div className="flex flex-wrap justify-center items-center gap-4 md:gap-12">
               {films.map((film) => (
                 <FilmCard
-                  key={film._id}
-                  filmId={film._id}
-                  imageUrl={film.thumbnailURL || ""}
+                  key={film.id}
+                  filmId={film.id}
+                  imageUrl={film.thumbnailUrl || ""}
                   name={film.name || "Không có tên"}
                   country={film.originatedCountry || "Không rõ"}
-                  type={"Chưa xác định"}
-                  duration={film.filmDuration || 0}
+                  type={film.tagIds || "Chưa xác định"}
+                  duration={film.duration || 0}
                   ageLimit={film.ageRestriction || "Không rõ"}
                   voice={film.voice || "Không rõ"}
-                  trailerURL={film.trailerURL}
-                  twoDthreeD={film.twoDthreeD}
+                  trailerURL={film.trailerUrl}
+                  twoDthreeD={film.is3D ? ["2D", "3D"] : ["2D"]}
                   isShowing={true}
                 />
               ))}

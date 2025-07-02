@@ -8,9 +8,10 @@ import { PiPlayCircleFill } from "react-icons/pi";
 import "./style.css";
 import CustomButton from "../button";
 import TrailerModal from "../TrailerModal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaRegCirclePlay } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
+import { getAllTags } from "../../config/api";
 
 const FilmCard = ({
   filmId,
@@ -28,6 +29,7 @@ const FilmCard = ({
   const linkDetail = `/movie/detail/${filmId}`;
   const navigate = useNavigate();
   const [videoOpen, setVideoOpen] = useState(false);
+  const [allTags, setAllTags] = useState([]);
 
   // Logic for Age Limit
   const getAgeLabel = () => {
@@ -41,6 +43,26 @@ const FilmCard = ({
       return "KID";
     }
     return ""; // Default case
+  };
+
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const response = await getAllTags();
+
+        setAllTags(response._embedded.tagResponseDtoList);
+      } catch {
+        throw new Error("There is an error while getting tag");
+      }
+    };
+    fetchTags();
+  }, []);
+
+  const getTagNamesByIds = (ids, tagList) => {
+    return tagList
+      .filter((tag) => ids.includes(tag.id))
+      .map((tag) => tag.name)
+      .join(", ");
   };
 
   const handleClickOverlay = () => {
@@ -99,12 +121,10 @@ const FilmCard = ({
             onClick={() => handleClickOverlay()}
           >
             <div className="flex flex-col items-start justify-start px-[38px] space-y-4 text-left w-full">
-              <h3 className="mb-3 text-lg">
-                {name}
-              </h3>
+              <h3 className="mb-3 text-lg">{name}</h3>
               <p className="flex items-center mt-2">
                 <FaTag className="w-5 h-5 mr-2 align-middle" />
-                {type}
+                {getTagNamesByIds(type, allTags)}
               </p>
               <p className="flex items-center mt-2">
                 <FaRegClock className="w-5 h-5 mr-2 align-middle" />

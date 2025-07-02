@@ -1,12 +1,39 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useAuth } from "../../Context/AuthContext";
 import UserChangePassComponent from "../../Components/UserChangePassComponent";
 import UserInfoLayout from "../../layouts/UserSpaceLayout";
+import { changePasword } from "../../config/api";
+import { toast } from "react-toastify";
 const UserChangePass = () => {
-  const handleSave = (e) => {};
   const { state } = useLocation(); // Lấy thông tin từ state
   const [fields, setFields] = useState([]);
+  const { user } = useAuth();
+  const handleSave = async (formValues) => {
+    const { oldPassword, newPassword, confirmNewPassword } = formValues;
+
+    if (newPassword !== confirmNewPassword) {
+      toast.error("Mật khẩu mới và xác nhận mật khẩu không khớp");
+      return;
+    }
+
+    try {
+      const response = await changePasword({
+        oldPassword,
+        newPassword,
+      });
+
+      console.log("Change Password Response:", response);
+
+      toast.success("Đổi mật khẩu thành công");
+    } catch (error) {
+      console.error("Change Password Error:", error);
+      const errorMessage =
+        error?.response?.data?.message || "Đổi mật khẩu thất bại";
+      toast.error(errorMessage);
+    }
+  };
   // const convertDateToISO = (date) => {
   //   const [day, month, year] = date.split("/"); // Nếu date có định dạng DD/MM/YYYY
   //   return `${year}-${month}-${day}`; // Chuyển sang YYYY-MM-DD

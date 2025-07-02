@@ -17,10 +17,12 @@ const ScheduleChooseBox = ({ date, isSelected, onClick }) => {
       `}
       onClick={onClick}
     >
-      <div className="text-lg font-interBold">
+      <div className="text-xl font-bold">
         {getDayAndMonthFromISOString(date)}
       </div>
-      <div>{getDayOfWeekFromISOString(date)}</div>
+      <div className="text-lg font-medium">
+        {getDayOfWeekFromISOString(date)}
+      </div>
     </div>
   );
 };

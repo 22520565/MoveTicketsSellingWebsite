@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import FoodSection from "../../Components/FoodSection";
 import PaymentSection from "../../Components/PaymentSection/PaymentSection";
-import { getAllFoods } from "../../config/api";
+import { getAllItems } from "../../config/api";
 import PromotionList from "../../Components/PromotionList";
+import { LogIn } from "lucide-react";
 
 const FoodPage = () => {
   const [foods, setFoods] = useState([]);
@@ -13,9 +14,10 @@ const FoodPage = () => {
   const [totalDiscount, setTotalDiscount] = useState(0);
 
   const fetchAllFood = async () => {
-    const response = await getAllFoods();
-    if (response.success) {
-      setFoods(response.data);
+    const response = await getAllItems();
+
+    if (response) {
+      setFoods(response?._embedded?.additionalItemResponseDtoList || []);
     }
   };
 
@@ -23,6 +25,10 @@ const FoodPage = () => {
     document.title = "Đặt bắp nước";
     fetchAllFood();
   }, []);
+
+  useEffect(() => {
+    console.log("selected: ", selectedFood);
+  }, [selectedFood]);
 
   return (
     <div className="relative">

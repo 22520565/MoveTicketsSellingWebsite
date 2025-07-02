@@ -35,16 +35,34 @@ import { createPayment } from "../../config/api"; // Đảm bảo createPayment 
 import PromotionList from "../../Components/PromotionList"; // Import PromotionList
 import { FaArrowLeft } from "react-icons/fa"; // Import biểu tượng mũi tên
 import { ModalWhenBuyTicket } from "../../Components/Modal/ModalWhenBuyTicket";
+import {
+  getFilmById,
+  getFilmShowByFilmId,
+  getAdditionalItem,
+  getAllTags,
+  getAllRooms,
+  getCinemas,
+  getRoomById,
+  getAllTicketType,
+  getFilmShowById,
+  getRoomSeatByRoomId,
+  getRoomSeatLockByFilmshowId,
+  createPaymentStripe,
+  getRoomSeatUnuable,
+} from "../../config/api";
+import { FileImage } from "lucide-react";
+import CinemaScheduleList from "../../Components/CinemaList";
+import { loadStripe } from "@stripe/stripe-js";
 
 const seatWidth = 50;
 const seatHeight = 40;
-const gapX = 5;
-const gapY = 5;
+const gapX = 20;
+const gapY = 15;
 
 const FilmDetailPage = () => {
   const { filmID } = useParams();
   const location = useLocation();
-  const { initShowDate, initShowTime } = location.state || {};
+  const { initShowDate, initShowTime, initCinema } = location.state || {};
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [videoOpen, setVideoOpen] = useState(false);
@@ -52,6 +70,9 @@ const FilmDetailPage = () => {
   const [isPromotionListOpen, setIsPromotionListOpen] = useState(false); // Trạng thái PromotionList
   const [selectedPromotions, setSelectedPromotions] = useState([]);
   const [totalDiscount, setTotalDiscount] = useState(0);
+  const [availableCinemaSchedules, setAvailableCinemaSchedules] = useState([]);
+
+  const [allTags, setAllTags] = useState([]);
 
   useEffect(() => {
     setSelectedFilmShowID(null);
@@ -60,62 +81,111 @@ const FilmDetailPage = () => {
   const [selectedShowtime, setSelectedShowtime] = useState(initShowTime || "");
 
   const [availableDates, setAvailableDates] = useState([]);
+  const [uniqueAvailableDates, setUniqueAvailableDates] = useState([]);
   const [availableShowtimesWithFilmType, setAvailableShowtimesWithFilmType] =
     useState([]);
 
+  useEffect(() => {
+    if (!location.state) {
+      console.warn("Không có state được truyền qua navigate.");
+    } else {
+      console.log("State nhận được:", location.state);
+    }
+  }, []);
+
+  const fetchDate = async () => {
+    try {
+      const response = await getFilmShowByFilmId(filmID);
+
+      const filmShows = response?._embedded?.filmShowResponseDtoList;
+
+      // const roomIdsInSelectedTheater = [];
+
+      // for (const show of filmShows) {
+      //   const roomRes = await getRoomById(show.roomId);
+      //   console.log("room res: ", roomRes);
+
+      //   const roomData = roomRes;
+      //   if (roomData.theaterId === selectedCinema.id) {
+      //     roomIdsInSelectedTheater.push(roomData.id);
+      //   }
+      // }
+
+      // const filteredShows = filmShows.filter((show) =>
+      //   roomIdsInSelectedTheater.includes(show.roomId)
+      // );
+
+      // const now = new Date();
+
+      // console.log("Filtered shows: ", filteredShows);
+
+      // const upcomingShows = filteredShows.filter((show) => {
+      //   const showDateTime = new Date(`${show.showDate}T${show.showTime}`);
+      //   return showDateTime > now;
+      // });
+
+      // setAvailableDates(upcomingShows);
+      const now = new Date();
+
+      const validShows = filmShows.filter((show) => {
+        const showDateTime = new Date(`${show.showDate}T${show.showTime}`);
+        return showDateTime > now;
+      });
+      const uniqueDates = Array.from(
+        new Map(validShows.map((show) => [show.showDate, show])).values()
+      );
+
+      // // Lấy các ngày chiếu duy nhất
+      // const availableDates = Array.from(
+      //   new Set(validShows.map((show) => show.showDate))
+      // ).sort();
+
+      setAvailableDates(validShows);
+      setUniqueAvailableDates(uniqueDates);
+    } catch {
+      throw new Error("There is an error while getting date");
+    }
+  };
+
   const handleGetDateAndShowTime = async (filmID) => {
     try {
-      const response = await getShowTimeOfDateByFilmId(filmID);
-      console.log("🚀 ~ handleGetDateAndShowTime ~ response:", response);
-      if (response?.success && response.data) {
-        setAvailableDates(response.data);
+      const dateRes = localStorage.getItem("allShows");
+      localStorage.removeItem("allShows");
+      let response = null;
+
+      if (dateRes) {
+        try {
+          const parsed = JSON.parse(dateRes);
+          if (Array.isArray(parsed)) {
+            response = parsed.filter((s) => s.filmId === Number(filmID));
+          } else {
+            console.warn("Parsed data is not an array:", parsed);
+          }
+        } catch (error) {
+          console.error("Error parsing JSON:", error);
+        }
+      }
+
+      if (response) {
+        console.log("Using cached response:", response);
+
+        setAvailableDates(response);
         setAvailableShowtimesWithFilmType([]);
+      } else {
+        await fetchDate();
       }
     } catch (error) {
       console.error("Error fetching dates and showtimes:", error);
     }
   };
-  //useEffect(()=>{console.log("HI" + JSON.stringify(availableShowtimesWithFilmType))},[availableShowtimesWithFilmType])
-  useEffect(() => {
-    setSelectedShowtime("");
-    if (selectedDate) {
-      const dateData = availableDates.find((d) => d.date === selectedDate);
-      setAvailableShowtimesWithFilmType(dateData?.show || []);
-    }
-  }, [selectedDate]);
 
-  useEffect(() => {
-    if (availableDates.length > 0) {
-      if (initShowDate && initShowTime) {
-        const initDateData = availableDates.find(
-          (d) => d.date === initShowDate
-        );
-        setSelectedDate(initShowDate);
-        setAvailableShowtimesWithFilmType(initDateData?.show || []);
-
-        // Kiểm tra và set selectedShowtime khi showtimes có dữ liệu
-        const initShowtimeExists = initDateData?.show?.some((group) =>
-          group.showTimes.some((showtime) => showtime.showTime === initShowTime)
-        );
-        if (initShowtimeExists) {
-          setSelectedShowtime(initShowTime);
-        }
-      } else {
-        setSelectedDate(availableDates[0].date);
-        setAvailableShowtimesWithFilmType(availableDates[0].show);
-      }
-    }
-  }, [availableDates]);
-
-  const [filmDetail, setFilmDetail] = useState();
+  //filmdetail
   useEffect(() => {
     const fetchFilmDetail = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:8000/api/films/${filmID}/getFilmDetail`
-        );
-        if (response && response.data) {
-          setFilmDetail(response.data.data);
+        const response = await getFilmById(filmID);
+        if (response) {
+          setFilmDetail(response);
           setIsPopupOpen(true);
         }
       } catch (error) {
@@ -124,8 +194,108 @@ const FilmDetailPage = () => {
     };
 
     fetchFilmDetail();
-    handleGetDateAndShowTime(filmID);
+    const fetchFilmDetailAndShowTime = async () => {
+      try {
+        await handleGetDateAndShowTime(filmID); // đợi fetch suất chiếu xong
+        console.log("Available dates after fetch: ", availableDates);
+      } catch (error) {
+        console.error("Error fetching film details or show times:", error);
+      }
+    };
+
+    fetchFilmDetailAndShowTime();
   }, []);
+
+  //cinemalist
+  useEffect(() => {
+    const fetCinemaList = async () => {
+      const rooms = (await getAllRooms())._embedded.roomResponseDtoList;
+      const allCinemas = (await getCinemas())._embedded.theaterResponseDtoList;
+
+      const cinemaSchedules = [];
+
+      allCinemas.forEach((cinema) => {
+        const schedulesByType = {}; // sẽ tự động gộp 2D, 3D hoặc các loại khác
+
+        const filteredShows = availableDates.filter(
+          (show) => show.showDate === selectedDate
+        );
+
+        filteredShows.forEach((show) => {
+          const room = rooms.find((r) => r.id === show.roomId);
+          if (!room) return;
+
+          if (cinema.id !== room.theaterId) return;
+
+          const time = show.showTime.slice(0, 5);
+          const type = show.type || "Standard";
+
+          if (!schedulesByType[type]) schedulesByType[type] = [];
+
+          const alreadyExists = schedulesByType[type].some(
+            (s) => s.showTime === time && s.filmShowId === show.id
+          );
+
+          if (!alreadyExists) {
+            schedulesByType[type].push({
+              showTime: time,
+              filmShowId: show.id,
+            });
+          }
+        });
+
+        // Sắp xếp mỗi loại lịch chiếu theo thời gian
+        for (const type in schedulesByType) {
+          schedulesByType[type].sort((a, b) =>
+            a.showTime.localeCompare(b.showTime)
+          );
+        }
+
+        cinemaSchedules.push({
+          name: cinema.name,
+          address: cinema.address,
+          city: cinema.city,
+          schedules: schedulesByType,
+        });
+      });
+      console.log(cinemaSchedules);
+
+      setAvailableCinemaSchedules(cinemaSchedules);
+    };
+
+    fetCinemaList();
+  }, [availableDates, selectedDate]);
+
+  //useEffect(()=>{console.log("HI" + JSON.stringify(availableShowtimesWithFilmType))},[availableShowtimesWithFilmType])
+
+  useEffect(() => {
+    if (availableDates.length > 0) {
+      if (initShowDate && initShowTime) {
+        const initShow = availableDates.find(
+          (show) =>
+            show.showDate === initShowDate &&
+            show.showTime.slice(0, 5) === initShowTime
+        );
+
+        console.log("hehe: ", initShow);
+
+        if (initShow) {
+          console.log("hehe");
+
+          setSelectedDate(initShowDate);
+        }
+      } else {
+        const first = availableDates[0];
+        setSelectedDate(first.showDate);
+      }
+    }
+  }, [availableDates]);
+
+  const [filmDetail, setFilmDetail] = useState();
+
+  useEffect(() => {
+    console.log("show: ", availableDates);
+  }, [availableDates]);
 
   const handleClosePopup = () => {
     setIsPopupOpen(false); // Đóng popup khi người dùng tắt
@@ -134,6 +304,21 @@ const FilmDetailPage = () => {
   useEffect(() => {
     document.title = filmDetail?.name || "Loading...";
   }, [filmDetail]);
+
+  //tag
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const response = await getAllTags();
+        if (response) {
+          setAllTags(response._embedded.tagResponseDtoList);
+        }
+      } catch (error) {
+        console.error("Error fetching tags: ", error);
+      }
+    };
+    fetchTags();
+  }, []);
 
   // Mapping ageLimit to appropriate category
   const getAgeCategory = (ageLimit) => {
@@ -169,7 +354,17 @@ const FilmDetailPage = () => {
   };
 
   const [selectedFilmShowID, setSelectedFilmShowID] = useState(null);
-  const [selectedFilmShow, setSelectedFilmShow] = useState(null);
+
+  useEffect(() => {
+    if (initShowTime?.id) {
+      console.log("initshowtime đã có:", initShowTime.id);
+      setSelectedFilmShowID(initShowTime.id);
+    }
+  }, [initShowTime]);
+
+  const [selectedFilmShow, setSelectedFilmShow] = useState(
+    initShowTime || null
+  );
   const [ticketSelection, setTicketSelection] = useState([]);
   const [additionalItemSelections, setAdditionalItemSelections] = useState([]);
   const [totalTicket_Single, setTotalTicket_Single] = useState(0);
@@ -177,19 +372,24 @@ const FilmDetailPage = () => {
 
   const [usedSingle, setUsedSingle] = useState(0);
   const [usedPair, setUsedPair] = useState(0);
+  const [isBookedApplied, setIsBookedApplied] = useState(false);
+
+  useEffect(() => {
+    console.log("hihi: ", selectedFilmShow);
+  }, [selectedFilmShow]);
+
   useEffect(() => {
     if (selectedFilmShow) return;
     setRoomDetail(null);
   }, [selectedFilmShow]);
   //FETCH
+  //loại vé
   useEffect(() => {
     try {
       const fetchTicketType = async () => {
-        const response = await axios.get(
-          "http://localhost:8000/api/param/ticket-type"
-        );
+        const response = await getAllTicketType();
         setTicketSelection(
-          response.data.data.map((ticketType) => ({
+          response._embedded.ticketTypeResponseDtoList.map((ticketType) => ({
             ...ticketType,
             quantity: 0,
           }))
@@ -208,17 +408,18 @@ const FilmDetailPage = () => {
       }
     }
   }, []);
+  // sản phẩm ngoài
   useEffect(() => {
     try {
       const fetchAdditionalItem = async () => {
-        const response = await axios.get(
-          "http://localhost:8000/api/additional-items"
-        );
+        const response = await getAdditionalItem();
         setAdditionalItemSelections(
-          response.data.data.map((additional) => ({
-            ...additional,
-            quantity: 0,
-          }))
+          response._embedded.additionalItemResponseDtoList.map(
+            (additional) => ({
+              ...additional,
+              quantity: 0,
+            })
+          )
         );
       };
       fetchAdditionalItem();
@@ -235,14 +436,16 @@ const FilmDetailPage = () => {
       }
     }
   }, []);
+
+  // Film show detail
   useEffect(() => {
     const fetchFilmShowDetail = async () => {
       if (selectedFilmShowID !== null) {
         try {
-          const response = await axios.get(
-            `http://localhost:8000/api/film-show/${selectedFilmShowID}`
-          );
-          setSelectedFilmShow(response.data.data);
+          const response = await getFilmShowById(selectedFilmShowID);
+          console.log("Selected Film Show Response: ", response);
+
+          setSelectedFilmShow(response);
         } catch (error) {}
       } else {
         setSelectedFilmShow(null);
@@ -250,8 +453,10 @@ const FilmDetailPage = () => {
     };
     fetchFilmShowDetail();
   }, [selectedFilmShowID]);
+
+  //filmshow đã chọn
   useEffect(() => {
-    console.log(selectedFilmShow);
+    console.log("filmshow đã chọn: ", selectedFilmShow);
   }, [selectedFilmShow]);
 
   const [roomDetail, setRoomDetail] = useState();
@@ -261,10 +466,9 @@ const FilmDetailPage = () => {
       return;
     }
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/rooms/${selectedFilmShow.roomId}`
-      );
-      setRoomDetail(response.data.data);
+      const response = await getRoomById(selectedFilmShow.roomId);
+
+      setRoomDetail(response);
     } catch (error) {
       if (error.response) {
         alert(`Lấy thông tin phòng thất bại, lỗi: ` + error.response.data.msg);
@@ -279,28 +483,41 @@ const FilmDetailPage = () => {
   useEffect(() => {
     fetchRoom();
   }, [selectedFilmShow]);
+
   //init room seat
   useEffect(() => {
-    if (!roomDetail) {
-      return;
-    }
-    const appendedSeat = roomDetail.seats.map((row) =>
-      row.map((seat) => ({
-        ...seat, // Preserve exi    sting properties
-        selected: false,
-        enabled: false,
-        booked: false,
-      }))
-    );
-    setRoomSeat(appendedSeat);
+    const fetchRoomSeats = async () => {
+      if (!roomDetail) return;
+      try {
+        const response = await getRoomSeatByRoomId(roomDetail.id); // Giả sử response chứa mảng ghế
+
+        if (response) {
+          const appendedSeat = response.map((row) =>
+            row.map((seat) => ({
+              ...seat,
+              selected: false,
+              enabled: false,
+              booked: false,
+            }))
+          );
+          setRoomSeat(appendedSeat);
+        }
+      } catch (error) {
+        console.error(" Lỗi khi lấy danh sách ghế:", error);
+      }
+    };
+
+    fetchRoomSeats();
   }, [roomDetail]);
 
   const handleSelectSeat = (row, col) => {
-    const updatedRoomSeat = [...roomSeat];
-    if (updatedRoomSeat[row][col - 1].seatType === "P") {
+    const updatedRoomSeat = roomSeat.map((row) =>
+      row.map((seat) => ({ ...seat }))
+    );
+    if (col > 0 && updatedRoomSeat[row][col - 1].type === "P") {
       col--;
     }
-    if (updatedRoomSeat[row][col].seatType === "") {
+    if (updatedRoomSeat[row][col].type === "") {
       return;
     }
     if (updatedRoomSeat[row][col].booked) {
@@ -326,7 +543,7 @@ const FilmDetailPage = () => {
     for (let i = 0; i < roomSeat.length; i++) {
       for (let j = 0; j < roomSeat[0].length; j++) {
         if (roomSeat[i][j].selected) {
-          if (roomSeat[i][j].seatType === "P") {
+          if (roomSeat[i][j].type === "P") {
             usedPair++;
           } else {
             usedSingle++;
@@ -337,25 +554,83 @@ const FilmDetailPage = () => {
     setUsedSingle(usedSingle);
     setUsedPair(usedPair);
   };
-  const setBookedSeat = () => {
-    if (!selectedFilmShow) {
+
+  // const setBookedSeat = () => {
+  //   if (!selectedFilmShow) {
+  //     return;
+  //   }
+  //   const bookedSeatPoss = selectedFilmShow.lockedSeats;
+  //   const updatedSeat = roomSeat;
+  //   for (const bookedSeatPos of bookedSeatPoss) {
+  //     updatedSeat[bookedSeatPos.i][bookedSeatPos.j].booked = true;
+  //   }
+  //   setRoomSeat(updatedSeat);
+  // };
+  let callCount = 0;
+  const setBookedSeat = async () => {
+    callCount += 1;
+    console.log(
+      ` [${callCount}] Gọi setBookedSeat - selectedFilmShowID:`,
+      selectedFilmShowID
+    );
+    if (!selectedFilmShow || !selectedFilmShowID || isBookedApplied) {
+      console.log(
+        ` [${callCount}] Bỏ qua vì thiếu điều kiện (selectedFilmShow=${!!selectedFilmShow}, selectedFilmShowID=${selectedFilmShowID}, isBookedApplied=${isBookedApplied})`
+      );
       return;
     }
-    const bookedSeatPoss = selectedFilmShow.lockedSeats;
-    const updatedSeat = roomSeat;
-    for (const bookedSeatPos of bookedSeatPoss) {
-      updatedSeat[bookedSeatPos.i][bookedSeatPos.j].booked = true;
+
+    try {
+      const response = await getRoomSeatUnuable(selectedFilmShowID);
+
+      const lockedSeats = response?._embedded?.roomSeatResponseDtoList;
+      console.log("Room Seats Response: ", lockedSeats);
+
+      if (!Array.isArray(lockedSeats)) {
+        console.warn("lockedSeats không hợp lệ:", lockedSeats);
+        return;
+      }
+      const lockedIds = lockedSeats.map((s) => s.id);
+
+      const updatedSeat = roomSeat.map((row) =>
+        row.map((seat) =>
+          lockedIds.includes(seat.id) ? { ...seat, booked: true } : { ...seat }
+        )
+      );
+      console.log(updatedSeat);
+
+      setRoomSeat(updatedSeat);
+      setIsBookedApplied(true);
+      console.log(` [${callCount}] Đã cập nhật booked seats`);
+    } catch (err) {
+      console.error("Lỗi khi lấy danh sách ghế đã khóa:", err);
     }
-    setRoomSeat(updatedSeat);
   };
-  //update room seat effect
+
   useEffect(() => {
-    if (!roomSeat) {
-      return;
-    }
+    if (!roomSeat || !selectedFilmShowID || isBookedApplied) return;
     setBookedSeat();
+  }, [roomSeat, selectedFilmShowID]);
+  useEffect(() => {
+    setIsBookedApplied(false);
+  }, [selectedFilmShowID]);
+
+  //update room seat effect
+  // useEffect(() => {
+  //   if (!roomSeat || !selectedFilmShowID) return;
+  //   setBookedSeat();
+  // }, [selectedFilmShowID, roomSeat, isBookedApplied, initShowTime]);
+
+  useEffect(() => {
+    setIsBookedApplied(false); // khi chọn suất chiếu mới thì reset flag
+  }, [selectedFilmShowID]);
+
+  // Khi roomSeat thay đổi → tính số ghế đã dùng
+  useEffect(() => {
+    if (!roomSeat) return;
     updateUsedTicket();
   }, [roomSeat]);
+
   //update enable seat
   useEffect(() => {
     if (!roomSeat) {
@@ -366,7 +641,7 @@ const FilmDetailPage = () => {
     if (usedSingle >= totalTicket_Single) {
       for (let i = 0; i < updatedRoomSeat.length; i++) {
         for (let j = 0; j < updatedRoomSeat[0].length; j++) {
-          if (updatedRoomSeat[i][j].seatType !== "P") {
+          if (updatedRoomSeat[i][j].type !== "P") {
             updatedRoomSeat[i][j].enabled = false;
           }
         }
@@ -374,7 +649,7 @@ const FilmDetailPage = () => {
     } else {
       for (let i = 0; i < updatedRoomSeat.length; i++) {
         for (let j = 0; j < updatedRoomSeat[0].length; j++) {
-          if (updatedRoomSeat[i][j].seatType !== "P") {
+          if (updatedRoomSeat[i][j].type !== "P") {
             updatedRoomSeat[i][j].enabled = true;
             //console.log(`${i},${j} ${updatedRoomSeat[i][j].enabled} `)
           }
@@ -382,7 +657,7 @@ const FilmDetailPage = () => {
       }
     }
     setRoomSeat(updatedRoomSeat);
-  }, [usedSingle, totalTicket_Single]);
+  }, [usedSingle, totalTicket_Single, initShowTime]);
   useEffect(() => {
     if (!roomSeat) {
       return;
@@ -392,7 +667,7 @@ const FilmDetailPage = () => {
     if (usedPair >= totalTicket_Pair) {
       for (let i = 0; i < updatedRoomSeat.length; i++) {
         for (let j = 0; j < updatedRoomSeat[0].length; j++) {
-          if (updatedRoomSeat[i][j].seatType === "P") {
+          if (updatedRoomSeat[i][j].type === "P") {
             updatedRoomSeat[i][j].enabled = false;
           }
         }
@@ -400,14 +675,14 @@ const FilmDetailPage = () => {
     } else {
       for (let i = 0; i < updatedRoomSeat.length; i++) {
         for (let j = 0; j < updatedRoomSeat[0].length; j++) {
-          if (updatedRoomSeat[i][j].seatType === "P") {
+          if (updatedRoomSeat[i][j].type === "P") {
             updatedRoomSeat[i][j].enabled = true;
           }
         }
       }
     }
     setRoomSeat(updatedRoomSeat);
-  }, [usedPair, totalTicket_Pair]);
+  }, [usedPair, totalTicket_Pair, initShowTime]);
 
   const updateTotalTicket = () => {
     let single = 0,
@@ -433,6 +708,12 @@ const FilmDetailPage = () => {
   if (!filmDetail) {
     return <div>Loading...</div>;
   }
+
+  const getTagById = (id, allTags) => {
+    const tag = allTags.find((tag) => tag.id === id);
+    return tag ? tag.name : "Không rõ";
+  };
+
   return (
     <div className="p-6 space-y-12 md:space-y-40">
       {isPopupOpen && (
@@ -444,7 +725,7 @@ const FilmDetailPage = () => {
           <div className="relative border border-gray-300 rounded-lg ">
             {/* Hình ảnh phim */}
             <img
-              src={filmDetail.thumbnailURL}
+              src={filmDetail.thumbnailUrl}
               alt="Film Thumbnail"
               className="w-full h-full object-cover rounded-lg "
             />
@@ -453,16 +734,14 @@ const FilmDetailPage = () => {
               <div className="absolute top-0 left-0 flex items-center">
                 <div className="flex items-center">
                   {/* Nhãn 2D */}
-                  {filmDetail.twoDthreeD.includes("2D") && (
-                    <div className="flex bg-[#FF9933] w-[33px] h-[35px] lg:w-[71px] lg:h-[78px] justify-center items-center shadow-md">
-                      <span className="border-2 border-black p-0.5 text-xs rounded-md font-interBold text-black">
-                        2D
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex bg-[#FF9933] w-[33px] h-[35px] lg:w-[71px] lg:h-[78px] justify-center items-center shadow-md">
+                    <span className="border-2 border-black p-0.5 text-xs rounded-md font-interBold text-black">
+                      2D
+                    </span>
+                  </div>
 
-                  {/* Conditionally render 3D */}
-                  {filmDetail.twoDthreeD.includes("3D") && (
+                  {/* Chỉ hiển thị 3D nếu is3D === true */}
+                  {filmDetail.is3D && (
                     <div className="flex bg-[#663399] w-[33px] h-[35px] lg:w-[71px] lg:h-[78px] justify-center items-center shadow-md">
                       <span className="border-2 border-white p-0.5 text-xs rounded-md font-interBold text-white">
                         3D
@@ -485,30 +764,33 @@ const FilmDetailPage = () => {
         </div>
 
         <div className="col-span-3 pt-6 space-y-10">
-          <h1 className="rounded-full w-full h-6 flex items-center justify-start font-interExtraBold">
+          <h1 className="text-5xl rounded-full w-full h-6 flex items-center justify-start font-interExtraBold">
             {filmDetail.name}
           </h1>
 
           <div className="flex flex-col items-start justify-start space-y-4 text-left w-full mt-4 film-info">
-            <p className="flex items-center mt-2">
+            <p className="flex items-center mt-2 text-2xl">
               <FaTag className="icon-style" />
-              Thể loại: {filmDetail.tagsRef.map((tag) => tag.name).join(", ")}
+              Thể loại:{" "}
+              {filmDetail.tagIds
+                .map((id) => getTagById(id, allTags))
+                .join(", ")}
             </p>
-            <p className="flex items-center mt-2">
+            <p className="flex items-center mt-2 text-2xl">
               <FaRegClock className="icon-style" />
-              {`${filmDetail.filmDuration} phút`}
+              {`${filmDetail.duration} phút`}
             </p>
-            <p className="flex items-center mt-2">
+            <p className="flex items-center mt-2 text-2xl">
               <FaGlobeAmericas className="icon-style" />
               Quốc gia: {filmDetail.originatedCountry}
             </p>
-            <p className="flex items-center mt-2">
+            <p className="flex items-center mt-2 text-2xl">
               <FaCommentDots className="icon-style" />
               Phụ đề: {filmDetail.voice}
             </p>
-            <p className="flex items-center mt-2">
+            <p className="flex items-center mt-2 text-2xl">
               <LuUserRoundCheck className="icon-style" />{" "}
-              <span className="bg-mainColor text-black">
+              <span className="bg-mainColor text-white">
                 {filmDetail.ageRestriction}:{" "}
                 {getAgeDescription(filmDetail.ageRestriction)}
               </span>
@@ -517,8 +799,8 @@ const FilmDetailPage = () => {
           <div>
             <FilmInfoSection
               className="hidden md:block"
-              filmContent={filmDetail.filmContent}
-              filmDescription={filmDetail.filmDescription}
+              filmContent={filmDetail.content}
+              filmDescription={filmDetail.description}
             />
           </div>
           <button
@@ -535,31 +817,38 @@ const FilmDetailPage = () => {
         <TrailerModal
           videoOpen={videoOpen}
           setVideoOpen={setVideoOpen}
-          videoUrl={filmDetail.trailerURL}
+          videoUrl={filmDetail.trailerUrl}
         />
       </div>
 
       <FilmInfoSection
         className="block md:hidden mt-6"
-        filmContent={filmDetail.filmContent}
-        filmDescription={filmDetail.filmDescription}
+        filmContent={filmDetail.content}
+        filmDescription={filmDetail.description}
       />
       <div>
         <div className="flex flex-col justify-center items-center space-y-12">
           <h1 className="font-interExtraBold">LỊCH CHIẾU</h1>
           <div className="flex flex-wrap justify-center items-center mt-6 gap-4">
-            {availableDates.map((dateGroup) => {
+            {uniqueAvailableDates.map((dateGroup) => {
               return (
                 <ScheduleChooseBox
-                  date={dateGroup.date}
-                  isSelected={selectedDate === dateGroup.date}
-                  onClick={() => setSelectedDate(dateGroup.date)}
+                  date={dateGroup.showDate}
+                  isSelected={selectedDate === dateGroup.showDate}
+                  onClick={() => setSelectedDate(dateGroup.showDate)}
                 />
               );
             })}
           </div>
+          <CinemaScheduleList
+            cinemasData={availableCinemaSchedules}
+            selectedShowtime={selectedFilmShow}
+            onSelectShowtime={(showTime, filmShowId) => {
+              setSelectedFilmShowID(filmShowId);
+            }}
+          />
 
-          {availableShowtimesWithFilmType?.map((dataGroup) => {
+          {/* {availableShowtimesWithFilmType?.map((dataGroup) => {
             return (
               <div className="flex flex-col justify-center items-center space-y-2">
                 <h1 className="font-interExtraBold">SUẤT CHIẾU</h1>
@@ -581,7 +870,7 @@ const FilmDetailPage = () => {
                 </div>
               </div>
             );
-          })}
+          })} */}
         </div>
       </div>
 
@@ -611,7 +900,7 @@ const FilmDetailPage = () => {
                         setTicketSelection((prev) =>
                           prev.map(
                             (item) =>
-                              item._id === ticketType._id // Match by id
+                              item.id === ticketType.id // Match by id
                                 ? { ...item, quantity: updatedQuantity } // Update the quantity for the matched item
                                 : item // Keep other items unchanged
                           )
@@ -626,7 +915,7 @@ const FilmDetailPage = () => {
                         setTicketSelection((prev) =>
                           prev.map(
                             (item) =>
-                              item._id === ticketType._id // Match by id
+                              item.id === ticketType.id // Match by id
                                 ? { ...item, quantity: updatedQuantity } // Update the quantity for the matched item
                                 : item // Keep other items unchanged
                           )
@@ -648,10 +937,10 @@ const FilmDetailPage = () => {
           flexDirection: "column",
         }}
       >
-        {roomDetail && roomSeat && (
+        {roomDetail?.name && Array.isArray(roomSeat) && roomSeat.length > 0 && (
           <RoomDisplay
             roomSeat={roomSeat}
-            roomName={roomDetail.roomName}
+            roomName={roomDetail.name}
             center={{
               x1: roomDetail.centerX1,
               x2: roomDetail.centerX2,
@@ -680,7 +969,7 @@ const FilmDetailPage = () => {
                     setAdditionalItemSelections((prev) =>
                       prev.map(
                         (item) =>
-                          item._id === food._id // Match by id
+                          item.id === food.id // Match by id
                             ? { ...item, quantity: updatedQuantity } // Update the quantity for the matched item
                             : item // Keep other items unchanged
                       )
@@ -694,7 +983,7 @@ const FilmDetailPage = () => {
                     setAdditionalItemSelections((prev) =>
                       prev.map(
                         (item) =>
-                          item._id === food._id // Match by id
+                          item.id === food.id // Match by id
                             ? { ...item, quantity: updatedQuantity } // Update the quantity for the matched item
                             : item // Keep other items unchanged
                       )
@@ -712,7 +1001,7 @@ const FilmDetailPage = () => {
           filmName="Alibaba"
           date="20-12-2024"
           time="10:30"
-          roomName={roomDetail.roomName}
+          roomName={roomDetail.name}
           seatSelections={roomSeat}
           ticketSelections={ticketSelection}
           additionalItemSelections={additionalItemSelections}
@@ -770,7 +1059,7 @@ function RoomDisplay({ roomSeat, roomName, handleSelectSeat, center }) {
               <span className="row-label">
                 {String.fromCharCode(65 + rowIndex)}
               </span>
-              <div className="seatRow">
+              <div className="seatRow flex flex-wrap gap-x-6 gap-y-5">
                 {
                   // Use for loop to iterate over the seats in the row
                   (() => {
@@ -781,9 +1070,9 @@ function RoomDisplay({ roomSeat, roomName, handleSelectSeat, center }) {
                       seatIndex++
                     ) {
                       const seat = row[seatIndex];
-                      if (seat.seatType === "") {
+                      if (seat.type === "") {
                         seatSlots.push(
-                          <SeatSlot key={seatIndex} seatType={seat.seatType}>
+                          <SeatSlot key={seatIndex} seatType={seat.type}>
                             {!flag &&
                               center.x1 >= 0 &&
                               center.y1 >= 0 &&
@@ -823,13 +1112,22 @@ function RoomDisplay({ roomSeat, roomName, handleSelectSeat, center }) {
                           </SeatSlot>
                         );
                       } else {
+                        if (["J7", "K4", "M5"].includes(seat.name)) {
+                          console.log(
+                            `🪑 Ghế ${seat.name} → booked: ${
+                              seat.booked
+                            }, enabled: ${seat.enabled}, disabled: ${
+                              seat.booked || !seat.enabled
+                            }`
+                          );
+                        }
                         seatSlots.push(
                           <SeatSlot
                             key={seatIndex}
                             selected={seat.selected}
                             disabled={seat.booked || !seat.enabled}
-                            label={seat.seatName}
-                            seatType={seat.seatType}
+                            label={seat.name}
+                            seatType={seat.type}
                             handleOnClick={() =>
                               handleSelectSeat(rowIndex, seatIndex)
                             }
@@ -873,7 +1171,7 @@ function RoomDisplay({ roomSeat, roomName, handleSelectSeat, center }) {
                           </SeatSlot>
                         );
                       }
-                      if (seat.seatType === "P") {
+                      if (seat.type === "P") {
                         seatIndex++;
                       }
                     }
@@ -989,6 +1287,7 @@ function BottomBar({
   const [param, setParam] = useState(null);
   const [pointUsage, setPointUsage] = useState(null);
   const [priceAfterAll, setPriceAfterAll] = useState(0);
+  const [clientSecret, setClientSecret] = useState(null);
   const navigate = useNavigate();
 
   const handleCreatePayment = async () => {
@@ -998,45 +1297,89 @@ function BottomBar({
       return;
     }
 
+    // Kiểm tra trước khi tạo payload
+    if (!selectedFilmShowId) {
+      alert("Vui lòng chọn suất chiếu trước khi thanh toán");
+      return;
+    }
+
+    const selectedTickets = ticketSelections.filter((t) => t.quantity > 0);
+    if (selectedTickets.length === 0) {
+      alert("Vui lòng chọn ít nhất 1 loại vé");
+      return;
+    }
+
+    const selectedSeatIds = seatSelections
+      .flat()
+      .filter((s) => s.selected)
+      .map((s) => s.id);
+
+    if (selectedSeatIds.length === 0) {
+      alert("Vui lòng chọn ghế trước khi thanh toán");
+      return;
+    }
+
     try {
-      // Lấy danh sách promotionId từ selectedPromotions
-      const promotionIds = selectedPromotions.map((promo) => promo._id);
-
-      // Log danh sách promotionIds để kiểm tra
       console.log("Danh sách promotionIds:", promotionIds);
-
-      const response = await createPayment({
-        ticketSelections: ticketSelections.filter(
-          (element) => element.quantity !== 0
-        ),
-        seatSelections: seatSelections,
-        additionalItemSelections: additionalItemSelections.filter(
-          (element) => element.quantity !== 0
-        ),
+      const payload = {
         totalPrice: calculateTotalPrice(),
+        totalPriceAfterDiscount: priceAfterAll,
         filmShowId: selectedFilmShowId,
-        promotionIDs: promotionIds, // Thêm danh sách promotionId vào payload
-        pointUsage: usePoints ? pointUsage : null,
-      });
+        tickets: ticketSelections
+          .filter((t) => t.quantity > 0)
+          .map((t) => ({
+            typeId: t.id,
+            quantity: t.quantity,
+          })),
+        seatIds: seatSelections
+          .flat()
+          .filter((s) => s.selected)
+          .map((s) => s.id),
+        items: additionalItemSelections
+          .filter((i) => i.quantity > 0)
+          .map((i) => ({
+            id: i.id,
+            quantity: i.quantity,
+          })),
+        promotionIds: selectedPromotions.map((p) => p.id),
+        loyalPoint: Math.floor(
+          (priceAfterAll * param?.loyalPointOrderToPointRatio) / 100
+        ),
+        pointUsage: usePoints ? pointUsage : 0,
+      };
 
-      if (response && response.payUrl) {
-        setPaymentUrl(response.payUrl);
-        window.location.href = response.payUrl;
-      } else {
-        alert(response.message);
+      console.log("Payload gửi:", payload);
+
+      localStorage.setItem("checkoutPayload", JSON.stringify(payload));
+      const response = await createPaymentStripe(payload);
+      const sessionId = response?.clientSecret;
+
+      if (!sessionId) {
+        alert("Không thể tạo phiên thanh toán. Vui lòng thử lại.");
+        return;
       }
+
+      const stripe = await loadStripe(
+        "pk_test_51RSroiFLS9qgPWZTC329aaYLG3kpwxs5dB7cICsPSiZqk58x3DU3X2oYHE4DmiqoeT1g9Sx48CThnIgH9fQ9bEwS00YI7hWxoQ"
+      );
+
+      await stripe.redirectToCheckout({ sessionId });
     } catch (error) {
       console.error("Lỗi khi tạo thanh toán:", error);
       alert("Có lỗi xảy ra. Vui lòng thử lại.");
     }
   };
+  // Lấy danh sách promotionId từ selectedPromotions
+  const promotionIds = selectedPromotions.map((promo) => promo.id);
+
+  // Log danh sách promotionIds để kiểm tra
 
   useEffect(() => {
     if (!param) return;
     if (usePoints === false) setPointUsage(null);
 
     const pointUsage = Math.min(
-      param.loyalPoint_MaxiumPointUseInOneGo,
+      param.loyalPointMaximumPointUseInOneGo,
       loyalPoint
     );
 
@@ -1051,20 +1394,20 @@ function BottomBar({
 
     if (
       usePoints === false &&
-      calculateTotalPrice() < param.loyalPoint_MiniumValueToUseLoyalPoint
+      calculateTotalPrice() < param.loyalPointMinimumValueToUseLoyalPoint
     ) {
       alert(
-        `Bạn có thể sử dụng điểm cho hóa hóa đơn từ : ${param.loyalPoint_MiniumValueToUseLoyalPoint.toLocaleString()} VNĐ`
+        `Bạn có thể sử dụng điểm cho hóa hóa đơn từ : ${param.loyalPointMinimumValueToUseLoyalPoint.toLocaleString()} VNĐ`
       );
       return;
     }
 
     if (
       usePoints === false &&
-      loyalPoint > param.loyalPoint_MaxiumPointUseInOneGo
+      loyalPoint > param.loyalPointMaximumPointUseInOneGo
     ) {
       alert(
-        `Điểm sử dụng tối đa trong một lần là ${param.loyalPoint_MaxiumPointUseInOneGo}. Phần dư ra có thể được sử dụng lại cho lần sau.`
+        `Điểm sử dụng tối đa trong một lần là ${param.loyalPointMaximumPointUseInOneGo}. Phần dư ra có thể được sử dụng lại cho lần sau.`
       );
       setUsePoints(!usePoints);
       return;
@@ -1079,16 +1422,18 @@ function BottomBar({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const pointResponse = await getCurrentPoint();
-        if (pointResponse?.data?.currentLoyalPoint) {
-          setLoyalPoint(pointResponse.data.currentLoyalPoint);
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user && user.loyalPoint !== undefined) {
+          setLoyalPoint(user.loyalPoint);
         } else {
-          console.error("Invalid pointResponse:", pointResponse);
+          console.error("Không tìm thấy loyalPoint trong localStorage");
         }
 
         const paramResponse = await getParam();
-        if (paramResponse?.data) {
-          setParam(paramResponse.data);
+        console.log("Param response:", paramResponse);
+
+        if (paramResponse) {
+          setParam(paramResponse);
         } else {
           console.error("Invalid paramResponse:", paramResponse);
         }
@@ -1110,7 +1455,7 @@ function BottomBar({
       for (let j = 0; j < seatSelections[i].length; j++) {
         if (seatSelections[i][j].selected) {
           //console.log(seatSelections[i][j].seatType)
-          if (seatSelections[i][j].seatType === "V") {
+          if (seatSelections[i][j].type === "V") {
             vCount++;
           }
         }
@@ -1118,7 +1463,7 @@ function BottomBar({
     }
     if (param) {
       console.log;
-      total += vCount * param.addedPriceForVIPSeat;
+      total += vCount * param.addedPriceForVipSeat;
     }
 
     for (let i = 0; i < additionalItemSelections.length; i++) {
@@ -1134,7 +1479,7 @@ function BottomBar({
     if (usePoints === false) setPointUsage(null);
 
     const pointUsage = Math.min(
-      param.loyalPoint_MaxiumPointUseInOneGo,
+      param.loyalPointMaximumPointUseInOneGo,
       loyalPoint
     );
 
@@ -1144,12 +1489,12 @@ function BottomBar({
       ? calculateTotalPrice() - (calculateTotalPrice() * totalDiscount) / 100
       : calculateTotalPrice() -
           (calculateTotalPrice() * totalDiscount) / 100 -
-          (pointUsage * param.loyalPoint_PointToReducedPriceRatio) / 100 <
+          (pointUsage * param.loyalPointPointToReducedPriceRatio) / 100 <
         0
       ? 0
       : calculateTotalPrice() -
         (calculateTotalPrice() * totalDiscount) / 100 -
-        (pointUsage * param.loyalPoint_PointToReducedPriceRatio) / 100;
+        (pointUsage * param.loyalPointPointToReducedPriceRatio) / 100;
 
     setPriceAfterAll(price);
   }, [
@@ -1207,9 +1552,9 @@ function BottomBar({
             for (let j = 0; j < seatSelections[i].length; j++) {
               if (seatSelections[i][j].selected) {
                 if (string === "") {
-                  string = string.concat(seatSelections[i][j].seatName);
+                  string = string.concat(seatSelections[i][j].name);
                 } else {
-                  string = string.concat(`, ${seatSelections[i][j].seatName}`);
+                  string = string.concat(`, ${seatSelections[i][j].name}`);
                 }
                 exist = true;
               }
@@ -1270,7 +1615,7 @@ function BottomBar({
                 {additionalItemSelections.map((element) => {
                   if (element.quantity > 0) {
                     return (
-                      <div key={element._id}>
+                      <div key={element.id}>
                         {element.quantity}x {element.name}
                         <br />
                       </div>
@@ -1312,7 +1657,7 @@ function BottomBar({
             <p className="text-xl font-bold">
               +{" "}
               {Math.floor(
-                (priceAfterAll * param?.loyalPoint_OrderToPointRatio) / 100
+                (priceAfterAll * param?.loyalPointOrderToPointRatio) / 100
               ).toLocaleString()}
             </p>
           </div>

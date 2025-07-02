@@ -15,7 +15,7 @@ const QuantitySelector = ({
       const updatedFoodList = [...selectedFood];
 
       const foodIndex = updatedFoodList.findIndex(
-        (item) => item._id === food._id
+        (item) => item.id === food.id
       );
 
       if (newQuantity > 0) {
@@ -25,7 +25,7 @@ const QuantitySelector = ({
           updatedFoodList.push({
             name: food.name,
             quantity: newQuantity,
-            _id: food._id,
+            id: food.id,
             price: food.price,
           });
         }

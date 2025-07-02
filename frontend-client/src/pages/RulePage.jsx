@@ -222,14 +222,14 @@ const RulePage = () => {
         của Khách Hàng với Nhóm 3, xin vui lòng liên hệ Nhóm 3 theo thông tin
         sau:
         <br />
-        Nhóm 3 - SE100.P12 - TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN ĐẠI HỌC QUỐC GIA
+        Nhóm 3 - SE334.P21 - TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN ĐẠI HỌC QUỐC GIA
         HCM
         <br />
         ĐỊA CHỈ: KHU PHỐ LINH XUÂN THỦ ĐỨC THÀNH PHỐ HCM
         <br />
-        Hotline: 0373865627
+        Hotline: 0123456789
         <br />
-        Email: boygioi85@gmail.com
+        Email: nhom3@gmail.com
       </div>
     </div>
   );

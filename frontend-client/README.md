@@ -1,12 +1,81 @@
-# React + Vite
+# Movie Ticket Booking System – Frontend Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the **customer-facing frontend** of the Movie Ticket Booking System, developed using **React + Vite** and styled with **Tailwind CSS**.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Tech Stack
 
-## Expanding the ESLint configuration
+- **React.js** – Frontend library
+- **Vite** – Build & Dev Server
+- **Tailwind CSS** – Styling framework
+- **React Router** – Client-side routing
+- **Axios** – HTTP client for API communication
+- **ESLint** – Linting tool for code quality
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## Project Structure
+
+```
+frontend-client/
+├── public/                  # Static assets
+├── src/
+│   ├── assets/              # Static files (images, fonts, etc.)
+│   ├── Components/          # Reusable UI components
+│   ├── config/              # Configuration constants (e.g. API base URL)
+│   ├── Context/             # React Context for Auth, Cart, etc.
+│   ├── layouts/             # Layout components (e.g. Header, Footer)
+│   ├── pages/               # Route-based components (Home, MovieDetail, etc.)
+│   ├── style/               # Tailwind/custom CSS
+│   ├── utils/               # Helper functions
+│   ├── App.css              # Global app styles
+│   ├── index.css            # Tailwind + base styles
+│   └── main.jsx             # Entry point for React app
+├── db.json                  # Mock API data (optional for dev)
+├── index.html               # HTML template
+├── package.json             # Project dependencies and scripts
+├── tailwind.config.cjs      # TailwindCSS configuration
+├── vite.config.js           # Vite configuration
+└── README.md                # Project documentation
+```
+
+---
+
+## Getting Started
+
+1. **Install dependencies:**
+
+```bash
+npm install
+```
+
+2. **Configure environment variables (if needed):**
+
+> Example `.env`:
+
+```env
+VITE_API_BASE_URL=http://localhost:8080/api
+```
+
+3. **Start the development server:**
+
+```bash
+npm run dev
+```
+
+4. **Build the project for production:**
+
+```bash
+npm run build
+```
+
+---
+
+## Key Features
+
+- Browse movies, showtimes, and book tickets
+- Interactive seat selection UI
+- Auth system with context
+- Checkout and payment UI (Stripe-ready)
+- Booking confirmation and ticket email simulation

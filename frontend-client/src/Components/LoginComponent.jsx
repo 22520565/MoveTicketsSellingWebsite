@@ -7,6 +7,7 @@ const LoginComponent = ({
   title,
   fields,
   isTickRequired = false,
+  defaultValues = {},
   tickLabel = "Lưu mật khẩu đăng nhập",
   links = [],
   buttontitle,
@@ -20,7 +21,10 @@ const LoginComponent = ({
         acc[field.for] = field.value || "";
         return acc;
       }, {});
-      setFormValues(initialValues);
+      setFormValues((prev) => ({
+        ...initialValues,
+        ...defaultValues, // Ưu tiên dữ liệu remember nếu có
+      }));
     }
   }, [fields]);
 
@@ -35,6 +39,15 @@ const LoginComponent = ({
     }));
   };
 
+  useEffect(() => {
+    const savedUsername = localStorage.getItem("rememberedUsername");
+    const savedPassword = localStorage.getItem("rememberedPassword");
+
+    if (savedUsername && savedPassword) {
+      setIsChecked(true);
+    }
+  }, []);
+
   const handleSubmit = () => {
     if (onSubmit) {
       onSubmit(formValues, isChecked);
@@ -43,13 +56,16 @@ const LoginComponent = ({
 
   return (
     <div className="flex items-center w-[500px] ">
-      <div style={{padding:"40px"}}className="bg-white  text-black p-5 rounded-b-lg  w-[600px] shadow-lg">
+      <div
+        style={{ padding: "40px" }}
+        className="bg-white  text-black p-5 rounded-b-lg  w-[600px] shadow-lg"
+      >
         <h1 className="text-center mb-5 text-2xl font-bold">{title}</h1>
 
         {/* Render fields dynamically */}
-        <div style={{gap:"20px"}}className={`grid gap-4  "grid-cols-1"`}>
+        <div style={{ gap: "20px" }} className={`grid gap-4  "grid-cols-1"`}>
           {fields.map((field, index) => (
-            <div  key={index} className="flex flex-col">
+            <div key={index} className="flex flex-col">
               <label htmlFor={field.for} className="block mb-1 font-bold">
                 {field.text}
                 {field.required && <span className="text-red-500"> *</span>}
@@ -113,10 +129,9 @@ const LoginComponent = ({
           gradientTo="#3366CC" /* Gradient end color */
           textColor="#000000" /* Text color */
           hoverTextColor="#FFFFFF" /* Text color on hover */
-          
           text="Đăng nhập"
-          onClick={handleSubmit}          
-          className={"w-full mt-4"}  
+          onClick={handleSubmit}
+          className={"w-full mt-4"}
         />
       </div>
     </div>

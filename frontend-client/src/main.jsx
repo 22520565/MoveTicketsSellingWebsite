@@ -2,6 +2,9 @@ import "./index.css";
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
 import { ToastContainer } from "react-toastify";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import smoothscroll from "smoothscroll-polyfill";
 import { AuthProvider } from "./Context/AuthContext";
 import UpdateDocumentTitle from "./utils/UpdataDocumentTittle";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -25,6 +28,14 @@ import ShowTimePage from "./pages/ShowTimePage/ShowTimePage";
 import FoodPage from "./pages/FoodPage/FootPage";
 import OrderSuccessPage from "./pages/OrderSuccess";
 import OrderFailPage from "./pages/OrderFailed";
+import CheckoutPage from "./pages/FilmDetailPage/CheckoutPage";
+import TestScroll from "./Components/homePage/TestScroll";
+
+smoothscroll.polyfill();
+console.log("Smooth scroll polyfill applied");
+// const stripePromise = loadStripe(
+//   "pk_test_51RSroiFLS9qgPWZTC329aaYLG3kpwxs5dB7cICsPSiZqk58x3DU3X2oYHE4DmiqoeT1g9Sx48CThnIgH9fQ9bEwS00YI7hWxoQ"
+// );
 
 const router = createBrowserRouter([
   {
@@ -35,6 +46,10 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <HomePage />,
+      },
+      {
+        path: "/test-scroll",
+        element: <TestScroll />,
       },
       {
         path: "rule",

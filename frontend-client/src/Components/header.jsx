@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
-import { callSignOut } from "../config/api";
+import { callSignOut, searchFilm } from "../config/api";
 import { toast } from "react-toastify";
 
 import { LuCalendar, LuPopcorn } from "react-icons/lu";
@@ -9,6 +9,8 @@ import { FaRegUserCircle } from "react-icons/fa";
 import { IoMdHelpCircleOutline } from "react-icons/io";
 
 const Header = () => {
+  //Tim phim
+
   const [isMenuOpen, setIsMenuOpen] = useState(false); // Trạng thái hiển thị menu
   const [keyWord, setKeyWord] = useState("");
 
@@ -17,8 +19,17 @@ const Header = () => {
 
   const handleLogout = async () => {
     const response = await callSignOut();
-    if (response.success) {
-      localStorage.clear();
+    if (response) {
+      const rememberedUsername = localStorage.getItem("rememberedUsername");
+      const rememberedPassword = localStorage.getItem("rememberedPassword");
+
+      localStorage.clear(); // Xóa hết
+
+      // Ghi lại thông tin ghi nhớ (nếu có)
+      if (rememberedUsername && rememberedPassword) {
+        localStorage.setItem("rememberedUsername", rememberedUsername);
+        localStorage.setItem("rememberedPassword", rememberedPassword);
+      }
       setUser(null);
       toast.success("Đăng xuất thành công");
       navigate("/auth");
