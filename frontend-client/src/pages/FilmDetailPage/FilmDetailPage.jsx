@@ -356,6 +356,14 @@ const FilmDetailPage = () => {
   const [selectedFilmShowID, setSelectedFilmShowID] = useState(
     initShowTime?.id || null
   );
+
+  useEffect(() => {
+    if (initShowTime?.id) {
+      console.log("initshowtime đã có:", initShowTime.id);
+      setSelectedFilmShowID(initShowTime.id);
+    }
+  }, [initShowTime]);
+
   const [selectedFilmShow, setSelectedFilmShow] = useState(
     initShowTime || null
   );
