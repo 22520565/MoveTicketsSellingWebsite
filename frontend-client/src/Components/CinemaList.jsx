@@ -59,7 +59,7 @@ export default function CinemaScheduleList({
                     <button
                       key={idx}
                       className={`border px-4 py-2 rounded text-base font-semibold transition ${
-                        selectedShowtime.showTime.slice(0, 5) === show.showTime
+                        selectedShowtime?.showTime.slice(0, 5) === show.showTime
                           ? "bg-yellow-400 text-black border-yellow-400"
                           : "border-white hover:bg-yellow-400 hover:text-black"
                       }`}

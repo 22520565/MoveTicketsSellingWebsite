@@ -243,6 +243,8 @@ const FilmDetailPage = () => {
           }
         });
 
+        console.log("shedule: ", schedules);
+
         cinemaSchedules.push({
           address: cinema.address,
           city: cinema.city,
@@ -349,7 +351,7 @@ const FilmDetailPage = () => {
   };
 
   const [selectedFilmShowID, setSelectedFilmShowID] = useState(
-    initShowTime.id || null
+    initShowTime?.id || null
   );
   const [selectedFilmShow, setSelectedFilmShow] = useState(
     initShowTime || null
